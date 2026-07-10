@@ -10,14 +10,16 @@ interface Props {
   delta?: { text: string; tone?: "good" | "bad" | "dim" };
   points?: number[];
   stroke?: string;
+  /** Render without tile chrome (for use inside a grouped cluster). */
+  flat?: boolean;
 }
 
-/** Compact KPI tile with an optional delta badge and sparkline. */
-export function MetricTile({ icon: Icon, label, value, unit, suffix, delta, points, stroke }: Props) {
+/** Compact KPI readout with an optional delta badge and sparkline. */
+export function MetricTile({ icon: Icon, label, value, unit, suffix, delta, points, stroke, flat }: Props) {
   const tone = delta?.tone ?? "good";
   const deltaColor = tone === "bad" ? "var(--bad)" : tone === "dim" ? "var(--faint)" : "var(--good)";
   return (
-    <div className="tile metric">
+    <div className={flat ? "metric metric--flat" : "tile metric"}>
       <div className="metric__head">
         <Icon size={13} />
         <span>{label}</span>

@@ -1,45 +1,45 @@
 :root {
-  /* ---- Surfaces (OLED true-black base, layered elevation) ---- */
+  /* ---- Surfaces (OLED true-black base, restrained elevation) ---- */
   --bg: #000000;
-  --surface-0: #08080a;
-  --surface-1: #0f0f13;
-  --surface-2: #15151b;
-  --surface-3: #1c1c24;
-  --surface-4: #24242e;
+  --surface-0: #090909;
+  --surface-1: #0e0e0f;
+  --surface-2: #141416;
+  --surface-3: #1b1b1e;
+  --surface-4: #242428;
 
-  /* ---- Hairlines ---- */
-  --line: rgba(255, 255, 255, 0.06);
-  --line-2: rgba(255, 255, 255, 0.1);
-  --line-3: rgba(255, 255, 255, 0.14);
+  /* ---- Hairlines (we separate with these, not heavy shadow) ---- */
+  --line: rgba(255, 255, 255, 0.07);
+  --line-2: rgba(255, 255, 255, 0.11);
+  --line-3: rgba(255, 255, 255, 0.16);
 
   /* ---- Text ---- */
-  --text: #f4f5f7;
-  --dim: #9aa0aa;
-  --faint: #585d67;
-  --mute: #3d424b;
+  --text: #f2f3f5;
+  --dim: #9a9ca3;
+  --faint: #62646c;
+  --mute: #3c3e45;
 
-  /* ---- Accent (electric cyan) ---- */
-  --accent: #22d3ee;
-  --accent-2: #38bdf8;
-  --accent-ink: #04171b;
-  --accent-soft: rgba(34, 211, 238, 0.14);
-  --accent-line: rgba(34, 211, 238, 0.28);
-  --accent-glow: rgba(34, 211, 238, 0.45);
+  /* ---- Accent (cyan — used sparingly, like an indicator) ---- */
+  --accent: #34d3ea;
+  --accent-2: #4cc2f0;
+  --accent-ink: #041519;
+  --accent-soft: rgba(52, 211, 234, 0.12);
+  --accent-line: rgba(52, 211, 234, 0.32);
+  --accent-glow: rgba(52, 211, 234, 0.28);
 
   /* ---- Semantics ---- */
-  --good: #34d399;
-  --good-soft: rgba(52, 211, 153, 0.12);
-  --warn: #fbbf24;
-  --warn-soft: rgba(251, 191, 36, 0.12);
-  --bad: #f87171;
-  --bad-soft: rgba(248, 113, 113, 0.12);
+  --good: #3ad19a;
+  --good-soft: rgba(58, 209, 154, 0.11);
+  --warn: #e6b450;
+  --warn-soft: rgba(230, 180, 80, 0.11);
+  --bad: #ec6a6a;
+  --bad-soft: rgba(236, 106, 106, 0.11);
 
   /* ---- Radii ---- */
-  --r-xs: 8px;
-  --r-sm: 10px;
-  --r-md: 14px;
-  --r-lg: 18px;
-  --r-xl: 22px;
+  --r-xs: 7px;
+  --r-sm: 9px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
   --r-full: 999px;
 
   /* ---- Spacing scale ---- */
@@ -52,22 +52,21 @@
   --s-8: 32px;
 
   /* ---- Type ---- */
-  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font: "Geist Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* ---- Elevation (the "3D depth" recipe: inset highlight + hairline ring + soft drop) ---- */
-  --raise: 0 1px 0 0 rgba(255, 255, 255, 0.045) inset, 0 0 0 1px var(--line),
-    0 24px 48px -18px rgba(0, 0, 0, 0.85), 0 8px 20px -10px rgba(0, 0, 0, 0.6);
-  --raise-sm: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 0 0 1px var(--line),
-    0 12px 26px -14px rgba(0, 0, 0, 0.8);
-  --raise-lg: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 0 0 1px var(--line-2),
-    0 40px 80px -24px rgba(0, 0, 0, 0.9), 0 12px 28px -12px rgba(0, 0, 0, 0.7);
-  --inset: inset 0 1px 3px rgba(0, 0, 0, 0.7), inset 0 0 0 1px var(--line);
-  --focus-ring: 0 0 0 1px var(--bg), 0 0 0 3px var(--accent-line);
+  /* ---- Elevation — subtle & hierarchical.
+         Flat surfaces read via hairline + faint ambient; only overlays truly float. ---- */
+  --raise: 0 0 0 1px var(--line), 0 1px 1px rgba(0, 0, 0, 0.4), 0 12px 28px -22px rgba(0, 0, 0, 0.9);
+  --raise-sm: 0 0 0 1px var(--line), 0 1px 2px rgba(0, 0, 0, 0.5);
+  --raise-lg: 0 0 0 1px var(--line-2), 0 28px 64px -22px rgba(0, 0, 0, 0.86),
+    0 10px 24px -14px rgba(0, 0, 0, 0.6);
+  --inset: inset 0 1px 2px rgba(0, 0, 0, 0.55), inset 0 0 0 1px var(--line);
+  --focus-ring: 0 0 0 1px var(--bg), 0 0 0 2px var(--accent-line);
 
   /* ---- Motion ---- */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur: 0.18s;
+  --dur: 0.16s;
 
   /* ---- Z ---- */
   --z-drawer: 40;

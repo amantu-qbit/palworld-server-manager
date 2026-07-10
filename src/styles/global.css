@@ -17,17 +17,15 @@ body,
 }
 
 body {
-  background:
-    radial-gradient(1200px 620px at 82% -10%, rgba(34, 211, 238, 0.05), transparent 60%),
-    radial-gradient(900px 520px at -5% 108%, rgba(56, 189, 248, 0.04), transparent 55%),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.5;
-  letter-spacing: 0.1px;
+  letter-spacing: -0.05px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "cv01", "ss01";
   overflow: hidden; /* app manages its own scroll regions */
 }
 

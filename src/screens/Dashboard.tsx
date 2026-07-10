@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { Activity, Clock, Megaphone, Power, Save, Timer, TriangleAlert, Users, Zap } from "lucide-react";
+import { ArrowUpRight, Clock, Megaphone, Power, Save, Timer, TriangleAlert, Users, Zap } from "lucide-react";
 import { TopBar } from "../components/TopBar";
 import { Gauge } from "../components/Gauge";
 import { MetricTile } from "../components/MetricTile";
 import { StatusPill } from "../components/StatusPill";
+import { Sparkline } from "../components/Sparkline";
 import { Skeleton } from "../components/Skeleton";
 import { EmptyState } from "../components/EmptyState";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import type { ConfirmSpec } from "../components/ConfirmDialog";
-import { useInfo, useMetrics, useSettings } from "../hooks/queries";
+import { useInfo, useMetrics, usePlayers, useSettings } from "../hooks/queries";
 import { formatMs, formatUptime } from "../lib/format";
 import { api } from "../api";
 import { useToast } from "../hooks/useToast";
@@ -24,6 +25,7 @@ export function Dashboard() {
   const info = useInfo();
   const metrics = useMetrics();
   const settings = useSettings();
+  const players = usePlayers();
   const toast = useToast();
   const { navigate } = useNav();
   const [confirm, setConfirm] = useState<ConfirmSpec | null>(null);
@@ -50,6 +52,8 @@ export function Dashboard() {
 
   const s = settings.data;
   const healthy = (m?.serverfps ?? 0) >= 45;
+  const roster = [...(players.data ?? [])].sort((a, b) => b.level - a.level).slice(0, 5);
+  const capacity = m ? Math.round((m.currentplayernum / m.maxplayernum) * 100) : 0;
 
   return (
     <>
@@ -76,7 +80,7 @@ export function Dashboard() {
                   )}
                   <div className="hero__meta">
                     {m ? (
-                      <StatusPill tone={healthy ? "good" : "warn"} label={healthy ? "ONLINE · HEALTHY" : "ONLINE · STRAINED"} pulse />
+                      <StatusPill tone={healthy ? "good" : "warn"} label={healthy ? "Online" : "Strained"} pulse />
                     ) : (
                       <Skeleton width={150} height={26} radius="var(--r-full)" />
                     )}
@@ -148,9 +152,10 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Metric tiles */}
-            <div className="tiles-4">
+            {/* Metric cluster — one instrument panel, hairline-divided */}
+            <div className="card metric-cluster">
               <MetricTile
+                flat
                 icon={Users}
                 label="Players"
                 value={m ? m.currentplayernum : "—"}
@@ -158,8 +163,9 @@ export function Dashboard() {
                 points={hist.players}
                 stroke="var(--accent)"
               />
-              <MetricTile icon={Clock} label="Uptime" value={m ? formatUptime(m.uptime) : "—"} points={undefined} />
+              <MetricTile flat icon={Clock} label="Uptime" value={m ? formatUptime(m.uptime) : "—"} />
               <MetricTile
+                flat
                 icon={Timer}
                 label="Frame Time"
                 value={m ? formatMs(m.serverframetime) : "—"}
@@ -168,6 +174,7 @@ export function Dashboard() {
                 stroke="var(--accent-2)"
               />
               <MetricTile
+                flat
                 icon={Zap}
                 label="Server FPS"
                 value={m ? Math.round(m.serverfps) : "—"}
@@ -177,14 +184,45 @@ export function Dashboard() {
               />
             </div>
 
-            <div className="section-head">
-              <h2 className="row" style={{ gap: 8 }}>
-                <Activity size={16} style={{ color: "var(--accent)" }} /> Live snapshot
-              </h2>
-            </div>
-            <div className="card card--pad" style={{ color: "var(--dim)", fontSize: 13 }}>
-              Metrics refresh automatically. Use the World Map for a live view of every player and Pal, or the Console to
-              broadcast, save, or schedule a shutdown.
+            <div className="dash-lower">
+              {/* Population */}
+              <div className="card card--pad dash-pop">
+                <div className="between row">
+                  <div className="eyebrow">Population</div>
+                  <span className="mono dash-pop__cap">{capacity}% full</span>
+                </div>
+                <div className="dash-pop__figure mono">
+                  {m ? m.currentplayernum : "—"}
+                  <small>/ {m?.maxplayernum ?? "—"} online</small>
+                </div>
+                <div className="dash-pop__chart">
+                  <Sparkline points={hist.players.length > 1 ? hist.players : [0, 0]} height={72} stroke="var(--accent)" />
+                </div>
+              </div>
+
+              {/* Roster preview */}
+              <div className="card card--pad dash-roster">
+                <div className="between row" style={{ marginBottom: 4 }}>
+                  <div className="eyebrow">Top players</div>
+                  <button className="dash-link" onClick={() => navigate("players")}>
+                    All players <ArrowUpRight size={13} />
+                  </button>
+                </div>
+                {roster.length === 0 ? (
+                  <div className="dash-roster__empty">No players online.</div>
+                ) : (
+                  <ul className="roster">
+                    {roster.map((p, i) => (
+                      <li className="roster__row" key={p.playerId}>
+                        <span className="roster__rank mono">{i + 1}</span>
+                        <span className="roster__name">{p.name}</span>
+                        <span className="roster__lvl mono">Lv {p.level}</span>
+                        <span className="roster__ping mono">{p.ping}ms</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </>
         )}
