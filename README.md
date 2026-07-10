@@ -11,17 +11,17 @@ Palworld Server Manager gives server admins a fast, friendly, and secure way to 
 
 ## Screenshots
 
-> Screenshots render here once you add the image files under `docs/screenshots/`.
+> Drop your own captures into `docs/screenshots/` and uncomment the block below — the filenames are already wired up. Run `npm run tauri dev` (or the installed app) and grab shots of each screen.
 
+<!--
 ![Real-time dashboard showing server FPS, uptime, players online, and frame time](docs/screenshots/dashboard.png)
-
 ![Player management panel listing connected players with kick, ban, and unban controls](docs/screenshots/players.png)
-
 ![Live world map plotting the positions of every player and Pal](docs/screenshots/world-map.png)
-
 ![Server settings inspector with search and export tools](docs/screenshots/settings.png)
-
 ![Command console for announcements, saves, and scheduled shutdowns](docs/screenshots/console.png)
+-->
+
+The interface is a sleek OLED-dark control room: a real-time **Dashboard** (server FPS dial, uptime, population, top players), a searchable **Players** roster with kick/ban/unban, a live **World Map** radar of every player and Pal, a **Console** for announcements, saves, and shutdowns, a full **Settings** inspector, and a **Ban Manager**.
 
 ## Features
 
