@@ -156,6 +156,9 @@ Any server where you can enable the REST API and reach its port works — self�
 **Can I edit settings from the app?**
 Not yet — the REST API is read‑only for settings, so the Settings screen is a rich inspector + export. Direct `PalWorldSettings.ini` editing is on the roadmap.
 
+**The World Map only shows players, or says the GameData API is off — why?**
+The full world snapshot (`/game-data`, which includes Pals) is gated behind the server's **GameData API** — a separate feature from `RESTAPIEnabled`, off by default. Until it's enabled, the map falls back to plotting **players** (whose coordinates come from `/players`). Enable the GameData API on your server to see every Pal.
+
 **Is the world map complete with the new islands?**
 It shows the base Palpagos world (where nearly all live server activity happens) with correct coordinates. Multi‑region maps (Sakurajima / Feybreak) are a roadmap item.
 

@@ -1,11 +1,11 @@
 import "./worldmap.css";
 import { useMemo, useState } from "react";
-import { TriangleAlert } from "lucide-react";
+import { Info, TriangleAlert } from "lucide-react";
 import { TopBar } from "../components/TopBar";
 import { EmptyState } from "../components/EmptyState";
 import { Skeleton } from "../components/Skeleton";
 import { WorldMapView } from "../components/WorldMapView";
-import { useGameData } from "../hooks/queries";
+import { useGameData, usePlayers } from "../hooks/queries";
 import { worldToPaldex } from "../lib/mapProject";
 import type { Actor } from "../types/api";
 
@@ -24,16 +24,37 @@ const UNIT_TYPES: UnitDef[] = [
 ];
 
 export function WorldMap() {
-  const q = useGameData();
-  const data = q.data;
+  const gd = useGameData();
+  const playersQ = usePlayers();
   const [hover, setHover] = useState<Actor | null>(null);
   const [visible, setVisible] = useState<Set<string>>(() => new Set(UNIT_TYPES.map((u) => u.type)));
 
+  const snapshot = gd.data ?? null;
+  // When /game-data is unavailable (e.g. the GameData API isn't enabled on the
+  // server), fall back to plotting just players — /players carries their coords.
+  const fallback = !snapshot;
+
+  const actors: Actor[] = useMemo(() => {
+    if (snapshot) return snapshot.ActorData;
+    return (playersQ.data ?? []).map((p) => ({
+      Type: "Character",
+      InstanceID: p.playerId,
+      UnitType: "Player",
+      NickName: p.name,
+      userid: p.userId,
+      ip: p.ip,
+      level: p.level,
+      LocationX: p.location_x,
+      LocationY: p.location_y,
+      LocationZ: 0,
+    }));
+  }, [snapshot, playersQ.data]);
+
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const a of data?.ActorData ?? []) c[a.UnitType] = (c[a.UnitType] ?? 0) + 1;
+    for (const a of actors) c[a.UnitType] = (c[a.UnitType] ?? 0) + 1;
     return c;
-  }, [data]);
+  }, [actors]);
 
   const toggle = (type: string) =>
     setVisible((prev) => {
@@ -45,21 +66,33 @@ export function WorldMap() {
 
   const coords = hover ? worldToPaldex(hover.LocationX, hover.LocationY) : null;
 
+  const loading = fallback ? playersQ.isLoading && !playersQ.data : false;
+  const errored = fallback && playersQ.isError && !playersQ.data;
+
   return (
     <>
-      <TopBar breadcrumb="Overview" title="World Map" showLive onRefresh={() => q.refetch()} refreshing={q.isFetching} />
+      <TopBar
+        breadcrumb="Overview"
+        title="World Map"
+        showLive
+        onRefresh={() => {
+          gd.refetch();
+          playersQ.refetch();
+        }}
+        refreshing={gd.isFetching || playersQ.isFetching}
+      />
       <div className="page">
-        {q.isError ? (
+        {errored ? (
           <EmptyState
             icon={TriangleAlert}
             tone="error"
-            title="Couldn’t load the world snapshot"
+            title="Couldn’t load the world map"
             detail={
-              (q.error instanceof Error && q.error.message) ||
-              "The /game-data endpoint didn’t respond. It can be slow on busy servers, or unsupported on older builds."
+              (playersQ.error instanceof Error && playersQ.error.message) ||
+              "The server didn’t respond. Check that it’s running and the REST API is enabled."
             }
           />
-        ) : q.isLoading && !data ? (
+        ) : loading ? (
           <div className="wm-grid">
             <div className="card">
               <Skeleton style={{ width: "100%", height: "auto", aspectRatio: "1 / 1", borderRadius: "var(--r-lg)" }} />
@@ -69,37 +102,45 @@ export function WorldMap() {
                 <Skeleton width={90} height={12} />
                 <Skeleton height={54} radius="var(--r-sm)" style={{ marginTop: 14 }} />
               </div>
-              <div className="card card--pad">
-                <Skeleton width={70} height={12} />
-                <Skeleton height={172} radius="var(--r-sm)" style={{ marginTop: 14 }} />
-              </div>
             </div>
           </div>
-        ) : data ? (
+        ) : (
           <div className="wm-grid">
             {/* Map */}
             <div className="card wm-map-card">
-              <WorldMapView actors={data.ActorData} visible={visible} onHover={setHover} />
+              <WorldMapView actors={actors} visible={visible} onHover={setHover} />
               <div className="wm-attrib">Map artwork © Pocketpair, Inc. · scroll to zoom, drag to pan</div>
             </div>
 
             <div className="wm-side">
-              {/* Snapshot */}
-              <div className="card card--pad">
-                <div className="eyebrow" style={{ marginBottom: 12 }}>
-                  Snapshot
+              {fallback && (
+                <div className="wm-hint">
+                  <Info size={15} />
+                  <div>
+                    <b>Showing players only.</b> The server’s GameData API is off, so Pals aren’t
+                    available. Enable it on your server to see every Pal on the map.
+                  </div>
                 </div>
-                <div className="kv">
-                  <span className="kv__k">Time</span>
-                  <span className="kv__v">{data.Time}</span>
-                  <span className="kv__k">FPS</span>
-                  <span className="kv__v">{Math.round(data.FPS)}</span>
-                  <span className="kv__k">Average FPS</span>
-                  <span className="kv__v">{Math.round(data.AverageFPS)}</span>
-                  <span className="kv__k">Actors</span>
-                  <span className="kv__v">{data.ActorData.length}</span>
+              )}
+
+              {/* Snapshot (only when the full game-data snapshot is available) */}
+              {snapshot && (
+                <div className="card card--pad">
+                  <div className="eyebrow" style={{ marginBottom: 12 }}>
+                    Snapshot
+                  </div>
+                  <div className="kv">
+                    <span className="kv__k">Time</span>
+                    <span className="kv__v">{snapshot.Time}</span>
+                    <span className="kv__k">FPS</span>
+                    <span className="kv__v">{Math.round(snapshot.FPS)}</span>
+                    <span className="kv__k">Average FPS</span>
+                    <span className="kv__v">{Math.round(snapshot.AverageFPS)}</span>
+                    <span className="kv__k">Actors</span>
+                    <span className="kv__v">{snapshot.ActorData.length}</span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Filters */}
               <div className="card card--pad">
@@ -175,7 +216,7 @@ export function WorldMap() {
               </div>
             </div>
           </div>
-        ) : null}
+        )}
       </div>
     </>
   );
