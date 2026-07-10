@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { Connection } from "../types/api";
-import { api, isTauri } from "../api";
+import { api, isTauri, setDemoMode } from "../api";
 
 const STORAGE_KEY = "psm.connection";
 
@@ -10,8 +10,10 @@ interface ConnectionState {
   connection: Connection | null;
   connected: boolean;
   connecting: boolean;
-  /** Test + establish a connection. Persists on success. */
-  connect: (c: Connection) => Promise<{ ok: boolean; message?: string }>;
+  /** True when the current session is showing built-in demo data. */
+  demo: boolean;
+  /** Test + establish a connection. Persists on success. Pass {demo:true} for sample data. */
+  connect: (c: Connection, opts?: { demo?: boolean }) => Promise<{ ok: boolean; message?: string }>;
   /** Test without establishing (for the "Test connection" button). */
   test: (c: Connection) => Promise<{ ok: boolean; message?: string }>;
   disconnect: () => void;
@@ -37,27 +39,37 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
   const [remembered, setRemembered] = useState<Connection>(load);
   const [connection, setConnection] = useState<Connection | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [demo, setDemo] = useState(false);
 
   const test = useCallback(async (c: Connection) => {
+    setDemoMode(false);
     return api.testConnection(c);
   }, []);
 
-  const connect = useCallback(async (c: Connection) => {
+  const connect = useCallback(async (c: Connection, opts?: { demo?: boolean }) => {
+    const demoOn = !!opts?.demo;
     setConnecting(true);
     try {
+      setDemoMode(demoOn);
       const res = await api.testConnection(c);
-      if (!res.ok) return res;
-      // In the desktop app, hand the credentials to the Rust backend so
+      if (!res.ok) {
+        setDemoMode(false);
+        return res;
+      }
+      // In the desktop app, hand real credentials to the Rust backend so
       // subsequent commands are authenticated.
-      if (isTauri()) {
+      if (isTauri() && !demoOn) {
         await invoke("save_connection", { host: c.host, port: c.port, password: c.password });
       }
+      setDemo(demoOn);
       setConnection(c);
-      setRemembered(c);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
-      } catch {
-        /* ignore */
+      if (!demoOn) {
+        setRemembered(c);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
+        } catch {
+          /* ignore */
+        }
       }
       return { ok: true };
     } finally {
@@ -66,6 +78,8 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const disconnect = useCallback(() => {
+    setDemoMode(false);
+    setDemo(false);
     setConnection(null);
   }, []);
 
@@ -83,12 +97,13 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       connection,
       connected: connection !== null,
       connecting,
+      demo,
       connect,
       test,
       disconnect,
       remembered,
     }),
-    [connection, connecting, connect, test, disconnect, remembered],
+    [connection, connecting, demo, connect, test, disconnect, remembered],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

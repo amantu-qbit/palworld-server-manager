@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, Loader2, Plug, ShieldAlert, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, PlayCircle, Plug, ShieldAlert, XCircle } from "lucide-react";
 import { Button } from "../components/Button";
 import { Field, Input } from "../components/Field";
 import { isTauri } from "../api";
@@ -7,12 +7,12 @@ import { useConnection } from "../store/connection";
 
 export function Connect() {
   const { connect, test, connecting, remembered } = useConnection();
-  const demo = !isTauri();
 
   const [host, setHost] = useState(remembered.host);
   const [port, setPort] = useState(String(remembered.port));
-  const [password, setPassword] = useState(remembered.password || (demo ? "demo" : ""));
+  const [password, setPassword] = useState(remembered.password);
   const [testing, setTesting] = useState(false);
+  const [demoing, setDemoing] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message?: string } | null>(null);
 
   const conn = () => ({ host: host.trim(), port: Number(port) || 8212, password });
@@ -31,6 +31,16 @@ export function Connect() {
     setResult(null);
     const res = await connect(conn());
     if (!res.ok) setResult(res);
+  };
+
+  const onDemo = async () => {
+    setDemoing(true);
+    setResult(null);
+    try {
+      await connect({ host: "demo", port: 8212, password: "demo" }, { demo: true });
+    } finally {
+      setDemoing(false);
+    }
   };
 
   return (
@@ -53,13 +63,7 @@ export function Connect() {
         >
           <div className="connect__ports">
             <Field label="Host">
-              <Input
-                value={host}
-                onChange={(e) => setHost(e.target.value)}
-                placeholder="localhost"
-                mono
-                autoFocus
-              />
+              <Input value={host} onChange={(e) => setHost(e.target.value)} placeholder="localhost or LAN IP" mono autoFocus />
             </Field>
             <Field label="Port">
               <Input value={port} onChange={(e) => setPort(e.target.value)} placeholder="8212" mono inputMode="numeric" />
@@ -88,19 +92,23 @@ export function Connect() {
               {testing ? <Loader2 size={16} className="spin" /> : null}
               Test
             </Button>
-            <Button type="submit" variant="primary" block loading={connecting}>
+            <Button type="submit" variant="primary" block loading={connecting && !demoing}>
               <Plug size={16} />
               Connect
             </Button>
           </div>
         </form>
 
+        <button className="connect__demo" onClick={onDemo} disabled={connecting}>
+          {demoing ? <Loader2 size={14} className="spin" /> : <PlayCircle size={14} />}
+          Explore with demo data
+        </button>
+
         <div className="connect__note">
           <ShieldAlert size={14} />
           <span>
-            {demo
-              ? "Demo mode — no server needed. Any password connects to sample data."
-              : "The REST API is intended for LAN use. Avoid exposing it directly to the internet."}
+            The REST API is intended for LAN use — avoid exposing it directly to the internet.
+            {!isTauri() && " In the browser, requests route through the local dev proxy; the desktop app connects natively."}
           </span>
         </div>
       </div>

@@ -39,7 +39,7 @@ const SCREENS: Record<string, ComponentType> = {
 };
 
 export function App() {
-  const { connected, connection, disconnect } = useConnection();
+  const { connected, connection, disconnect, demo } = useConnection();
   const [active, setActive] = useState("dashboard");
 
   if (!connected || !connection) return <Connect />;
@@ -53,8 +53,9 @@ export function App() {
           items={NAV}
           active={active}
           onSelect={setActive}
-          host={`${connection.host}:${connection.port}`}
+          host={demo ? "Demo data" : `${connection.host}:${connection.port}`}
           connected
+          demo={demo}
           onDisconnect={disconnect}
         />
         <div className="main">

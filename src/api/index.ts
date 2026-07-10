@@ -9,11 +9,13 @@ import type {
 } from "../types/api";
 import { mockApi } from "./mock";
 import { tauriApi } from "./tauri";
+import { httpApi } from "./http";
 
 /**
- * The single surface every screen talks to. Two implementations exist:
- *  - `tauriApi`  — real; calls Rust commands that perform HTTP Basic-auth requests.
- *  - `mockApi`   — realistic fixtures; powers browser dev/preview with no backend.
+ * The single surface every screen talks to. Three implementations exist:
+ *  - `tauriApi` — real; Rust commands do the HTTP Basic-auth request (desktop app).
+ *  - `httpApi`  — real; browser build talks to a real server via the Vite dev proxy.
+ *  - `mockApi`  — realistic demo data, used only when the user opts into demo mode.
  */
 export interface PalworldApi {
   testConnection(c: Connection): Promise<ActionResult>;
@@ -31,14 +33,40 @@ export interface PalworldApi {
   forceStop(): Promise<ActionResult>;
 }
 
-/** True when running inside the Tauri webview (vs a plain browser). */
+/** True when running inside the Tauri desktop webview (vs a plain browser). */
 export function isTauri(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  if (typeof window === "undefined") return false;
+  return "__TAURI_INTERNALS__" in window || "__TAURI__" in window || "__TAURI_METADATA__" in window;
 }
 
-/** Pick the real backend inside the app, the mock everywhere else. */
-export function selectApi(): PalworldApi {
-  return isTauri() ? tauriApi : mockApi;
+let demoMode = false;
+/** Switch between real server and built-in demo data. */
+export function setDemoMode(v: boolean) {
+  demoMode = v;
+}
+export function isDemoMode(): boolean {
+  return demoMode;
 }
 
-export const api = selectApi();
+/** The adapter that should handle calls right now. */
+export function activeApi(): PalworldApi {
+  if (demoMode) return mockApi;
+  return isTauri() ? tauriApi : httpApi;
+}
+
+/** Stable facade: every call is delegated to the currently active adapter. */
+export const api: PalworldApi = {
+  testConnection: (c) => activeApi().testConnection(c),
+  getInfo: () => activeApi().getInfo(),
+  getMetrics: () => activeApi().getMetrics(),
+  getPlayers: () => activeApi().getPlayers(),
+  getSettings: () => activeApi().getSettings(),
+  getGameData: () => activeApi().getGameData(),
+  announce: (m) => activeApi().announce(m),
+  kick: (u, m) => activeApi().kick(u, m),
+  ban: (u, m) => activeApi().ban(u, m),
+  unban: (u) => activeApi().unban(u),
+  saveWorld: () => activeApi().saveWorld(),
+  shutdown: (w, m) => activeApi().shutdown(w, m),
+  forceStop: () => activeApi().forceStop(),
+};
