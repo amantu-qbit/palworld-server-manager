@@ -7,15 +7,13 @@ import type {
   ServerInfo,
   Settings,
 } from "../types/api";
-import { mockApi } from "./mock";
 import { tauriApi } from "./tauri";
 import { httpApi } from "./http";
 
 /**
- * The single surface every screen talks to. Three implementations exist:
- *  - `tauriApi` — real; Rust commands do the HTTP Basic-auth request (desktop app).
- *  - `httpApi`  — real; browser build talks to a real server via the Vite dev proxy.
- *  - `mockApi`  — realistic demo data, used only when the user opts into demo mode.
+ * The single surface every screen talks to. Two real implementations exist:
+ *  - `tauriApi` — Rust commands do the HTTP Basic-auth request (desktop app).
+ *  - `httpApi`  — browser build talks to a real server via the Vite dev proxy.
  */
 export interface PalworldApi {
   testConnection(c: Connection): Promise<ActionResult>;
@@ -39,34 +37,4 @@ export function isTauri(): boolean {
   return "__TAURI_INTERNALS__" in window || "__TAURI__" in window || "__TAURI_METADATA__" in window;
 }
 
-let demoMode = false;
-/** Switch between real server and built-in demo data. */
-export function setDemoMode(v: boolean) {
-  demoMode = v;
-}
-export function isDemoMode(): boolean {
-  return demoMode;
-}
-
-/** The adapter that should handle calls right now. */
-export function activeApi(): PalworldApi {
-  if (demoMode) return mockApi;
-  return isTauri() ? tauriApi : httpApi;
-}
-
-/** Stable facade: every call is delegated to the currently active adapter. */
-export const api: PalworldApi = {
-  testConnection: (c) => activeApi().testConnection(c),
-  getInfo: () => activeApi().getInfo(),
-  getMetrics: () => activeApi().getMetrics(),
-  getPlayers: () => activeApi().getPlayers(),
-  getSettings: () => activeApi().getSettings(),
-  getGameData: () => activeApi().getGameData(),
-  announce: (m) => activeApi().announce(m),
-  kick: (u, m) => activeApi().kick(u, m),
-  ban: (u, m) => activeApi().ban(u, m),
-  unban: (u) => activeApi().unban(u),
-  saveWorld: () => activeApi().saveWorld(),
-  shutdown: (w, m) => activeApi().shutdown(w, m),
-  forceStop: () => activeApi().forceStop(),
-};
+export const api: PalworldApi = isTauri() ? tauriApi : httpApi;

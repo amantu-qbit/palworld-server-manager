@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, Loader2, PlayCircle, Plug, ShieldAlert, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Plug, ShieldAlert, XCircle } from "lucide-react";
 import { Button } from "../components/Button";
 import { Field, Input } from "../components/Field";
 import { isTauri } from "../api";
@@ -12,7 +12,6 @@ export function Connect() {
   const [port, setPort] = useState(String(remembered.port));
   const [password, setPassword] = useState(remembered.password);
   const [testing, setTesting] = useState(false);
-  const [demoing, setDemoing] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message?: string } | null>(null);
 
   const conn = () => ({ host: host.trim(), port: Number(port) || 8212, password });
@@ -31,16 +30,6 @@ export function Connect() {
     setResult(null);
     const res = await connect(conn());
     if (!res.ok) setResult(res);
-  };
-
-  const onDemo = async () => {
-    setDemoing(true);
-    setResult(null);
-    try {
-      await connect({ host: "demo", port: 8212, password: "demo" }, { demo: true });
-    } finally {
-      setDemoing(false);
-    }
   };
 
   return (
@@ -92,17 +81,12 @@ export function Connect() {
               {testing ? <Loader2 size={16} className="spin" /> : null}
               Test
             </Button>
-            <Button type="submit" variant="primary" block loading={connecting && !demoing}>
+            <Button type="submit" variant="primary" block loading={connecting}>
               <Plug size={16} />
               Connect
             </Button>
           </div>
         </form>
-
-        <button className="connect__demo" onClick={onDemo} disabled={connecting}>
-          {demoing ? <Loader2 size={14} className="spin" /> : <PlayCircle size={14} />}
-          Explore with demo data
-        </button>
 
         <div className="connect__note">
           <ShieldAlert size={14} />

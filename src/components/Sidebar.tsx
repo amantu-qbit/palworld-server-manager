@@ -14,11 +14,10 @@ interface Props {
   onSelect: (id: string) => void;
   host: string;
   connected: boolean;
-  demo?: boolean;
   onDisconnect: () => void;
 }
 
-export function Sidebar({ items, active, onSelect, host, connected, demo, onDisconnect }: Props) {
+export function Sidebar({ items, active, onSelect, host, connected, onDisconnect }: Props) {
   const groups = items.reduce<Record<string, NavItem[]>>((acc, it) => {
     (acc[it.group] ??= []).push(it);
     return acc;
@@ -58,10 +57,10 @@ export function Sidebar({ items, active, onSelect, host, connected, demo, onDisc
 
       <div className="sidebar__foot">
         <div className="sidebar__conn">
-          <span className="chip__dot" style={{ color: demo ? "var(--warn)" : connected ? "var(--good)" : "var(--faint)" }} />
+          <span className="chip__dot" style={{ color: connected ? "var(--good)" : "var(--faint)" }} />
           <div className="sidebar__connmeta">
             <b className="mono">{host}</b>
-            <small>{demo ? "Sample data" : connected ? "Connected" : "Offline"}</small>
+            <small>{connected ? "Connected" : "Offline"}</small>
           </div>
           <button className="icobtn" onClick={onDisconnect} aria-label="Disconnect" title="Disconnect">
             <LogOut size={15} />

@@ -1,124 +1,187 @@
+<div align="center">
+
 # Palworld Server Manager
 
-A modern, open-source desktop control panel for your Palworld dedicated server, built with Tauri v2 and React and powered by the official Palworld REST API — a lightweight, native Windows app for monitoring, administering, and managing your server in real time.
+**A modern, open-source desktop control panel for your Palworld dedicated server.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078D6.svg)](#download--install)
+Monitor, administer, and manage your world in real time — from a sleek OLED‑dark control room that installs in seconds and keeps your credentials on your own machine.
+
+[![Release](https://img.shields.io/github/v/release/amantu-qbit/palworld-server-manager?include_prereleases&label=download&color=22d3ee)](https://github.com/amantu-qbit/palworld-server-manager/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3ad19a.svg)](LICENSE)
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078D6.svg)](#-download--install)
 [![Built with Tauri](https://img.shields.io/badge/Built%20with-Tauri%20v2-24C8DB.svg)](https://tauri.app)
 [![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://react.dev)
+[![CI](https://github.com/amantu-qbit/palworld-server-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/amantu-qbit/palworld-server-manager/actions)
 
-Palworld Server Manager gives server admins a fast, friendly, and secure way to keep an eye on their world, manage players, and run administrative commands — all from a sleek OLED dark interface that installs in seconds and keeps your credentials on your own machine.
+![Palworld Server Manager dashboard — server FPS gauge, uptime, players online, frame time, population, and top players](docs/screenshots/dashboard.png)
 
-## Screenshots
+</div>
 
-> Drop your own captures into `docs/screenshots/` and uncomment the block below — the filenames are already wired up. Run `npm run tauri dev` (or the installed app) and grab shots of each screen.
+---
 
-<!--
-![Real-time dashboard showing server FPS, uptime, players online, and frame time](docs/screenshots/dashboard.png)
-![Player management panel listing connected players with kick, ban, and unban controls](docs/screenshots/players.png)
-![Live world map plotting the positions of every player and Pal](docs/screenshots/world-map.png)
-![Server settings inspector with search and export tools](docs/screenshots/settings.png)
-![Command console for announcements, saves, and scheduled shutdowns](docs/screenshots/console.png)
--->
+## Contents
 
-The interface is a sleek OLED-dark control room: a real-time **Dashboard** (server FPS dial, uptime, population, top players), a searchable **Players** roster with kick/ban/unban, a live **World Map** radar of every player and Pal, a **Console** for announcements, saves, and shutdowns, a full **Settings** inspector, and a **Ban Manager**.
+- [Why](#-why)
+- [Features](#-features)
+- [Screens](#-screens)
+- [Download & Install](#-download--install)
+- [Enable the REST API on your server](#-enable-the-rest-api-on-your-server)
+- [Connect](#-connect)
+- [Build from source](#-build-from-source)
+- [How it works](#-how-it-works)
+- [Security](#-security)
+- [FAQ](#-faq)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [Credits & attribution](#-credits--attribution)
+- [License](#-license)
 
-## Features
+## ✨ Why
 
-- **Real-time dashboard** — monitor server FPS, uptime, players online, and frame time at a glance, with metrics refreshing live.
-- **Live world map** — plot the position of every player and every Pal on an interactive map that updates as your world changes.
-- **Player management** — view connected players and instantly **kick**, **ban**, or **unban** anyone with a single click.
-- **Command console** — send server **announcements**, trigger a **save**, schedule a **shutdown**, or issue a **force stop** without touching the terminal.
-- **Full server settings inspector** — browse every server option with instant **search** and one-click **export** for backups and documentation.
-- **Sleek OLED dark UI** — a clean, high-contrast interface designed to be easy on the eyes during long admin sessions.
-- **Tiny native installer** — a lightweight Tauri build with a small footprint and near-instant startup, not a bulky bundled browser.
-- **Credentials stay on your machine** — your admin password is stored locally and sent only to the server you connect to.
+Managing a Palworld dedicated server usually means editing `.ini` files, memorizing RCON commands, or squinting at a terminal. **Palworld Server Manager** turns all of that into a fast, friendly desktop app that talks to your server's official **REST API** — so you can watch performance, manage players, and run admin commands with a click.
 
-## Screens
+It's a tiny native app (a few MB, powered by [Tauri](https://tauri.app) — not a bundled browser), starts instantly, and never sends your admin password anywhere except the server you point it at.
 
-- **Dashboard** — the at-a-glance command center for server health: FPS, uptime, players online, and frame time.
-- **Players** — a live roster of everyone connected, with quick kick, ban, and unban actions.
-- **World Map** — a real-time map plotting every player and Pal across your world.
-- **Console** — a command hub for announcements, saves, scheduled shutdowns, and force stops.
-- **Settings** — a searchable, exportable inspector for every server setting exposed by the REST API.
-- **Ban Manager** — review your banned player list and lift bans whenever you're ready.
+## 🚀 Features
 
-## Download & Install
+- **📊 Real‑time dashboard** — server FPS on an animated instrument dial, uptime, players online, frame time, a live population trend, and a top‑players board. Everything refreshes on an interval you control.
+- **🗺️ Live world map** — every player and Pal plotted on the actual Palpagos map by their in‑game coordinates, with pan, crisp zoom, per‑type filters (players / wild / base / otomo / NPC), and hover details.
+- **👥 Player management** — a searchable, sortable roster with color‑coded ping; open any player to **kick**, **ban**, or **unban** with a typed‑confirmation safety gate.
+- **🖥️ Command console** — broadcast **announcements**, trigger a **save**, schedule a **shutdown** with a countdown, or **force‑stop** — each with a live activity log and confirmations for destructive actions.
+- **⚙️ Settings inspector** — browse all ~60 server settings, grouped and searchable, with one‑click copy and **JSON export** for backups.
+- **🛡️ Ban manager** — issue and lift bans by user ID, with a local record of everything you've banned through the app.
+- **🌑 Sleek OLED UI** — a high‑contrast, control‑room aesthetic that's easy on the eyes during long admin sessions.
+- **🔒 Local & private** — your credentials are stored on your machine and sent only to your server; nothing is phoned home.
 
-1. Head to the **Releases page** and download the latest **`.msi`** or **`.exe`** installer.
-2. Run the installer and follow the prompts. WebView2 is preinstalled on Windows 11, so there's nothing extra to set up.
-3. Because release builds may be unsigned, Windows **SmartScreen** might warn you the first time. Click **"More info"**, then **"Run anyway"** to continue.
+<div align="center">
 
-## Enable the REST API on your server
+![Live world map plotting every player and Pal on the Palpagos islands, with filters and a snapshot panel](docs/screenshots/world-map.png)
 
-Palworld Server Manager talks to your server through the official Palworld REST API, which is off by default. Enable it in your server's `PalWorldSettings.ini` file, under the `[/Script/Pal.PalGameWorldSettings]` section, inside the `OptionSettings` line:
+*The World Map plots live positions from `/game-data` onto the real Palpagos map — pan, zoom, and filter by unit type.*
+
+</div>
+
+## 🖼️ Screens
+
+| Players | Console |
+| :--: | :--: |
+| ![Players roster with kick, ban, and unban controls](docs/screenshots/players.png) | ![Command console for announcements, saves, and scheduled shutdowns](docs/screenshots/console.png) |
+| **Players** — live roster, search & sort, per‑player actions. | **Console** — announce, save, shutdown & force‑stop with an activity log. |
+
+<div align="center">
+
+![Server settings inspector with search and JSON export](docs/screenshots/settings.png)
+
+*Settings — every server option, grouped, searchable, and exportable.*
+
+</div>
+
+## 📥 Download & Install
+
+1. Grab the latest **`.msi`** or **`.exe`** installer from the [**Releases page**](https://github.com/amantu-qbit/palworld-server-manager/releases).
+2. Run it and follow the prompts. **WebView2** is preinstalled on Windows 11, so there's nothing extra to set up.
+3. Release builds are unsigned, so Windows **SmartScreen** may warn you the first time — click **More info → Run anyway**.
+
+## 🔧 Enable the REST API on your server
+
+Palworld Server Manager talks to your server through the official Palworld REST API, which is **off by default**. Enable it in your server's `PalWorldSettings.ini`, under the `[/Script/Pal.PalGameWorldSettings]` section inside the `OptionSettings` line:
 
 ```ini
-RESTAPIEnabled=True,RESTAPIPort=8212,AdminPassword="YourPassword"
+RESTAPIEnabled=True,RESTAPIPort=8212,AdminPassword="YourStrongPassword"
 ```
 
 Then **restart the server** so the changes take effect.
 
-## Connect
+## 🔌 Connect
 
-Launch Palworld Server Manager and enter:
+Launch the app and enter:
 
-- **Host** — `localhost` if the app runs on the same machine as the server, or your server's **LAN IP** address.
+- **Host** — `localhost` if the app runs on the same machine as the server, or your server's **LAN IP** (e.g. `192.168.1.50`).
 - **Port** — `8212` (or whatever you set for `RESTAPIPort`).
-- **AdminPassword** — the `AdminPassword` you configured above.
+- **Admin password** — the `AdminPassword` you configured above (the username is always `admin`).
 
-Click connect and you're in.
+Hit **Connect** and you're in.
 
-## Build from source
+## 🛠️ Build from source
 
-Prefer to build it yourself? It's a standard Tauri + React project.
+It's a standard Tauri + React project.
 
 **Prerequisites**
 
-- **Node.js 20+**
-- **Rust** (stable, installed via [rustup](https://rustup.rs))
-- **Microsoft C++ Build Tools**
-- **WebView2** (preinstalled on Windows 11)
+- [Node.js](https://nodejs.org) 20+
+- [Rust](https://rustup.rs) (stable)
+- Microsoft C++ Build Tools (Visual Studio Build Tools)
+- WebView2 (preinstalled on Windows 11)
 
-**Steps**
+**Commands**
 
 ```bash
-# Install JavaScript dependencies
+# Install dependencies
 npm install
 
-# Run the app in development mode
+# Run the desktop app in dev mode
 npm run tauri dev
 
-# Produce Windows installers (.msi / .exe)
+# Or run just the UI in a browser (talks to a real server via the dev proxy)
+npm run dev
+
+# Produce Windows installers (.msi + .exe)
 npm run tauri build
 ```
 
-Built installers are written to `src-tauri/target/release/bundle`.
+Built installers land in `src-tauri/target/release/bundle/`.
 
-## Security
+## 🧭 How it works
 
-The Palworld REST API is designed for **LAN use** — please do **not** expose it directly to the public internet. If you need remote access, put it behind a VPN or a properly secured tunnel. Palworld Server Manager stores your credentials locally and sends them only to the server you explicitly configure; nothing is transmitted anywhere else.
+Browsers can't call the Palworld REST API directly (CORS + HTTP Basic preflight), so the app routes requests through a native layer:
 
-## Roadmap
+```
+UI (React + TypeScript)
+        │  single PalworldApi interface
+        ├── desktop app  → Rust command (reqwest, HTTP Basic auth)  → your server
+        └── browser dev  → Vite dev proxy (adds Basic auth)         → your server
+```
 
-- Direct `PalWorldSettings.ini` editing from within the app
-- RCON support
-- Historical metrics graphs (FPS, players, uptime over time)
-- macOS and Linux builds
+The Rust backend (in `src-tauri/`) is the only thing that speaks HTTP to your server, which keeps your password out of the webview and sidesteps CORS entirely. The world‑map projection uses the community [palworld‑coord](https://github.com/palworldlol/palworld-coord) conversion to place in‑game coordinates onto the map.
 
-## Contributing
+## 🔐 Security
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+The Palworld REST API is designed for **LAN use** — please do **not** expose it directly to the public internet. If you need remote access, put it behind a VPN or a properly secured tunnel. Palworld Server Manager stores your credentials locally and sends them only to the server you explicitly configure.
 
-## Credits & attribution
+## ❓ FAQ
 
-This is an **unofficial fan tool** and is not affiliated with or endorsed by Pocketpair, Inc. Palworld and the map artwork are © Pocketpair, Inc. The bundled `public/palworld-map.jpg` is a downscaled Palpagos map used only to plot live positions, and the world→map coordinate conversion follows the community [palworld-coord](https://github.com/palworldlol/palworld-coord) project.
+**Does this work with any hosting provider?**
+Any server where you can enable the REST API and reach its port works — self‑hosted, a home box, or a VPS on your LAN/VPN.
 
-## License
+**Can I edit settings from the app?**
+Not yet — the REST API is read‑only for settings, so the Settings screen is a rich inspector + export. Direct `PalWorldSettings.ini` editing is on the roadmap.
+
+**Is the world map complete with the new islands?**
+It shows the base Palpagos world (where nearly all live server activity happens) with correct coordinates. Multi‑region maps (Sakurajima / Feybreak) are a roadmap item.
+
+**Is my admin password safe?**
+It's stored locally and sent only to the server you configure — never to any third party.
+
+## 🗺️ Roadmap
+
+- [ ] Direct `PalWorldSettings.ini` editing
+- [ ] RCON support
+- [ ] Historical metrics graphs (FPS, players, uptime over time)
+- [ ] Multi‑region world map (Sakurajima, Feybreak)
+- [ ] macOS & Linux builds
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) to get started. In short: `npm install`, `npm run tauri dev`, and run `npm test` + `npm run build` before opening a PR.
+
+## 🎨 Credits & attribution
+
+This is an **unofficial fan tool** and is not affiliated with or endorsed by Pocketpair, Inc. Palworld and the map artwork are © Pocketpair, Inc. The bundled `public/palworld-map.jpg` is used only to plot live positions, and the world→map coordinate conversion follows the community [palworld‑coord](https://github.com/palworldlol/palworld-coord) project.
+
+## 📄 License
 
 Released under the [MIT License](LICENSE) (application code only; game assets remain © Pocketpair, Inc.).
 
 <!--
-Suggested GitHub topics:
-palworld, palworld-server, palworld-dedicated-server, game-server-manager, server-manager, dedicated-server, rest-api, tauri, react, typescript, windows, control-panel
+GitHub topics: palworld, palworld-server, palworld-dedicated-server, game-server-manager, server-manager, dedicated-server, rest-api, tauri, react, typescript, windows, control-panel
 -->
