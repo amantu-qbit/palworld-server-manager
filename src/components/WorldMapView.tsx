@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Locate, Minus, Plus } from "lucide-react";
 import type { CSSProperties } from "react";
 import type { Actor } from "../types/api";
@@ -6,6 +6,9 @@ import { worldToUv } from "../lib/mapProject";
 
 // Served from public/ at the web root (works in dev and in the Tauri build).
 const mapUrl = "/palworld-map.jpg";
+// Native pixel size of the map image — the map layer is rendered at this size and
+// scaled to fit, so zooming samples the full-resolution image (crisp, not upscaled).
+const MAP_PX = 4096;
 
 type Vars = CSSProperties & Record<string, string | number>;
 
@@ -17,11 +20,8 @@ const COLOR: Record<string, string> = {
   NPC: "var(--warn)",
 };
 
-const MIN_SCALE = 1;
-const MAX_SCALE = 9;
-
-interface Transform {
-  scale: number;
+interface T {
+  s: number; // absolute scale: on-screen px = MAP_PX * s
   tx: number;
   ty: number;
 }
@@ -32,39 +32,62 @@ interface Props {
   onHover: (a: Actor | null) => void;
 }
 
-function clamp(n: number, lo: number, hi: number) {
-  return Math.min(hi, Math.max(lo, n));
-}
+const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 
 export function WorldMapView({ actors, visible, onHover }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const pan = useRef<{ px: number; py: number; tx: number; ty: number } | null>(null);
-  const [t, setT] = useState<Transform>({ scale: 1, tx: 0, ty: 0 });
+  const fitRef = useRef(0);
+  const wRef = useRef(0);
+  const [t, setT] = useState<T | null>(null);
   const [loaded, setLoaded] = useState(false);
 
-  const width = () => viewportRef.current?.clientWidth ?? 0;
+  // Cap zoom at ~native resolution (1.15× the 4096px source) so the map never
+  // upscales into blur — you can zoom right up to the map's real pixels, no further.
+  const maxScale = () => Math.max(1.15, fitRef.current);
 
-  const clampT = useCallback((next: Transform): Transform => {
-    const w = width();
-    const min = w * (1 - next.scale);
-    return { scale: next.scale, tx: clamp(next.tx, min, 0), ty: clamp(next.ty, min, 0) };
+  const clampT = useCallback((v: T): T => {
+    const fit = fitRef.current;
+    const s = clamp(v.s, fit, maxScale());
+    const disp = MAP_PX * s;
+    const minOff = Math.min(0, wRef.current - disp);
+    return { s, tx: clamp(v.tx, minOff, 0), ty: clamp(v.ty, minOff, 0) };
   }, []);
+
+  const measure = useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return 0;
+    const w = el.clientWidth;
+    wRef.current = w;
+    fitRef.current = w / MAP_PX;
+    return w;
+  }, []);
+
+  useLayoutEffect(() => {
+    if (measure() > 0) setT({ s: fitRef.current, tx: 0, ty: 0 });
+    const ro = new ResizeObserver(() => {
+      measure();
+      setT((prev) => (prev ? clampT({ ...prev, s: Math.max(prev.s, fitRef.current) }) : { s: fitRef.current, tx: 0, ty: 0 }));
+    });
+    if (viewportRef.current) ro.observe(viewportRef.current);
+    return () => ro.disconnect();
+  }, [measure, clampT]);
 
   const zoomAt = useCallback(
     (factor: number, cx: number, cy: number) => {
       setT((prev) => {
-        const scale = clamp(prev.scale * factor, MIN_SCALE, MAX_SCALE);
-        if (scale === prev.scale) return prev;
-        const sx = (cx - prev.tx) / prev.scale;
-        const sy = (cy - prev.ty) / prev.scale;
-        return clampT({ scale, tx: cx - scale * sx, ty: cy - scale * sy });
+        if (!prev) return prev;
+        const s = clamp(prev.s * factor, fitRef.current, maxScale());
+        if (s === prev.s) return prev;
+        const px = (cx - prev.tx) / prev.s;
+        const py = (cy - prev.ty) / prev.s;
+        return clampT({ s, tx: cx - s * px, ty: cy - s * py });
       });
     },
     [clampT],
   );
 
-  // Native non-passive wheel so we can prevent page scroll.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
@@ -77,26 +100,22 @@ export function WorldMapView({ actors, visible, onHover }: Props) {
   }, [zoomAt]);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || !t) return;
     pan.current = { px: e.clientX, py: e.clientY, tx: t.tx, ty: t.ty };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const p = pan.current;
     if (!p) return;
-    setT((prev) => clampT({ scale: prev.scale, tx: p.tx + (e.clientX - p.px), ty: p.ty + (e.clientY - p.py) }));
+    setT((prev) => (prev ? clampT({ ...prev, tx: p.tx + (e.clientX - p.px), ty: p.ty + (e.clientY - p.py) }) : prev));
   };
   const endPan = () => {
     pan.current = null;
   };
 
-  const zoomButton = (factor: number) => {
-    const w = width();
-    zoomAt(factor, w / 2, w / 2);
-  };
-  const reset = () => setT({ scale: 1, tx: 0, ty: 0 });
+  const zoomButton = (factor: number) => zoomAt(factor, wRef.current / 2, wRef.current / 2);
+  const reset = () => setT({ s: fitRef.current, tx: 0, ty: 0 });
 
-  // Markers only depend on the data + filters, not the transform → stable across pan/zoom.
   const markers = useMemo(
     () =>
       actors
@@ -127,27 +146,28 @@ export function WorldMapView({ actors, visible, onHover }: Props) {
       onPointerUp={endPan}
       onPointerCancel={endPan}
     >
-      <div
-        className="wm-stage"
-        style={{ transform: `translate(${t.tx}px, ${t.ty}px) scale(${t.scale})`, "--inv": 1 / t.scale } as Vars}
-      >
-        <img
-          className="wm-map"
-          src={mapUrl}
-          alt="Palworld world map"
-          draggable={false}
-          onLoad={() => setLoaded(true)}
-        />
-        {loaded && markers}
-      </div>
+      {t && (
+        <div
+          className="wm-stage"
+          style={{
+            width: MAP_PX,
+            height: MAP_PX,
+            transform: `translate(${t.tx}px, ${t.ty}px) scale(${t.s})`,
+            "--inv": 1 / t.s,
+          } as Vars}
+        >
+          <img className="wm-map" src={mapUrl} alt="Palworld world map" draggable={false} onLoad={() => setLoaded(true)} />
+          {loaded && markers}
+        </div>
+      )}
 
       {!loaded && <div className="wm-loading skeleton" />}
 
       <div className="wm-zoom">
-        <button className="icobtn" onClick={() => zoomButton(1.5)} aria-label="Zoom in" title="Zoom in">
+        <button className="icobtn" onClick={() => zoomButton(1.4)} aria-label="Zoom in" title="Zoom in">
           <Plus size={15} />
         </button>
-        <button className="icobtn" onClick={() => zoomButton(1 / 1.5)} aria-label="Zoom out" title="Zoom out">
+        <button className="icobtn" onClick={() => zoomButton(1 / 1.4)} aria-label="Zoom out" title="Zoom out">
           <Minus size={15} />
         </button>
         <button className="icobtn" onClick={reset} aria-label="Reset view" title="Reset view">
