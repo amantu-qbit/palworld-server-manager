@@ -1,0 +1,96 @@
+/* ------------------------------------------------------------------ *
+ *  Settings inspector — read-only server config viewer
+ * ------------------------------------------------------------------ */
+
+.set-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.set-note__body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  flex: 1;
+  min-width: 260px;
+}
+.set-note__ic {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  flex: none;
+  color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.set-note p {
+  font-size: 13px;
+  color: var(--dim);
+  line-height: 1.55;
+  max-width: 64ch;
+}
+
+/* ---- Grouped setting cards ---- */
+.set-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.set-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 1.3fr) 34px;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 11px 2px;
+  border-top: 1px solid var(--line);
+}
+.set-row:first-child {
+  border-top: none;
+}
+.set-row__label {
+  font-size: 13px;
+  color: var(--dim);
+  min-width: 0;
+}
+.set-row__val {
+  justify-self: end;
+  text-align: right;
+  min-width: 0;
+}
+.set-mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text);
+  letter-spacing: 0.3px;
+  word-break: break-word;
+}
+.set-off {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  letter-spacing: 0.3px;
+}
+
+.set-row__copy {
+  width: 30px;
+  height: 30px;
+  opacity: 0.4;
+}
+.set-row:hover .set-row__copy,
+.set-row__copy:focus-visible {
+  opacity: 1;
+}
+.set-row__copy svg {
+  width: 14px;
+  height: 14px;
+}

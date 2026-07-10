@@ -1,0 +1,118 @@
+/* ------------------------------------------------------------------ *
+ *  Console screen — command cards + terminal activity log
+ * ------------------------------------------------------------------ */
+
+.console-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.console-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.console-card__ic {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  color: var(--accent);
+}
+.console-card__ic--danger {
+  color: var(--bad);
+}
+.console-card__title {
+  font-size: 14px;
+  font-weight: 620;
+  letter-spacing: -0.1px;
+}
+.console-card__sub {
+  font-size: 11.5px;
+  color: var(--faint);
+  margin-top: 1px;
+}
+
+.console-card__copy {
+  font-size: 12.5px;
+  color: var(--dim);
+  line-height: 1.55;
+}
+.console-card__copy--warn {
+  color: var(--warn);
+}
+
+/* push the action row to the bottom so cards in a row align */
+.console-card__foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* shutdown wait + message fields */
+.console-fields {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+}
+
+/* ---- terminal activity log ---- */
+.console-activity {
+  gap: 16px;
+}
+.console-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--mono);
+  max-height: 380px;
+  overflow-y: auto;
+}
+.console-log__row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.console-log__row:last-child {
+  border-bottom: none;
+}
+.console-log__time {
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.console-log__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: currentColor;
+  box-shadow: 0 0 9px 1px currentColor;
+}
+.console-log__text {
+  color: var(--dim);
+  word-break: break-word;
+  line-height: 1.4;
+}
+.console-log__empty {
+  font-size: 12.5px;
+  color: var(--faint);
+  font-family: var(--mono);
+  padding: 4px 2px;
+}
+
+@media (max-width: 1080px) {
+  .console-fields {
+    grid-template-columns: 1fr;
+  }
+}

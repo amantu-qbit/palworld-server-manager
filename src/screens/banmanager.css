@@ -1,0 +1,32 @@
+/* ------------------------------------------------------------------ *
+ *  Ban Manager — form + recorded-bans layout
+ * ------------------------------------------------------------------ */
+
+.bm-note {
+  color: var(--dim);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.bm-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+}
+
+.bm-form .btn {
+  margin-top: var(--s-1);
+}
+
+.bm-userid {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.bm-when {
+  color: var(--dim);
+  white-space: nowrap;
+}

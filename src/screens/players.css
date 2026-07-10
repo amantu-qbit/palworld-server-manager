@@ -1,0 +1,37 @@
+/* ---- Players roster ---- */
+.pl-toolbar {
+  margin-bottom: var(--s-4);
+  gap: var(--s-3);
+}
+.pl-toolbar .pl-search {
+  flex: 1;
+  min-width: 0;
+  max-width: 340px;
+}
+
+.pl-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.25;
+}
+.pl-name b {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 13px;
+}
+.pl-name small {
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.pl-nomatch {
+  padding: 30px;
+  text-align: center;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.pl-actions {
+  margin-top: var(--s-5);
+}
