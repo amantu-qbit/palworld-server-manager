@@ -27,6 +27,7 @@ pub async fn get(c: &Creds, path: &str) -> Result<Value, String> {
         .get(url)
         .basic_auth("admin", Some(&c.password))
         .header("Accept", "application/json")
+        .timeout(std::time::Duration::from_secs(30))
         .send()
         .await
         .map_err(map_err)?;
@@ -45,6 +46,7 @@ pub async fn post(c: &Creds, path: &str, body: Value) -> Result<(), String> {
         .post(url)
         .basic_auth("admin", Some(&c.password))
         .json(&body)
+        .timeout(std::time::Duration::from_secs(30))
         .send()
         .await
         .map_err(map_err)?;

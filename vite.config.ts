@@ -25,7 +25,7 @@ function palApiProxy(): Plugin {
         if (contentType) headers["content-type"] = String(contentType);
 
         const upstream = http.request(
-          { host, port, path: "/v1/api" + (req.url || ""), method: req.method, headers, timeout: 8000 },
+          { host, port, path: "/v1/api" + (req.url || ""), method: req.method, headers, timeout: 30000 },
           (r) => {
             res.statusCode = r.statusCode || 502;
             res.setHeader("content-type", String(r.headers["content-type"] || "application/json"));

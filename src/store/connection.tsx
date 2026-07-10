@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { Connection } from "../types/api";
 import { api, isTauri, setDemoMode } from "../api";
+import { queryClient } from "../hooks/queries";
 
 const STORAGE_KEY = "psm.connection";
 
@@ -61,6 +62,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       if (isTauri() && !demoOn) {
         await invoke("save_connection", { host: c.host, port: c.port, password: c.password });
       }
+      queryClient.clear(); // drop any prior/demo data so screens load fresh
       setDemo(demoOn);
       setConnection(c);
       if (!demoOn) {
@@ -81,6 +83,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
     setDemoMode(false);
     setDemo(false);
     setConnection(null);
+    queryClient.clear();
   }, []);
 
   // Keep the remembered fields in sync if another tab writes them.

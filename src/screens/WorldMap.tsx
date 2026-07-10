@@ -53,8 +53,11 @@ export function WorldMap() {
           <EmptyState
             icon={TriangleAlert}
             tone="error"
-            title="Can’t reach the server"
-            detail="The REST API didn’t respond. Check the server is running and RESTAPIEnabled=True."
+            title="Couldn’t load the world snapshot"
+            detail={
+              (q.error instanceof Error && q.error.message) ||
+              "The /game-data endpoint didn’t respond. It can be slow on busy servers, or unsupported on older builds."
+            }
           />
         ) : q.isLoading && !data ? (
           <div className="wm-grid">
