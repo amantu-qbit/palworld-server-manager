@@ -186,6 +186,15 @@
   font-weight: 600;
 }
 
+/* ---- Error boundary fallback ---- */
+.errboundary { height: 100%; display: grid; place-items: center; padding: 24px; }
+.errboundary__card {
+  width: 420px; max-width: 100%; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.errboundary__card h3 { font-size: 16px; }
+.errboundary__card p { font-size: 13px; color: var(--dim); margin-bottom: 12px; }
+
 .spin {
   animation: spin 0.9s linear infinite;
 }

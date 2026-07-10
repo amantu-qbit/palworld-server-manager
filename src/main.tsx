@@ -17,18 +17,21 @@ import { queryClient } from "./hooks/queries";
 import { PrefsProvider } from "./store/prefs";
 import { ToastProvider } from "./hooks/useToast";
 import { ConnectionProvider } from "./store/connection";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { App } from "./App";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <PrefsProvider>
-        <ToastProvider>
-          <ConnectionProvider>
-            <App />
-          </ConnectionProvider>
-        </ToastProvider>
-      </PrefsProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <PrefsProvider>
+          <ToastProvider>
+            <ConnectionProvider>
+              <App />
+            </ConnectionProvider>
+          </ToastProvider>
+        </PrefsProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );
