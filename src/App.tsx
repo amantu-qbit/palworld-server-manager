@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ComponentType } from "react";
 import {
   LayoutDashboard,
+  Loader2,
   Radar,
   ShieldBan,
   SlidersHorizontal,
@@ -39,8 +40,20 @@ const SCREENS: Record<string, ComponentType> = {
 };
 
 export function App() {
-  const { connected, connection, disconnect } = useConnection();
+  const { connected, connection, disconnect, booting } = useConnection();
   const [active, setActive] = useState("dashboard");
+
+  if (booting && !connected) {
+    return (
+      <div className="boot">
+        <div className="connect__logo" aria-hidden />
+        <div className="boot__row">
+          <Loader2 size={15} className="spin" />
+          Connecting to your server…
+        </div>
+      </div>
+    );
+  }
 
   if (!connected || !connection) return <Connect />;
 

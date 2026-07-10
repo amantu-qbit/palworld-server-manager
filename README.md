@@ -92,6 +92,25 @@ RESTAPIEnabled=True,RESTAPIPort=8212,AdminPassword="YourStrongPassword"
 
 Then **restart the server** so the changes take effect.
 
+### Enable the live World Map (GameData API)
+
+The World Map's **Pal** positions come from Palworld's **GameData API**, which is turned on with server **launch arguments** (not the `.ini`):
+
+```
+-enable-gamedata-api -collect-gamedata-interval=60
+```
+
+- `-enable-gamedata-api` — turns on the `/game-data` world‑snapshot endpoint.
+- `-collect-gamedata-interval=60` — how often (in **seconds**) the server refreshes the snapshot. Lower is more up‑to‑date but heavier; `60` is a good default.
+
+Add them to your server's startup command, for example:
+
+```
+PalServer.exe -RESTAPIEnabled=True -publiclobby -enable-gamedata-api -collect-gamedata-interval=60
+```
+
+Without these, the World Map still works but shows **players only** (with an in‑app hint). With them enabled, every Pal appears on the map.
+
 ## 🔌 Connect
 
 Launch the app and enter:
@@ -157,7 +176,7 @@ Any server where you can enable the REST API and reach its port works — self�
 Not yet — the REST API is read‑only for settings, so the Settings screen is a rich inspector + export. Direct `PalWorldSettings.ini` editing is on the roadmap.
 
 **The World Map only shows players, or says the GameData API is off — why?**
-The full world snapshot (`/game-data`, which includes Pals) is gated behind the server's **GameData API** — a separate feature from `RESTAPIEnabled`, off by default. Until it's enabled, the map falls back to plotting **players** (whose coordinates come from `/players`). Enable the GameData API on your server to see every Pal.
+The full world snapshot (`/game-data`, which includes Pals) is gated behind the server's **GameData API** — a separate feature from `RESTAPIEnabled`, off by default. Add `-enable-gamedata-api -collect-gamedata-interval=60` to your server's **launch arguments** (see [Enable the live World Map](#enable-the-live-world-map-gamedata-api)). Until then, the map falls back to plotting **players** from `/players`.
 
 **Is the world map complete with the new islands?**
 It shows the base Palpagos world (where nearly all live server activity happens) with correct coordinates. Multi‑region maps (Sakurajima / Feybreak) are a roadmap item.

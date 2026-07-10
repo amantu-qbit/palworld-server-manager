@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { Connection } from "../types/api";
@@ -11,6 +11,8 @@ interface ConnectionState {
   connection: Connection | null;
   connected: boolean;
   connecting: boolean;
+  /** True while auto-connecting from saved details at launch. */
+  booting: boolean;
   /** Test + establish a connection. Persists on success. */
   connect: (c: Connection) => Promise<{ ok: boolean; message?: string }>;
   /** Test without establishing (for the "Test connection" button). */
@@ -38,6 +40,11 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
   const [remembered, setRemembered] = useState<Connection>(load);
   const [connection, setConnection] = useState<Connection | null>(null);
   const [connecting, setConnecting] = useState(false);
+  const [booting, setBooting] = useState(() => {
+    const r = load();
+    return !!(r.host && r.port && r.password);
+  });
+  const autoDone = useRef(false);
 
   const test = useCallback((c: Connection) => api.testConnection(c), []);
 
@@ -70,6 +77,18 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
   }, []);
 
+  // Auto-connect once at launch using saved details, so you don't re-enter them.
+  useEffect(() => {
+    if (autoDone.current) return;
+    autoDone.current = true;
+    const saved = load();
+    if (saved.host && saved.port && saved.password) {
+      connect(saved).finally(() => setBooting(false));
+    } else {
+      setBooting(false);
+    }
+  }, [connect]);
+
   // Keep the remembered fields in sync if another tab writes them.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -84,12 +103,13 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       connection,
       connected: connection !== null,
       connecting,
+      booting,
       connect,
       test,
       disconnect,
       remembered,
     }),
-    [connection, connecting, connect, test, disconnect, remembered],
+    [connection, connecting, booting, connect, test, disconnect, remembered],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

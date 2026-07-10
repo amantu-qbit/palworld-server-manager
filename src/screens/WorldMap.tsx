@@ -1,6 +1,6 @@
 import "./worldmap.css";
 import { useMemo, useState } from "react";
-import { Info, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { TopBar } from "../components/TopBar";
 import { EmptyState } from "../components/EmptyState";
 import { Skeleton } from "../components/Skeleton";
@@ -115,10 +115,11 @@ export function WorldMap() {
             <div className="wm-side">
               {fallback && (
                 <div className="wm-hint">
-                  <Info size={15} />
+                  <TriangleAlert size={15} />
                   <div>
                     <b>Showing players only.</b> The server’s GameData API is off, so Pals aren’t
-                    available. Enable it on your server to see every Pal on the map.
+                    available. Add <code>-enable-gamedata-api -collect-gamedata-interval=60</code> to your
+                    server’s startup command to see every Pal.
                   </div>
                 </div>
               )}
