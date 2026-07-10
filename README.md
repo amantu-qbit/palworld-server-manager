@@ -32,6 +32,7 @@ Monitor, administer, and manage your world in real time — from a sleek OLED‑
 - [Security](#-security)
 - [FAQ](#-faq)
 - [Roadmap](#-roadmap)
+- [Support the project](#-support-the-project)
 - [Contributing](#-contributing)
 - [Credits & attribution](#-credits--attribution)
 - [License](#-license)
@@ -81,6 +82,7 @@ It's a tiny native app (a few MB, powered by [Tauri](https://tauri.app) — not 
 1. Grab the latest **`.msi`** or **`.exe`** installer from the [**Releases page**](https://github.com/amantu-qbit/palworld-server-manager/releases).
 2. Run it and follow the prompts. **WebView2** is preinstalled on Windows 11, so there's nothing extra to set up.
 3. Release builds are unsigned, so Windows **SmartScreen** may warn you the first time — click **More info → Run anyway**.
+4. **Automatic updates** — from v0.1.3 on, the app checks for new releases when it starts and can update itself in one click, so you only download the installer once.
 
 ## 🔧 Enable the REST API on your server
 
@@ -186,11 +188,23 @@ It's stored locally and sent only to the server you configure — never to any t
 
 ## 🗺️ Roadmap
 
+- [x] Automatic in-app updates
 - [ ] Direct `PalWorldSettings.ini` editing
 - [ ] RCON support
 - [ ] Historical metrics graphs (FPS, players, uptime over time)
 - [ ] Multi‑region world map (Sakurajima, Feybreak)
 - [ ] macOS & Linux builds
+
+## 💜 Support the project
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/amantukhan)
+
+Palworld Server Manager is **free and open-source** under the MIT license. If it saves you time running your server — especially in a community or commercial setting — please consider chipping in. It directly funds development and is hugely appreciated, but never required. There's a **Support** tab inside the app too, with copy buttons and scannable QR codes.
+
+- ☕ **Buy Me a Coffee:** [buymeacoffee.com/amantukhan](https://buymeacoffee.com/amantukhan)
+- ₿ **Bitcoin (BTC):** `1LQYtBNQsFq7myLAjFNrxrWPaZ7WEGLkFD`
+- Ξ **Ethereum (ERC-20):** `0x8e97b63448652124e386884772efdd216b3964af`
+- ₮ **USDT (Tron / TRC-20):** `TCY5Ds14UgZfaLX3seWzDRWGmS4bFMjyan`
 
 ## 🤝 Contributing
 

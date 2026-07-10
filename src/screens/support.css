@@ -1,0 +1,201 @@
+/* ------------------------------------------------------------------ *
+ *  Support — donations + updates
+ * ------------------------------------------------------------------ */
+
+.sup-hero {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--s-5);
+}
+.sup-hero__ic {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  flex: none;
+  color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.sup-hero__body h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.sup-hero__body p {
+  font-size: 13px;
+  color: var(--dim);
+  line-height: 1.55;
+  max-width: 68ch;
+}
+.sup-bmc {
+  flex: none;
+}
+@media (max-width: 760px) {
+  .sup-hero {
+    grid-template-columns: auto 1fr;
+  }
+  .sup-bmc {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+.sup-label {
+  margin-top: var(--s-1);
+}
+
+/* ---- Crypto cards ---- */
+.sup-coins {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-4);
+}
+@media (max-width: 880px) {
+  .sup-coins {
+    grid-template-columns: 1fr;
+  }
+}
+
+.donate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+}
+.donate__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+}
+.donate__glyph {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-sm);
+  font-size: 19px;
+  font-weight: 600;
+  flex: none;
+  color: var(--text);
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.donate__glyph--btc {
+  color: #f7931a;
+}
+.donate__glyph--eth {
+  color: #8ea2f0;
+}
+.donate__glyph--usdt {
+  color: var(--good);
+}
+.donate__id {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+}
+.donate__id b {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.donate__qr {
+  background: #fff;
+  padding: 10px;
+  border-radius: var(--r-md);
+  line-height: 0;
+  box-shadow: var(--raise-sm);
+}
+.donate__qr svg {
+  display: block;
+  border-radius: 3px;
+}
+
+.donate__addr {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: var(--r-sm);
+  background: var(--surface-0);
+  box-shadow: var(--inset);
+  color: var(--dim);
+  transition: color var(--dur) var(--ease);
+}
+.donate__addr:hover {
+  color: var(--text);
+}
+.donate__addrtext {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: -0.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.donate__addr svg {
+  flex: none;
+  opacity: 0.55;
+}
+.donate__addr:hover svg {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* ---- Version + updates ---- */
+.sup-about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.sup-about__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.sup-about__ver {
+  font-size: 15px;
+  color: var(--text);
+  margin-top: 3px;
+}
+.sup-about__upd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+}
+.sup-about__hint {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.sup-upd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.sup-upd--dim {
+  color: var(--dim);
+}
+.sup-upd--good {
+  color: var(--good);
+}
+.sup-upd--accent {
+  color: var(--accent);
+}
+.sup-upd--bad {
+  color: var(--bad);
+}

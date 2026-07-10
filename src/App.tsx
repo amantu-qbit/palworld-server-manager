@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ComponentType } from "react";
 import {
+  Heart,
   LayoutDashboard,
   Loader2,
   Radar,
@@ -20,6 +21,8 @@ import { WorldMap } from "./screens/WorldMap";
 import { Console } from "./screens/Console";
 import { Settings } from "./screens/Settings";
 import { BanManager } from "./screens/BanManager";
+import { Support } from "./screens/Support";
+import { UpdateBanner } from "./components/UpdateBanner";
 
 const NAV: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, group: "Overview" },
@@ -28,6 +31,7 @@ const NAV: NavItem[] = [
   { id: "console", label: "Console", icon: SquareTerminal, group: "Control" },
   { id: "settings", label: "Settings", icon: SlidersHorizontal, group: "Control" },
   { id: "bans", label: "Ban Manager", icon: ShieldBan, group: "Control" },
+  { id: "support", label: "Support", icon: Heart, group: "About" },
 ];
 
 const SCREENS: Record<string, ComponentType> = {
@@ -37,6 +41,7 @@ const SCREENS: Record<string, ComponentType> = {
   console: Console,
   settings: Settings,
   bans: BanManager,
+  support: Support,
 };
 
 export function App() {
@@ -71,6 +76,7 @@ export function App() {
           onDisconnect={disconnect}
         />
         <div className="main">
+          <UpdateBanner />
           <Screen />
         </div>
       </div>

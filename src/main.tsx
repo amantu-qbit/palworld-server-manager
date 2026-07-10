@@ -17,6 +17,7 @@ import { queryClient } from "./hooks/queries";
 import { PrefsProvider } from "./store/prefs";
 import { ToastProvider } from "./hooks/useToast";
 import { ConnectionProvider } from "./store/connection";
+import { UpdaterProvider } from "./store/updater";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { App } from "./App";
 
@@ -27,7 +28,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <PrefsProvider>
           <ToastProvider>
             <ConnectionProvider>
-              <App />
+              <UpdaterProvider>
+                <App />
+              </UpdaterProvider>
             </ConnectionProvider>
           </ToastProvider>
         </PrefsProvider>
