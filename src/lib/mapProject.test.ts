@@ -1,70 +1,38 @@
 import { describe, expect, it } from "vitest";
-import type { Bounds } from "./mapProject";
-import { computeBounds, projectToRadar } from "./mapProject";
+import { WORLD, worldToPaldex, worldToUv } from "./mapProject";
 
-const SIZE = 560;
-
-describe("computeBounds", () => {
-  it("returns a safe default for an empty actor list", () => {
-    expect(computeBounds([])).toEqual({ minX: -500000, maxX: 500000, minY: -500000, maxY: 500000 });
+describe("worldToUv", () => {
+  it("maps the north-west corner (minX, maxY) to the top-left", () => {
+    const p = worldToUv(WORLD.minX, WORLD.maxY);
+    expect(p.u).toBeCloseTo(0);
+    expect(p.v).toBeCloseTo(0);
   });
 
-  it("returns a safe default when every actor shares one point (zero span)", () => {
-    const b = computeBounds([
-      { LocationX: 100, LocationY: 100 },
-      { LocationX: 100, LocationY: 100 },
-    ]);
-    expect(b).toEqual({ minX: -500000, maxX: 500000, minY: -500000, maxY: 500000 });
+  it("maps the south-east corner (maxX, minY) to the bottom-right", () => {
+    const p = worldToUv(WORLD.maxX, WORLD.minY);
+    expect(p.u).toBeCloseTo(1);
+    expect(p.v).toBeCloseTo(1);
   });
 
-  it("pads the min/max span outward on both axes", () => {
-    const b = computeBounds(
-      [
-        { LocationX: 0, LocationY: 0 },
-        { LocationX: 100, LocationY: 200 },
-      ],
-      0.1,
-    );
-    expect(b.minX).toBeLessThan(0);
-    expect(b.maxX).toBeGreaterThan(100);
-    expect(b.minY).toBeLessThan(0);
-    expect(b.maxY).toBeGreaterThan(200);
+  it("maps the world centre to the map centre", () => {
+    const p = worldToUv(-123888, 158000);
+    expect(p.u).toBeCloseTo(0.5);
+    expect(p.v).toBeCloseTo(0.5);
+  });
+
+  it("clamps out-of-world coordinates into [0,1]", () => {
+    const p = worldToUv(9_000_000, -9_000_000);
+    expect(p.u).toBe(1);
+    expect(p.v).toBe(1);
   });
 });
 
-describe("projectToRadar", () => {
-  const b = computeBounds(
-    [
-      { LocationX: -1000, LocationY: -1000 },
-      { LocationX: 1000, LocationY: 1000 },
-    ],
-    0,
-  );
-
-  it("maps the center of the bounds near size/2 on both axes", () => {
-    const cx = (b.minX + b.maxX) / 2;
-    const cy = (b.minY + b.maxY) / 2;
-    const p = projectToRadar(cx, cy, b, SIZE);
-    expect(p.x).toBeCloseTo(SIZE / 2);
-    expect(p.y).toBeCloseTo(SIZE / 2);
+describe("worldToPaldex", () => {
+  it("maps the world centre to (0, 0)", () => {
+    expect(worldToPaldex(-123888, 158000)).toEqual({ x: 0, y: 0 });
   });
 
-  it("keeps a corner within [0, size]", () => {
-    const p = projectToRadar(b.minX, b.maxY, b, SIZE);
-    expect(p.x).toBeGreaterThanOrEqual(0);
-    expect(p.x).toBeLessThanOrEqual(SIZE);
-    expect(p.y).toBeGreaterThanOrEqual(0);
-    expect(p.y).toBeLessThanOrEqual(SIZE);
-  });
-
-  it("returns finite, in-range values for zero-span bounds", () => {
-    const zero: Bounds = { minX: 5, maxX: 5, minY: 5, maxY: 5 };
-    const p = projectToRadar(5, 5, zero, SIZE);
-    expect(Number.isFinite(p.x)).toBe(true);
-    expect(Number.isFinite(p.y)).toBe(true);
-    expect(p.x).toBeGreaterThanOrEqual(0);
-    expect(p.x).toBeLessThanOrEqual(SIZE);
-    expect(p.y).toBeGreaterThanOrEqual(0);
-    expect(p.y).toBeLessThanOrEqual(SIZE);
+  it("maps the south-east extreme to (1000, 1000)", () => {
+    expect(worldToPaldex(WORLD.maxX, WORLD.maxY)).toEqual({ x: 1000, y: 1000 });
   });
 });

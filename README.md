@@ -110,9 +110,13 @@ The Palworld REST API is designed for **LAN use** — please do **not** expose i
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
+## Credits & attribution
+
+This is an **unofficial fan tool** and is not affiliated with or endorsed by Pocketpair, Inc. Palworld and the map artwork are © Pocketpair, Inc. The bundled `public/palworld-map.jpg` is a downscaled Palpagos map used only to plot live positions, and the world→map coordinate conversion follows the community [palworld-coord](https://github.com/palworldlol/palworld-coord) project.
+
 ## License
 
-Released under the [MIT License](LICENSE).
+Released under the [MIT License](LICENSE) (application code only; game assets remain © Pocketpair, Inc.).
 
 <!--
 Suggested GitHub topics:

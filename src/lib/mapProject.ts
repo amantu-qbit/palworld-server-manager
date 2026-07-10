@@ -1,78 +1,44 @@
-/** Projection helpers for the live world radar. */
-
-export interface Bounds {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
-}
-
-/** Fallback world extent when actors are missing or degenerate. */
-const DEFAULT_BOUNDS: Bounds = { minX: -500000, maxX: 500000, minY: -500000, maxY: 500000 };
-
-function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
-}
-
 /**
- * Tight min/max extent over the actors, grown by a fractional `pad` on each
- * axis. Returns a safe default when the list is empty or has no real span.
+ * Palworld world coordinates → position on the Palpagos map image.
+ *
+ * The REST API returns Unreal world coordinates (LocationX/LocationY, the same
+ * space as the .sav file). The community Paldex conversion maps that square world
+ * space onto the map:
+ *   world min (-582888, -301000), max (335112, 617000)  → a 918000-unit square
+ *   paldex = ((x + 123888) / 459, (y - 158000) / 459)   → -1000..1000, origin centre
+ *
+ * For rendering we express it as a normalised (u, v) in [0,1] over the map image:
+ *   u: 0 = west edge  → 1 = east edge
+ *   v: 0 = north edge → 1 = south edge   (image top is north)
  */
-export function computeBounds(actors: { LocationX: number; LocationY: number }[], pad = 0.06): Bounds {
-  if (!actors || actors.length === 0) return { ...DEFAULT_BOUNDS };
 
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
+export const WORLD = {
+  minX: -582888,
+  maxX: 335112,
+  minY: -301000,
+  maxY: 617000,
+  span: 918000, // maxX-minX === maxY-minY
+} as const;
 
-  for (const a of actors) {
-    const x = a.LocationX;
-    const y = a.LocationY;
-    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (y < minY) minY = y;
-    if (y > maxY) maxY = y;
-  }
+export const PALDEX_SCALE = 459;
+export const PALDEX_OFFSET = { x: 123888, y: 158000 } as const;
 
-  if (!Number.isFinite(minX) || !Number.isFinite(minY)) return { ...DEFAULT_BOUNDS };
-
-  const spanX = maxX - minX;
-  const spanY = maxY - minY;
-  if (Math.max(spanX, spanY) <= 0) return { ...DEFAULT_BOUNDS };
-
-  const padX = spanX * pad;
-  const padY = spanY * pad;
-  return { minX: minX - padX, maxX: maxX + padX, minY: minY - padY, maxY: maxY + padY };
+function clamp01(n: number): number {
+  return Math.min(1, Math.max(0, n));
 }
 
-/**
- * Project a world (x, y) into radar screen space of side `size`. Uses a single
- * uniform scale (the larger axis span) so the layout keeps its aspect ratio and
- * every point stays inside [0, size]. Y is inverted so north points up. Never
- * returns NaN.
- */
-export function projectToRadar(x: number, y: number, b: Bounds, size: number): { x: number; y: number } {
-  const spanX = b.maxX - b.minX;
-  const spanY = b.maxY - b.minY;
-  const span = Math.max(spanX, spanY);
-  const half = size / 2;
+/** (worldX, worldY) → { u, v } in [0,1]. u: west→east, v: north→south. */
+export function worldToUv(worldX: number, worldY: number): { u: number; v: number } {
+  return {
+    u: clamp01((worldX - WORLD.minX) / WORLD.span),
+    v: clamp01((WORLD.maxY - worldY) / WORLD.span),
+  };
+}
 
-  if (!Number.isFinite(span) || span <= 0) return { x: half, y: half };
-
-  const cx = (b.minX + b.maxX) / 2;
-  const cy = (b.minY + b.maxY) / 2;
-  const scale = size / span;
-
-  const scaledX = half + (x - cx) * scale;
-  const scaledY = half + (y - cy) * scale;
-
-  let sx = clamp(scaledX, 0, size);
-  let sy = clamp(size - scaledY, 0, size); // invert Y: north is up
-
-  if (!Number.isFinite(sx)) sx = half;
-  if (!Number.isFinite(sy)) sy = half;
-
-  return { x: sx, y: sy };
+/** (worldX, worldY) → in-game Paldex map coordinate (-1000..1000, origin centre). */
+export function worldToPaldex(worldX: number, worldY: number): { x: number; y: number } {
+  return {
+    x: Math.round((worldX + PALDEX_OFFSET.x) / PALDEX_SCALE),
+    y: Math.round((worldY - PALDEX_OFFSET.y) / PALDEX_SCALE),
+  };
 }

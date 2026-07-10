@@ -94,6 +94,19 @@ const PLAYER_NAMES = [
 ];
 const GUILDS = ["Palpagos Pioneers", "Night Owls", "The Free Pals", "Kindling"];
 
+// World-coordinate anchors that fall on the Palpagos landmasses, so demo actors
+// sit on islands rather than in the ocean. (Real-server data is exact regardless.)
+const LAND = [
+  { x: -178968, y: 102920 }, // central green island (base)
+  { x: -197328, y: 378320 }, // snowy island (north)
+  { x: 78072, y: 341600 }, // desert island (north-east)
+  { x: -380928, y: 11120 }, // volcano island (south-west)
+  { x: 96432, y: 84560 }, // eastern isles
+  { x: -178968, y: -99040 }, // southern isles
+  { x: -32088, y: 176360 }, // mid-right green
+] as const;
+const BASE = LAND[0];
+
 export const players: Player[] = PLAYER_NAMES.map((name, i) => ({
   name,
   accountName: `${name.toLowerCase()}_steam`,
@@ -101,8 +114,8 @@ export const players: Player[] = PLAYER_NAMES.map((name, i) => ({
   userId: `steam_7656119${(80000000000 + i * 137).toString().slice(0, 10)}`,
   ip: `192.168.1.${20 + i}`,
   ping: [12, 24, 33, 41, 58, 62, 77, 19, 28, 45, 51, 90][i],
-  location_x: Math.round(Math.cos(i) * 90000 + 42000),
-  location_y: Math.round(Math.sin(i) * 90000 - 15000),
+  location_x: Math.round(LAND[i % LAND.length].x + Math.cos(i * 1.7) * 26000),
+  location_y: Math.round(LAND[i % LAND.length].y + Math.sin(i * 1.7) * 26000),
   level: [48, 51, 12, 39, 50, 27, 44, 8, 33, 50, 22, 16][i],
   building_count: [140, 95, 3, 78, 210, 40, 120, 0, 65, 188, 22, 11][i],
 }));
@@ -128,14 +141,16 @@ const PAL_SPECIES = [
 ];
 const ACTIONS = ["Idle", "Wandering", "Working", "Combat", "Sleeping", "Eating", "Mining", "Watering"];
 
-function makeActor(rnd: () => number, i: number, kind: Actor["UnitType"]): Actor {
+function makeActor(
+  rnd: () => number,
+  i: number,
+  kind: Actor["UnitType"],
+  anchor: { x: number; y: number },
+  spread: number,
+): Actor {
   const species = PAL_SPECIES[Math.floor(rnd() * PAL_SPECIES.length)];
   const level = 1 + Math.floor(rnd() * 50);
   const maxhp = level * 120 + 200;
-  // Cluster base pals near the main base; wild pals scattered widely.
-  const spread = kind === "BaseCampPal" || kind === "OtomoPal" ? 60000 : 560000;
-  const cx = kind === "BaseCampPal" || kind === "OtomoPal" ? 42000 : 0;
-  const cy = kind === "BaseCampPal" || kind === "OtomoPal" ? -15000 : 0;
   return {
     Type: "Character",
     InstanceID: `A${(i + 1).toString(16).toUpperCase().padStart(6, "0")}`,
@@ -148,8 +163,8 @@ function makeActor(rnd: () => number, i: number, kind: Actor["UnitType"]): Actor
     GuildName: kind === "BaseCampPal" ? GUILDS[Math.floor(rnd() * GUILDS.length)] : undefined,
     Action: ACTIONS[Math.floor(rnd() * ACTIONS.length)],
     AI_Action: kind === "WildPal" ? "Roam" : "Assigned",
-    LocationX: Math.round(cx + (rnd() - 0.5) * 2 * spread),
-    LocationY: Math.round(cy + (rnd() - 0.5) * 2 * spread),
+    LocationX: Math.round(anchor.x + (rnd() - 0.5) * 2 * spread),
+    LocationY: Math.round(anchor.y + (rnd() - 0.5) * 2 * spread),
     LocationZ: Math.round((rnd() - 0.4) * 40000),
     IsActive: "true",
   };
@@ -181,13 +196,17 @@ export function generateActors(seed = 20260710): Actor[] {
   });
 
   let idx = 0;
-  const add = (kind: Actor["UnitType"], n: number) => {
-    for (let k = 0; k < n; k++) out.push(makeActor(rnd, idx++, kind));
+  const randAnchor = () => LAND[Math.floor(rnd() * LAND.length)];
+  const add = (kind: Actor["UnitType"], n: number, pick: () => { anchor: { x: number; y: number }; spread: number }) => {
+    for (let k = 0; k < n; k++) {
+      const { anchor, spread } = pick();
+      out.push(makeActor(rnd, idx++, kind, anchor, spread));
+    }
   };
-  add("WildPal", 120);
-  add("BaseCampPal", 34);
-  add("OtomoPal", 10);
-  add("NPC", 8);
+  add("WildPal", 120, () => ({ anchor: randAnchor(), spread: 62000 }));
+  add("BaseCampPal", 34, () => ({ anchor: BASE, spread: 22000 }));
+  add("OtomoPal", 10, () => ({ anchor: BASE, spread: 16000 }));
+  add("NPC", 8, () => ({ anchor: randAnchor(), spread: 30000 }));
   return out;
 }
 

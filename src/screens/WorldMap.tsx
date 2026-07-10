@@ -4,9 +4,9 @@ import { TriangleAlert } from "lucide-react";
 import { TopBar } from "../components/TopBar";
 import { EmptyState } from "../components/EmptyState";
 import { Skeleton } from "../components/Skeleton";
-import { Radar } from "../components/Radar";
+import { WorldMapView } from "../components/WorldMapView";
 import { useGameData } from "../hooks/queries";
-import { formatCoord } from "../lib/format";
+import { worldToPaldex } from "../lib/mapProject";
 import type { Actor } from "../types/api";
 
 interface UnitDef {
@@ -17,10 +17,10 @@ interface UnitDef {
 
 const UNIT_TYPES: UnitDef[] = [
   { type: "Player", label: "Players", color: "var(--accent)" },
-  { type: "WildPal", label: "Wild Pals", color: "var(--faint)" },
+  { type: "WildPal", label: "Wild Pals", color: "#aab2c0" },
   { type: "BaseCampPal", label: "Base Pals", color: "var(--good)" },
   { type: "OtomoPal", label: "Otomo Pals", color: "var(--accent-2)" },
-  { type: "NPC", label: "NPCs", color: "var(--mute)" },
+  { type: "NPC", label: "NPCs", color: "var(--warn)" },
 ];
 
 export function WorldMap() {
@@ -43,6 +43,8 @@ export function WorldMap() {
       return next;
     });
 
+  const coords = hover ? worldToPaldex(hover.LocationX, hover.LocationY) : null;
+
   return (
     <>
       <TopBar breadcrumb="Overview" title="World Map" showLive onRefresh={() => q.refetch()} refreshing={q.isFetching} />
@@ -56,8 +58,8 @@ export function WorldMap() {
           />
         ) : q.isLoading && !data ? (
           <div className="wm-grid">
-            <div className="card card--pad">
-              <Skeleton radius="var(--r-md)" style={{ width: "100%", height: "auto", aspectRatio: "1 / 1" }} />
+            <div className="card">
+              <Skeleton style={{ width: "100%", height: "auto", aspectRatio: "1 / 1", borderRadius: "var(--r-lg)" }} />
             </div>
             <div className="wm-side">
               <div className="card card--pad">
@@ -72,10 +74,10 @@ export function WorldMap() {
           </div>
         ) : data ? (
           <div className="wm-grid">
-            {/* Radar */}
-            <div className="card card--pad wm-radar-card">
-              <div className="card__glow" />
-              <Radar actors={data.ActorData} visible={visible} onHover={setHover} />
+            {/* Map */}
+            <div className="card wm-map-card">
+              <WorldMapView actors={data.ActorData} visible={visible} onHover={setHover} />
+              <div className="wm-attrib">Map artwork © Pocketpair, Inc. · scroll to zoom, drag to pan</div>
             </div>
 
             <div className="wm-side">
@@ -91,6 +93,8 @@ export function WorldMap() {
                   <span className="kv__v">{Math.round(data.FPS)}</span>
                   <span className="kv__k">Average FPS</span>
                   <span className="kv__v">{Math.round(data.AverageFPS)}</span>
+                  <span className="kv__k">Actors</span>
+                  <span className="kv__v">{data.ActorData.length}</span>
                 </div>
               </div>
 
@@ -123,7 +127,7 @@ export function WorldMap() {
                 <div className="eyebrow" style={{ marginBottom: 12 }}>
                   {hover ? "Selected" : "Legend"}
                 </div>
-                {hover ? (
+                {hover && coords ? (
                   <div className="kv">
                     <span className="kv__k">Name</span>
                     <span className="kv__v">{hover.NickName || hover.Class || hover.UnitType}</span>
@@ -151,7 +155,7 @@ export function WorldMap() {
                     )}
                     <span className="kv__k">Coords</span>
                     <span className="kv__v">
-                      {formatCoord(hover.LocationX)}, {formatCoord(hover.LocationY)}
+                      {coords.x}, {coords.y}
                     </span>
                   </div>
                 ) : (
@@ -162,7 +166,7 @@ export function WorldMap() {
                         <span>{u.label}</span>
                       </div>
                     ))}
-                    <p className="wm-legend__hint">Hover a point on the radar to inspect it. North is up.</p>
+                    <p className="wm-legend__hint">Hover a marker to inspect it. Coordinates match the in-game map.</p>
                   </div>
                 )}
               </div>

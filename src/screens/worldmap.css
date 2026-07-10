@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ *
- *  World Map — live actor radar
+ *  World Map — real Palpagos map with live actor markers
  * ------------------------------------------------------------------ */
 
 .wm-grid {
@@ -8,7 +8,7 @@
   gap: var(--s-4);
   align-items: start;
 }
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .wm-grid {
     grid-template-columns: 1fr;
   }
@@ -20,40 +20,96 @@
   gap: var(--s-4);
 }
 
-/* ---- Radar panel ---- */
-.wm-radar-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ---- Map ---- */
+.wm-map-card {
+  padding: 10px;
+}
+.wm-view {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
-}
-.radar {
-  width: 100%;
-  max-width: 560px;
-}
-.radar__svg {
-  display: block;
-  width: 100%;
-  height: auto;
   border-radius: var(--r-md);
-  background: radial-gradient(120% 120% at 50% 40%, var(--surface-1), var(--surface-0) 70%);
+  background: var(--surface-0);
   box-shadow: var(--inset);
+  cursor: grab;
+  touch-action: none;
 }
-.radar__ring {
-  stroke: var(--line);
-  stroke-width: 1;
+.wm-view:active {
+  cursor: grabbing;
 }
-.radar__cross {
-  stroke: var(--line);
-  stroke-width: 1;
+.wm-stage {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
 }
-.radar__dot {
+.wm-map {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+.wm-loading {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-md);
+}
+
+/* markers — counter-scaled by --inv so they stay a constant screen size */
+.wm-mk {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55);
+  transform: translate(-50%, -50%) scale(var(--inv, 1));
+  transform-origin: center;
   cursor: pointer;
-  transition: r var(--dur) var(--ease);
 }
-.radar__dot:hover {
-  stroke: var(--text);
-  stroke-width: 1.5;
+.wm-mk--player {
+  width: 13px;
+  height: 13px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6), 0 0 8px 1px var(--c);
+  z-index: 2;
+}
+.wm-mk:hover {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c);
+  z-index: 3;
+}
+
+/* zoom controls */
+.wm-zoom {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wm-zoom .icobtn {
+  background: rgba(8, 8, 10, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  color: var(--dim);
+}
+.wm-zoom .icobtn:hover {
+  color: var(--text);
+}
+
+.wm-attrib {
+  margin-top: 9px;
+  font-size: 10.5px;
+  color: var(--faint);
+  text-align: center;
+  font-family: var(--mono);
+  letter-spacing: -0.2px;
 }
 
 /* ---- Filter toggles ---- */
