@@ -21,7 +21,7 @@ const ATLAS_INDEX = new Map((palAtlas.keys as string[]).map((k, i) => [k, i] as 
 
 const mapUrl = "/palworld-map.webp";
 const MAP_PX = 8192;
-const MAX_SCALE = 2;
+const MAX_SCALE = 4;
 const WHEEL_K = 0.0016;
 const DBL_ZOOM = 1.9;
 const KEY_PAN = 72;

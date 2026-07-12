@@ -108,34 +108,24 @@ function unwrapClass(raw: string): string {
   return s;
 }
 
-/** Peel trailing alpha/raid form tokens (…_BOSS, …_Avatar, numeric) so a field
- *  boss falls back to its base creature icon. Callers gate this on ICON_KEYS, so
- *  a token that is itself a distinct icon ("human_grassboss") matches first. */
-function baseForm(code: string): string {
-  let s = code;
-  for (let i = 0; i < 3; i++) {
-    const n = s.replace(/_(?:boss|avatar|servant)$/i, "").replace(/_\d+$/, "");
-    if (n === s) break;
-    s = n;
-  }
-  return s;
-}
-
 /**
- * Resolve an actor's Class to a bundled Pal icon key. Tries each plausible shape
- * (code name → blueprint/path → alpha-variant base → display name) and keeps the
- * first that maps to a real icon file; otherwise returns a stable key that has no
- * icon, so the marker degrades to a dot. Every branch is gated on ICON_KEYS, so
- * an unexpected Class can never resolve to the *wrong* Pal's icon.
+ * Resolve an actor's Class to a bundled Pal icon key. After unwrapping the
+ * blueprint/path to a bare code name, it tries the most specific form first
+ * (keeping distinct variant icons like _dark/_ice/_quest/_tower), then
+ * progressively drops trailing "_variant" segments (…_BOSS, …_MiddleBoss,
+ * …_Avatar, numbers) until it reaches the base creature's icon — so any power-
+ * tier variant, present or future, falls back correctly. Every candidate is
+ * gated on ICON_KEYS, so an unexpected Class can never resolve to the *wrong*
+ * Pal; unresolved values return a stable key with no icon (a dot).
  */
 export function palIconKey(raw: string): string {
   const direct = cleanseCharacterId(raw);
   if (ICON_KEYS.has(direct)) return direct;
-  const un = unwrapClass(raw);
-  const unKey = cleanseCharacterId(un); // keeps _dark/_ice/_quest/_tower variants
-  if (ICON_KEYS.has(unKey)) return unKey;
-  const baseKey = cleanseCharacterId(baseForm(un)); // …_BOSS → base creature icon
-  if (ICON_KEYS.has(baseKey)) return baseKey;
+  const parts = unwrapClass(raw).split("_").filter(Boolean);
+  for (let n = parts.length; n >= 1; n--) {
+    const cand = cleanseCharacterId(parts.slice(0, n).join("_"));
+    if (ICON_KEYS.has(cand)) return cand;
+  }
   const byName = PAL_NAME_INDEX[normName(raw)];
   if (byName && ICON_KEYS.has(byName)) return byName;
   return direct;

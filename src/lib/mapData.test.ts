@@ -30,10 +30,11 @@ describe("palIconKey", () => {
     ).toBe("bluedragon");
   });
 
-  it("peels field-alpha _BOSS variants to the base creature icon (real server values)", () => {
-    // Confirmed from a live server's Actor.Class values.
+  it("peels power-tier variants (_BOSS, _MiddleBoss) to the base creature icon", () => {
+    // Confirmed from live server Actor.Class values.
     expect(palIconKey("BP_Manticore_BOSS_C")).toBe("manticore"); // Blazehowl (alpha)
     expect(palIconKey("BP_RedArmorBird_BOSS_C")).toBe("redarmorbird"); // Ragnahawk (alpha)
+    expect(palIconKey("BP_Anubis_MiddleBoss_C")).toBe("anubis"); // Anubis (mini-boss party Pal)
   });
 
   it("keeps genuinely distinct variant icons instead of over-stripping", () => {
