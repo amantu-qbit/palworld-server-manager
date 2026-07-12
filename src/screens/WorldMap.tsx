@@ -6,7 +6,7 @@ import { EmptyState } from "../components/EmptyState";
 import { Skeleton } from "../components/Skeleton";
 import { WorldMapView } from "../components/WorldMapView";
 import { useGameData, usePlayers } from "../hooks/queries";
-import { worldToPaldex } from "../lib/mapProject";
+import { worldToGameCoords } from "../lib/mapProject";
 import type { Actor } from "../types/api";
 
 interface UnitDef {
@@ -64,7 +64,7 @@ export function WorldMap() {
       return next;
     });
 
-  const coords = hover ? worldToPaldex(hover.LocationX, hover.LocationY) : null;
+  const coords = hover ? worldToGameCoords(hover.LocationX, hover.LocationY) : null;
 
   const loading = fallback ? playersQ.isLoading && !playersQ.data : false;
   const errored = fallback && playersQ.isError && !playersQ.data;

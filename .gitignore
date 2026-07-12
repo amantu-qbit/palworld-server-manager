@@ -25,6 +25,3 @@ Thumbs.db
 
 # Internal design/process docs (not for public repo)
 docs/superpowers/
-
-# Large intermediate map source (the downscaled build lives in public/palworld-map.jpg)
-build-assets/palworld-map-src.jpg

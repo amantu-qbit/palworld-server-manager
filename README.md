@@ -163,7 +163,7 @@ UI (React + TypeScript)
         └── browser dev  → Vite dev proxy (adds Basic auth)         → your server
 ```
 
-The Rust backend (in `src-tauri/`) is the only thing that speaks HTTP to your server, which keeps your password out of the webview and sidesteps CORS entirely. The world‑map projection uses the community [palworld‑coord](https://github.com/palworldlol/palworld-coord) conversion to place in‑game coordinates onto the map.
+The Rust backend (in `src-tauri/`) is the only thing that speaks HTTP to your server, which keeps your password out of the webview and sidesteps CORS entirely. The world‑map projection is ported from the community [palworld‑save‑pal](https://github.com/oMaN-Rod/palworld-save-pal) converter, calibrated against the in‑game 8192×8192 map texture, so live coordinates land exactly where they do on the game's own map.
 
 ## 🔐 Security
 
@@ -212,7 +212,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) to get
 
 ## 🎨 Credits & attribution
 
-This is an **unofficial fan tool** and is not affiliated with or endorsed by Pocketpair, Inc. Palworld and the map artwork are © Pocketpair, Inc. The bundled `public/palworld-map.jpg` is used only to plot live positions, and the world→map coordinate conversion follows the community [palworld‑coord](https://github.com/palworldlol/palworld-coord) project.
+This is an **unofficial fan tool** and is not affiliated with or endorsed by Pocketpair, Inc. Palworld and the map artwork are © Pocketpair, Inc. The bundled `public/palworld-map.webp` (the in‑game map texture) is used only to plot live positions, and the world→map coordinate conversion is ported from the community [palworld‑save‑pal](https://github.com/oMaN-Rod/palworld-save-pal) project.
 
 ## 📄 License
 

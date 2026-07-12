@@ -5,10 +5,11 @@ import type { Actor } from "../types/api";
 import { worldToUv } from "../lib/mapProject";
 
 // Served from public/ at the web root (works in dev and in the Tauri build).
-const mapUrl = "/palworld-map.jpg";
-// Native pixel size of the map image — the map layer is rendered at this size and
-// scaled to fit, so zooming samples the full-resolution image (crisp, not upscaled).
-const MAP_PX = 4096;
+const mapUrl = "/palworld-map.webp";
+// Native pixel size of the map texture (public/palworld-map.webp is 8192²). The map
+// layer is rendered at this size and scaled to fit, so zooming samples the
+// full-resolution image (crisp, never upscaled past native).
+const MAP_PX = 8192;
 
 type Vars = CSSProperties & Record<string, string | number>;
 
@@ -42,7 +43,7 @@ export function WorldMapView({ actors, visible, onHover }: Props) {
   const [t, setT] = useState<T | null>(null);
   const [loaded, setLoaded] = useState(false);
 
-  // Cap zoom at ~native resolution (1.15× the 4096px source) so the map never
+  // Cap zoom at ~native resolution (1.15× the 8192px source) so the map never
   // upscales into blur — you can zoom right up to the map's real pixels, no further.
   const maxScale = () => Math.max(1.15, fitRef.current);
 
