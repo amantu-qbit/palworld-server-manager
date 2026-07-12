@@ -44,7 +44,7 @@ use std::path::Path;
 use uuid::Uuid;
 
 use super::decompress::{decompress_sav, SaveError};
-use super::gvas::{default_skip_set, parse_gvas};
+use super::gvas::{default_skip_set, parse_gvas, read_properties_until_end};
 use super::model::{DynamicItem, ItemContainer, ItemContainerSlot};
 use super::props::{ArrayValue, Property, StructValue};
 use super::reader::Reader;
@@ -316,17 +316,22 @@ fn decode_character_slot_bytes(bytes: &[u8]) -> Result<Option<Uuid>, SaveError> 
 /// returning the `(local_id, DynamicItem)` pair.
 ///
 /// After the fixed id prefix (`created_world_id`, `local_id`, `static_id`) the
-/// body is one of armor / weapon / egg. The reference distinguishes these with
-/// a try/seek probe; we reproduce the same *outcomes* with explicit bounds
-/// checks so a malformed blob degrades to `item_type = ""` instead of panicking:
+/// body is one of egg / armor / weapon, tried in that order — matching the
+/// reference's `decode_bytes`, which probes `try_read_egg` before falling back
+/// to the armor/weapon checks:
 ///
+/// - **egg**: a *strict* structural match, not a guess — see [`is_egg_body`].
+///   `[4 leading bytes][character_id: fstring][properties_until_end() property
+///   list][28 trailing bytes]`, landing exactly at EOF. The egg body carries a
+///   full pal `SaveParameter` the thin DTO does not model, so only the type is
+///   recorded.
 /// - remaining `== 12` → **armor**: `[4 leading][f32 durability][4 trailing]`.
 /// - an exact-fit `[4 leading][f32 durability][i32 bullets][tarray<fstring>
 ///   passives]([fstring])?[4 trailing]` → **weapon**.
-/// - otherwise, if a `character_id` fstring reads after 4 leading bytes → **egg**
-///   (the egg body carries a full pal `SaveParameter` the thin DTO does not
-///   model, so only the type is recorded).
-/// - anything else → `item_type = ""` (unknown).
+/// - anything else → `item_type = ""` (unknown). A body that almost, but not
+///   exactly, matches egg/armor/weapon falls through here instead of being
+///   guessed, matching the reference's raw-trailer fallback for a body it
+///   cannot classify.
 fn decode_dynamic_item_bytes(bytes: &[u8]) -> Result<Option<(Uuid, DynamicItem)>, SaveError> {
     if bytes.is_empty() {
         return Ok(None);
@@ -353,7 +358,9 @@ fn decode_dynamic_item_bytes(bytes: &[u8]) -> Result<Option<(Uuid, DynamicItem)>
         ..DynamicItem::default()
     };
 
-    if body.len() == 12 {
+    if is_egg_body(body) {
+        item.item_type = "egg".to_string();
+    } else if body.len() == 12 {
         // armor: [4 leading][f32 durability][4 trailing]
         let mut b = Reader::new(body);
         b.skip(4);
@@ -364,8 +371,6 @@ fn decode_dynamic_item_bytes(bytes: &[u8]) -> Result<Option<(Uuid, DynamicItem)>
         item.durability = durability;
         item.remaining_bullets = bullets;
         item.passive_skill_list = passives;
-    } else if is_egg_body(body) {
-        item.item_type = "egg".to_string();
     }
     // else: leave item_type = "" (unknown / raw), matching the reference's
     // raw-trailer fallback for a body it cannot classify.
@@ -406,15 +411,46 @@ fn parse_weapon_body(body: &[u8]) -> Option<(f64, i32, Vec<String>)> {
     Some((durability, bullets, passives))
 }
 
-/// True when `body` begins (after 4 leading bytes) with a readable, non-empty
-/// `character_id` fstring — the egg signature.
+/// Strictly validate `body` as the reference's egg structure
+/// (`dynamic_item.py::try_read_egg`):
+/// `[4 leading bytes][character_id: fstring][properties_until_end() property
+/// list][28 trailing bytes]`, landing exactly at EOF.
+///
+/// This is a structural match, not a heuristic — a body that merely starts
+/// with *some* readable string after 4 bytes is not enough (almost any bytes
+/// can decode to *some* fstring, which is exactly why the old heuristic here
+/// mislabeled unrecognized bodies as eggs). The full remainder must parse as a
+/// property list and then be followed by precisely 28 more bytes and nothing
+/// else, matching the reference's exact egg shape.
+///
+/// [`read_properties_until_end`]'s primitives panic on buffer underrun (by
+/// contract — see `reader.rs`'s doc comment), so feeding a non-egg body
+/// through this probe can legitimately panic partway through (e.g. a
+/// misinterpreted length prefix demanding more bytes than remain).
+/// `catch_unwind` contains that panic to this speculative attempt and reports
+/// "not an egg" instead of crashing the decoder, mirroring the reference's own
+/// `except Exception: ...; return None` wrapped around the identical probe.
+/// The probe only ever touches a fresh `Reader` over the borrowed `body`
+/// slice, so a caught panic here cannot leave any caller state corrupted.
 fn is_egg_body(body: &[u8]) -> bool {
     if body.len() < 4 {
         return false;
     }
-    let mut r = Reader::new(body);
-    r.skip(4);
-    matches!(guarded_fstring(&mut r, body), Some(s) if !s.is_empty())
+    let outcome = std::panic::catch_unwind(|| -> bool {
+        let mut r = Reader::new(body);
+        r.skip(4); // leading_bytes
+        let _character_id = r.fstring();
+        if read_properties_until_end(&mut r, "", &Default::default()).is_err() {
+            return false;
+        }
+        // Exactly the reference's 28 trailing bytes, then EOF — not "at least".
+        if r.remaining() != 28 {
+            return false;
+        }
+        r.skip(28); // trailing_bytes
+        r.eof()
+    });
+    outcome.unwrap_or(false)
 }
 
 /// Read an fstring only if its declared length fits within `buf`; otherwise
@@ -498,4 +534,77 @@ fn as_i32(p: &Property) -> Option<i32> {
 /// True for the all-zero (nil) UUID that Palworld uses to mean "no reference".
 fn is_empty_uuid(u: Uuid) -> bool {
     u.is_nil()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Encode a UE positive-length `fstring` (ASCII path): an `i32` byte count
+    /// that includes the trailing NUL, then the bytes, then the NUL. Mirrors
+    /// what `Reader::fstring` expects to read back.
+    fn encode_fstring(s: &str) -> Vec<u8> {
+        let mut out = Vec::new();
+        let body_len = s.len() as i32 + 1; // + NUL terminator
+        out.extend_from_slice(&body_len.to_le_bytes());
+        out.extend_from_slice(s.as_bytes());
+        out.push(0);
+        out
+    }
+
+    /// The exact false-positive the review flagged: a body that begins (after
+    /// 4 leading bytes) with a perfectly readable, non-empty fstring — the old
+    /// heuristic's entire test — but whose property list terminates
+    /// immediately and is followed by only 6 trailing bytes, not the
+    /// reference's exact 28. The old `is_egg_body` would have accepted this;
+    /// the strict structural check must reject it.
+    #[test]
+    fn readable_fstring_body_that_is_not_a_real_egg_is_rejected() {
+        let mut body = vec![0u8; 4]; // leading_bytes
+        body.extend(encode_fstring("FakeCharacterId")); // old heuristic's signal
+        body.extend(encode_fstring("None")); // empty properties_until_end()
+        body.extend_from_slice(&[0xAA; 6]); // wrong trailing-byte count (not 28)
+        assert!(
+            !is_egg_body(&body),
+            "a body that merely starts with a readable string must not be classified as egg"
+        );
+    }
+
+    /// Positive control: the reference's exact egg shape (leading bytes +
+    /// character_id + a property list + exactly 28 trailing bytes, landing at
+    /// EOF), just with zero nested properties. Confirms the strict check still
+    /// accepts a well-formed minimal egg rather than over-correcting to reject
+    /// everything.
+    #[test]
+    fn well_formed_minimal_egg_body_is_still_accepted() {
+        let mut body = vec![0u8; 4];
+        body.extend(encode_fstring("SomeCharacterId"));
+        body.extend(encode_fstring("None")); // empty properties_until_end()
+        body.extend_from_slice(&[0u8; 28]); // exactly the reference's trailing_bytes
+        assert!(
+            is_egg_body(&body),
+            "a well-formed minimal egg body must still be classified as egg"
+        );
+    }
+
+    /// End-to-end through `decode_dynamic_item_bytes`: the same false-positive
+    /// body as above, wrapped in a full `RawData` blob (ids + static_id +
+    /// body), must decode with `item_type == ""` (unknown) rather than "egg".
+    #[test]
+    fn decode_dynamic_item_bytes_falls_through_to_unknown_not_egg() {
+        let mut raw = vec![0u8; 32]; // created_world_id (16) + local_id (16)
+        raw.extend(encode_fstring("TestStaticId")); // static_id
+        raw.extend(vec![0u8; 4]); // leading_bytes
+        raw.extend(encode_fstring("FakeCharacterId"));
+        raw.extend(encode_fstring("None"));
+        raw.extend_from_slice(&[0xAA; 6]); // wrong trailing-byte count (not 28)
+
+        let (_, item) = decode_dynamic_item_bytes(&raw)
+            .expect("decode should not error")
+            .expect("non-empty RawData yields an item");
+        assert_eq!(
+            item.item_type, "",
+            "a non-egg/non-armor/non-weapon body must classify as unknown, not egg"
+        );
+    }
 }
