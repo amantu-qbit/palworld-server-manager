@@ -28,7 +28,7 @@ export interface MapMarker {
   y: number;
   name: string;
   sub?: string;
-  /** lowercased pal key for boss markers → /mapicons/pals/{palKey}.webp */
+  /** icon key (a cell in the Pal sprite atlas); set for Pal/boss markers */
   palKey?: string;
   /** present for live actors from the game-data snapshot */
   actor?: Actor;
@@ -69,8 +69,8 @@ const ACTOR_KIND: Record<string, MarkerKind> = {
 const spaceWords = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
 
 /**
- * Normalise a Palworld character id/class to its icon key (matches the bundled
- * /mapicons/pals/{key}.webp files). Ported from palworld-save-pal.
+ * Normalise a Palworld character id/class to its icon key (a cell in the bundled
+ * Pal sprite atlas, see scripts/gen-pal-atlas.mjs). Ported from palworld-save-pal.
  */
 export function cleanseCharacterId(id: string): string {
   return id

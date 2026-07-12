@@ -11,6 +11,13 @@ import {
   MARKER_ORDER,
 } from "../lib/mapData";
 import type { MapMarker, MarkerKind } from "../lib/mapData";
+import palAtlas from "../data/palAtlas.json";
+
+// All Pal icons live in one bundled sprite sheet, loaded once — no per-species
+// requests. ATLAS_INDEX maps an icon key to its cell in the grid.
+const ATLAS_COLS: number = palAtlas.cols;
+const ATLAS_CELL: number = palAtlas.cell;
+const ATLAS_INDEX = new Map((palAtlas.keys as string[]).map((k, i) => [k, i] as const));
 
 const mapUrl = "/palworld-map.webp";
 const MAP_PX = 8192;
@@ -47,7 +54,9 @@ interface Props {
 
 function drawPalCircle(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
+  atlas: HTMLImageElement,
+  sx: number,
+  sy: number,
   x: number,
   y: number,
   r: number,
@@ -68,7 +77,7 @@ function drawPalCircle(
   ctx.beginPath();
   ctx.arc(x, y, r - 1.5, 0, TAU);
   ctx.clip();
-  ctx.drawImage(img, x - r, y - r, r * 2, r * 2);
+  ctx.drawImage(atlas, sx, sy, ATLAS_CELL, ATLAS_CELL, x - r, y - r, r * 2, r * 2);
   ctx.restore();
   ctx.beginPath();
   ctx.arc(x, y, r - 0.75, 0, TAU);
@@ -166,7 +175,7 @@ function drawMarker(
   x: number,
   y: number,
   icons: Record<string, HTMLImageElement>,
-  palIcons: Record<string, HTMLImageElement>,
+  atlas: HTMLImageElement | null,
   hover: boolean,
   ring?: string,
 ) {
@@ -181,15 +190,17 @@ function drawMarker(
     drawPlayer(ctx, x, y, pct, ring ?? meta.color, icons[m.kind], hover);
     return;
   }
-  // Live Pals + boss Pals draw their real Pal icon in a colored ring
-  // (gold = alpha, red = predator, otherwise the layer color).
-  if (m.palKey) {
-    const pimg = palIcons[m.palKey];
-    if (pimg && pimg.complete && pimg.naturalWidth) {
+  // Live Pals + boss Pals draw their real Pal icon (from the sprite atlas) in a
+  // colored ring (gold = alpha, red = predator, otherwise the layer color).
+  if (m.palKey && atlas && atlas.naturalWidth) {
+    const idx = ATLAS_INDEX.get(m.palKey);
+    if (idx !== undefined) {
+      const sx = (idx % ATLAS_COLS) * ATLAS_CELL;
+      const sy = Math.floor(idx / ATLAS_COLS) * ATLAS_CELL;
       const isBoss = m.kind === "boss";
       const ringCol = isBoss ? (m.sub === "Predator" ? "#ec6a6a" : "#e6b450") : (ring ?? meta.color);
       const r = isBoss ? (hover ? 15 : 13) : hover ? 11 : 9;
-      drawPalCircle(ctx, pimg, x, y, r, ringCol, hover);
+      drawPalCircle(ctx, atlas, sx, sy, x, y, r, ringCol, hover);
       return;
     }
   }
@@ -285,8 +296,7 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const clusteredCellsRef = useRef<Set<string>>(new Set());
   const baseAreasRef = useRef<{ u: number; v: number; ru: number; color: string }[]>([]);
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
-  const palIconsRef = useRef<Record<string, HTMLImageElement>>({});
-  const palRaf = useRef(0);
+  const atlasRef = useRef<HTMLImageElement | null>(null);
 
   const [loaded, setLoaded] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -443,7 +453,7 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     const vis = visibleRef.current;
     const showOff = showOfflineRef.current;
     const icons = iconsRef.current;
-    const palIcons = palIconsRef.current;
+    const atlas = atlasRef.current;
     const hoverId = hoveredRef.current?.id;
     const selId = selectedRef.current;
     const guildOn = guildModeRef.current;
@@ -518,12 +528,12 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
       const y = ty + m.v * span;
       if (x < -24 || y < -24 || x > w + 24 || y > h + 24) continue;
       if (clusterOn && CLUSTERABLE.has(m.kind) && clusteredCells.has(cellKeyFor(x, y))) continue;
-      drawMarker(ctx, m, x, y, icons, palIcons, false, ringFor(m));
+      drawMarker(ctx, m, x, y, icons, atlas, false, ringFor(m));
       if (m.kind === "player" && m.name) labels.push({ text: m.name, x, y });
       if (m.id === hoverId || m.id === selId) emph.push({ m, x, y });
     }
     for (const l of labels) drawLabel(ctx, l.text.length > 18 ? `${l.text.slice(0, 17)}…` : l.text, l.x, l.y);
-    for (const e of emph) drawMarker(ctx, e.m, e.x, e.y, icons, palIcons, true, ringFor(e.m));
+    for (const e of emph) drawMarker(ctx, e.m, e.x, e.y, icons, atlas, true, ringFor(e.m));
     clustersRef.current = clusters;
     clusteredCellsRef.current = clusteredCells;
   }, []);
@@ -696,29 +706,16 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     iconsRef.current = map;
   }, [draw]);
 
-  // Load Pal icons on demand for every species present (boss + live Pals).
+  // Load the single Pal-icon sprite atlas once — every species is then instantly
+  // available with no per-icon network requests.
   useEffect(() => {
-    const cache = palIconsRef.current;
-    const redraw = () => {
-      if (!palRaf.current)
-        palRaf.current = requestAnimationFrame(() => {
-          palRaf.current = 0;
-          draw();
-        });
+    const img = new Image();
+    img.onload = () => {
+      atlasRef.current = img;
+      draw();
     };
-    let added = false;
-    for (const m of allMarkers) {
-      const key = m.palKey;
-      if (key && !cache[key]) {
-        const img = new Image();
-        img.onload = redraw;
-        img.src = `/mapicons/pals/${key}.webp`;
-        cache[key] = img;
-        added = true;
-      }
-    }
-    if (added) draw();
-  }, [allMarkers, draw]);
+    img.src = "/mapicons/pals-atlas.webp";
+  }, [draw]);
 
   useEffect(() => {
     markersRef.current = allMarkers;
