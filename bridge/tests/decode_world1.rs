@@ -86,6 +86,22 @@ fn player_pal_ownership_matches_fixture() {
 }
 
 #[test]
+fn world1_has_guild_with_base() {
+    let w = world1();
+    assert!(!w.guilds.is_empty(), "at least one guild");
+    assert!(
+        w.guilds.iter().any(|g| !g.bases.is_empty()),
+        "at least one guild has a base"
+    );
+    // Every player with a guild has a guild_id that resolves to a decoded guild.
+    for p in &w.players {
+        if let Some(gid) = &p.guild_id {
+            assert!(w.guilds.iter().any(|g| &g.id == gid));
+        }
+    }
+}
+
+#[test]
 fn player_o_inventory_has_real_items() {
     // GROUND TRUTH (palworld-save-tools reference decoder on this fixture):
     //   player O (8c2f1930-...)'s CommonContainerId is e204737a-... and its

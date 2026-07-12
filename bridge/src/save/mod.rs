@@ -2,6 +2,7 @@
 pub mod character;
 pub mod containers;
 pub mod decompress;
+pub mod guild;
 pub mod gvas;
 pub mod model;
 pub mod props;
@@ -44,16 +45,30 @@ pub fn load_world(dir: &Path) -> Result<World, SaveError> {
 
     let (players, pals) = character::decode_characters(character_map)?;
 
+    // Guilds come from `GroupSaveDataMap` (Guild-type groups only). A save with
+    // no group map yields no guilds rather than an error.
+    let guilds = match world_save_data.get_child("GroupSaveDataMap") {
+        Some(group_map) => guild::decode_guilds(group_map)?,
+        None => Vec::new(),
+    };
+
     let player_summaries = players
         .iter()
         .map(|p| {
             // A player owns every pal whose `owner_uid` is this player's uid.
             let pal_count = pals.iter().filter(|pal| pal.owner_uid == p.uid).count() as i32;
+            // Back-fill guild membership: the guild whose decoded members list
+            // contains this player's uid (uid strings are the same canonical
+            // hyphenated form on both sides).
+            let guild_id = guilds
+                .iter()
+                .find(|g| g.players.contains(&p.uid))
+                .map(|g| g.id.clone());
             PlayerSummary {
                 uid: p.uid.clone(),
                 nickname: p.nickname.clone(),
                 level: p.level,
-                guild_id: p.guild_id.clone(),
+                guild_id,
                 pal_count,
                 last_online: None,
             }
@@ -62,7 +77,7 @@ pub fn load_world(dir: &Path) -> Result<World, SaveError> {
 
     Ok(World {
         players: player_summaries,
-        guilds: Vec::new(),
+        guilds,
         pals,
     })
 }

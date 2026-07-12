@@ -51,6 +51,10 @@ pub enum SaveError {
     /// expected layout. Carries a description.
     #[error("malformed container data: {0}")]
     ContainerData(String),
+    /// A `GroupSaveDataMap` entry (or a guild `RawData` blob) did not match the
+    /// expected layout. Carries a description.
+    #[error("malformed group data: {0}")]
+    GroupData(String),
 }
 
 pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {

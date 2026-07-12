@@ -136,8 +136,8 @@ pub struct PlayerSummary {
     pub nickname: String,
     /// Character level.
     pub level: i32,
-    /// Guild ID.
-    pub guild_id: String,
+    /// Guild ID, if this player belongs to a decoded guild.
+    pub guild_id: Option<String>,
     /// Count of Pals owned.
     pub pal_count: i32,
     /// Last online timestamp (ISO string or epoch).
