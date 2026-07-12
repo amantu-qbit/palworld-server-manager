@@ -16,7 +16,7 @@
 //!   of an unchanged save are free (no re-decode, no re-allocation).
 
 use std::panic::AssertUnwindSafe;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 use std::time::UNIX_EPOCH;
 
@@ -115,6 +115,18 @@ impl AppState {
             .as_ref()
             .filter(|cached| cached.key == key)
             .map(|cached| Arc::clone(&cached.world))
+    }
+
+    /// The directory this state reads `Level.sav` (and future save files)
+    /// from.
+    pub fn save_dir(&self) -> &Path {
+        &self.save_dir
+    }
+
+    /// Whether `<save_dir>/Level.sav` currently exists on disk. Cheap
+    /// existence check (no decode) used for the `/v1/health` response.
+    pub fn level_sav_exists(&self) -> bool {
+        self.save_dir.join("Level.sav").is_file()
     }
 }
 

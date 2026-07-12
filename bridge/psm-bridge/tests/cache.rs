@@ -1,22 +1,13 @@
 //! Integration test: the decoded-`World` cache in `AppState`.
 //!
-//! `psm-bridge` is a binary-only crate (no library target), so this test
-//! pulls `state.rs` in directly via `#[path]` rather than through an
-//! `extern crate` — the module is self-contained (only `psm_save`, `thiserror`,
-//! `tokio`, and `std`, all already regular — non-dev — dependencies of this
-//! crate, so they resolve the same way here as they do in `src/main.rs`).
-//!
 //! Fixture: the Phase-1a `world1` fixture, known (from
 //! `bridge/tests/decode_world1.rs`) to decode to exactly 2 players.
-
-#[path = "../src/state.rs"]
-mod state;
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime};
 
-use state::{AppState, StateError};
+use psm_bridge::state::{AppState, StateError};
 
 const WORLD1_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/fixtures/saves/world1");
 
