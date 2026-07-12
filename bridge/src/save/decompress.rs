@@ -33,6 +33,13 @@ pub enum SaveError {
     Oodle(String),
     #[error("zlib error: {0}")]
     Zlib(String),
+    /// The GVAS envelope did not start with the `GVAS` file-type tag.
+    #[error("invalid GVAS magic")]
+    BadGvasMagic,
+    /// A property/array/struct/set type was encountered that the generic reader
+    /// does not (yet) decode. Carries the type name and the dotted path.
+    #[error("unhandled GVAS type `{0}` at `{1}`")]
+    UnhandledType(String, String),
 }
 
 pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {
