@@ -5,6 +5,7 @@ import { worldToGameCoords } from "../lib/mapProject";
 import {
   actorToMarker,
   CONTENT,
+  guildColor,
   KIND_META,
   LANDMARK_MARKERS,
   MARKER_ORDER,
@@ -18,6 +19,12 @@ const WHEEL_K = 0.0016;
 const DBL_ZOOM = 1.9;
 const KEY_PAN = 72;
 const TAU = Math.PI * 2;
+
+// Live Pals/NPCs collapse into count bubbles when they pile up in a screen cell;
+// players and landmarks always stay individual.
+const CLUSTER_CELL = 46;
+const CLUSTERABLE = new Set<MarkerKind>(["basepal", "wildpal", "otomopal", "npc"]);
+const cellKeyFor = (x: number, y: number) => `${Math.floor(x / CLUSTER_CELL)},${Math.floor(y / CLUSTER_CELL)}`;
 
 const Z: Record<MarkerKind, number> = {
   effigy: 0,
@@ -128,6 +135,31 @@ function drawPlayer(
   ctx.restore();
 }
 
+// A count bubble standing in for a group of clustered markers.
+function drawCluster(ctx: CanvasRenderingContext2D, x: number, y: number, count: number, color: string, hover: boolean) {
+  const r = 11 + Math.min(11, Math.log2(count) * 3);
+  ctx.save();
+  if (hover) {
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+  }
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, TAU);
+  ctx.fillStyle = "rgba(10,12,17,0.9)";
+  ctx.fill();
+  ctx.lineWidth = hover ? 3 : 2.2;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = "#eef2f7";
+  ctx.font = `600 ${count > 99 ? 9 : 10.5}px 'Geist Sans', system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(count > 999 ? "999+" : String(count), x, y + 0.5);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+}
+
 function drawMarker(
   ctx: CanvasRenderingContext2D,
   m: MapMarker,
@@ -136,6 +168,7 @@ function drawMarker(
   icons: Record<string, HTMLImageElement>,
   palIcons: Record<string, HTMLImageElement>,
   hover: boolean,
+  ring?: string,
 ) {
   const meta = KIND_META[m.kind];
   if (m.kind === "player") {
@@ -145,7 +178,7 @@ function drawMarker(
       typeof hp === "number" && typeof mhp === "number" && mhp > 0
         ? Math.max(0, Math.min(1, hp / mhp))
         : null;
-    drawPlayer(ctx, x, y, pct, meta.color, icons[m.kind], hover);
+    drawPlayer(ctx, x, y, pct, ring ?? meta.color, icons[m.kind], hover);
     return;
   }
   // Live Pals + boss Pals draw their real Pal icon in a colored ring
@@ -154,9 +187,9 @@ function drawMarker(
     const pimg = palIcons[m.palKey];
     if (pimg && pimg.complete && pimg.naturalWidth) {
       const isBoss = m.kind === "boss";
-      const ring = isBoss ? (m.sub === "Predator" ? "#ec6a6a" : "#e6b450") : meta.color;
+      const ringCol = isBoss ? (m.sub === "Predator" ? "#ec6a6a" : "#e6b450") : (ring ?? meta.color);
       const r = isBoss ? (hover ? 15 : 13) : hover ? 11 : 9;
-      drawPalCircle(ctx, pimg, x, y, r, ring, hover);
+      drawPalCircle(ctx, pimg, x, y, r, ringCol, hover);
       return;
     }
   }
@@ -185,7 +218,7 @@ function drawMarker(
   ctx.fill();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, TAU);
-  ctx.fillStyle = meta.color;
+  ctx.fillStyle = ring ?? meta.color;
   ctx.fill();
   if (hover) {
     ctx.beginPath();
@@ -245,6 +278,10 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const showOfflineRef = useRef(false);
   const hoveredRef = useRef<MapMarker | null>(null);
   const selectedRef = useRef<string | null>(null);
+  const guildModeRef = useRef(false);
+  const clusteringRef = useRef(true);
+  const clustersRef = useRef<{ x: number; y: number; r: number; count: number; color: string }[]>([]);
+  const clusteredCellsRef = useRef<Set<string>>(new Set());
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
   const palIconsRef = useRef<Record<string, HTMLImageElement>>({});
   const palRaf = useRef(0);
@@ -275,6 +312,20 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const [showOffline, setShowOffline] = useState(() => {
     try {
       return localStorage.getItem("psm.map.offline") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [clustering, setClustering] = useState(() => {
+    try {
+      return localStorage.getItem("psm.map.cluster") !== "0";
+    } catch {
+      return true;
+    }
+  });
+  const [guildMode, setGuildMode] = useState(() => {
+    try {
+      return localStorage.getItem("psm.map.guild") === "1";
     } catch {
       return false;
     }
@@ -321,20 +372,65 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     const palIcons = palIconsRef.current;
     const hoverId = hoveredRef.current?.id;
     const selId = selectedRef.current;
+    const guildOn = guildModeRef.current;
+    const clusterOn = clusteringRef.current;
+    const ringFor = (m: MapMarker) =>
+      guildOn && m.actor?.GuildName ? guildColor(m.actor.GuildName) : undefined;
     const emph: { m: MapMarker; x: number; y: number }[] = [];
     const labels: { text: string; x: number; y: number }[] = [];
+
+    // Pass 1: bucket clusterable Pals by screen cell to find dense groups.
+    const agg = new Map<string, { sx: number; sy: number; n: number; kinds: Record<string, number> }>();
+    if (clusterOn) {
+      for (const m of markersRef.current) {
+        if (!CLUSTERABLE.has(m.kind) || !vis.has(m.kind)) continue;
+        const x = tx + m.u * span;
+        const y = ty + m.v * span;
+        if (x < -24 || y < -24 || x > w + 24 || y > h + 24) continue;
+        const key = cellKeyFor(x, y);
+        let a = agg.get(key);
+        if (!a) {
+          a = { sx: 0, sy: 0, n: 0, kinds: {} };
+          agg.set(key, a);
+        }
+        a.sx += x;
+        a.sy += y;
+        a.n++;
+        a.kinds[m.kind] = (a.kinds[m.kind] || 0) + 1;
+      }
+    }
+    const clusteredCells = new Set<string>();
+    const clusters: { x: number; y: number; r: number; count: number; color: string }[] = [];
+    for (const [key, a] of agg) {
+      if (a.n < 2) continue;
+      clusteredCells.add(key);
+      const domKind = Object.entries(a.kinds).sort((p, q) => q[1] - p[1])[0][0] as MarkerKind;
+      clusters.push({
+        x: a.sx / a.n,
+        y: a.sy / a.n,
+        r: 11 + Math.min(11, Math.log2(a.n) * 3),
+        count: a.n,
+        color: KIND_META[domKind].color,
+      });
+    }
+    for (const cl of clusters) drawCluster(ctx, cl.x, cl.y, cl.count, cl.color, false);
+
+    // Pass 2: draw everything not absorbed into a cluster, in Z order.
     for (const m of markersRef.current) {
       if (!vis.has(m.kind)) continue;
       if (m.kind === "player" && !showOff && m.online === false) continue;
       const x = tx + m.u * span;
       const y = ty + m.v * span;
       if (x < -24 || y < -24 || x > w + 24 || y > h + 24) continue;
-      drawMarker(ctx, m, x, y, icons, palIcons, false);
+      if (clusterOn && CLUSTERABLE.has(m.kind) && clusteredCells.has(cellKeyFor(x, y))) continue;
+      drawMarker(ctx, m, x, y, icons, palIcons, false, ringFor(m));
       if (m.kind === "player" && m.name) labels.push({ text: m.name, x, y });
       if (m.id === hoverId || m.id === selId) emph.push({ m, x, y });
     }
     for (const l of labels) drawLabel(ctx, l.text.length > 18 ? `${l.text.slice(0, 17)}…` : l.text, l.x, l.y);
-    for (const e of emph) drawMarker(ctx, e.m, e.x, e.y, icons, palIcons, true);
+    for (const e of emph) drawMarker(ctx, e.m, e.x, e.y, icons, palIcons, true, ringFor(e.m));
+    clustersRef.current = clusters;
+    clusteredCellsRef.current = clusteredCells;
   }, []);
 
   const apply = useCallback(() => {
@@ -501,14 +597,18 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   useEffect(() => {
     visibleRef.current = visible;
     showOfflineRef.current = showOffline;
+    clusteringRef.current = clustering;
+    guildModeRef.current = guildMode;
     draw();
     try {
       localStorage.setItem("psm.map.layers", JSON.stringify([...visible]));
       localStorage.setItem("psm.map.offline", showOffline ? "1" : "0");
+      localStorage.setItem("psm.map.cluster", clustering ? "1" : "0");
+      localStorage.setItem("psm.map.guild", guildMode ? "1" : "0");
     } catch {
       /* ignore */
     }
-  }, [visible, showOffline, draw]);
+  }, [visible, showOffline, clustering, guildMode, draw]);
   useEffect(() => {
     hoveredRef.current = hovered;
     draw();
@@ -561,20 +661,34 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     const span = MAP_PX * s;
     const vis = visibleRef.current;
     const showOff = showOfflineRef.current;
+    const clusterOn = clusteringRef.current;
+    const clustered = clusteredCellsRef.current;
     let best: MapMarker | null = null;
     let bestD = 14 * 14;
     for (const m of markersRef.current) {
       if (!vis.has(m.kind)) continue;
       if (m.kind === "player" && !showOff && m.online === false) continue;
-      const x = tx + m.u * span - mx;
-      const y = ty + m.v * span - my;
-      const d = x * x + y * y;
+      const sx = tx + m.u * span;
+      const sy = ty + m.v * span;
+      if (clusterOn && CLUSTERABLE.has(m.kind) && clustered.has(cellKeyFor(sx, sy))) continue;
+      const dx = sx - mx;
+      const dy = sy - my;
+      const d = dx * dx + dy * dy;
       if (d <= bestD) {
         bestD = d;
         best = m;
       }
     }
     return best;
+  };
+
+  const clusterHitTest = (mx: number, my: number) => {
+    for (const c of clustersRef.current) {
+      const dx = c.x - mx;
+      const dy = c.y - my;
+      if (dx * dx + dy * dy <= (c.r + 3) * (c.r + 3)) return c;
+    }
+    return null;
   };
 
   const setHoverIfChanged = (m: MapMarker | null) => {
@@ -644,11 +758,19 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     if (pointers.current.size < 2) pinch.current = null;
     if (pointers.current.size === 0) {
       if (wasClick && viewRef.current) {
-        // Click/tap a marker to pin its detail card; click empty space to unpin.
+        // Click a cluster to zoom into it; click a marker to pin its detail
+        // card; click empty space to unpin.
         const r = viewRef.current.getBoundingClientRect();
-        const hit = hitTest(e.clientX - r.left, e.clientY - r.top);
-        setSelectedId(hit ? hit.id : null);
-        if (e.pointerType !== "mouse") setHoverIfChanged(null);
+        const mx = e.clientX - r.left;
+        const my = e.clientY - r.top;
+        const cl = clusterHitTest(mx, my);
+        if (cl) {
+          animateZoom(tf.current.s * 2.2, cl.x, cl.y);
+        } else {
+          const hit = hitTest(mx, my);
+          setSelectedId(hit ? hit.id : null);
+          if (e.pointerType !== "mouse") setHoverIfChanged(null);
+        }
       } else if (pan.current) {
         startGlide(pan.current.vx, pan.current.vy);
       }
@@ -801,6 +923,15 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
               </label>
               <div className="wm-lgroup">Landmarks</div>
               {landmarkKinds.map(layerRow)}
+              <div className="wm-lgroup">Display</div>
+              <label className="wm-offline">
+                <input type="checkbox" checked={clustering} onChange={(e) => setClustering(e.target.checked)} />
+                Cluster dense Pals
+              </label>
+              <label className="wm-offline">
+                <input type="checkbox" checked={guildMode} onChange={(e) => setGuildMode(e.target.checked)} />
+                Color by guild
+              </label>
             </div>
           )}
         </div>

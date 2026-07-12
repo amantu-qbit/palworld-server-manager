@@ -143,6 +143,18 @@ export function palIconKey(raw: string): string {
 
 const PAL_KINDS = new Set<MarkerKind>(["wildpal", "basepal", "otomopal"]);
 
+/** A stable, pleasant ring color for a guild name (for the "color by guild" mode). */
+const guildColorCache = new Map<string, string>();
+export function guildColor(name: string): string {
+  const hit = guildColorCache.get(name);
+  if (hit) return hit;
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i++) h = Math.imul(h ^ name.charCodeAt(i), 16777619);
+  const col = `hsl(${(h >>> 0) % 360} 72% 62%)`;
+  guildColorCache.set(name, col);
+  return col;
+}
+
 interface RawPoint {
   x: number;
   y: number;
