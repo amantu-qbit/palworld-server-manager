@@ -1,3 +1,6 @@
+[workspace]
+members = ["psm-bridge"]
+
 [package]
 name = "psm-save"
 version = "0.1.0"
