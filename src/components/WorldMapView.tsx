@@ -4,7 +4,6 @@ import type { Actor } from "../types/api";
 import { worldToGameCoords } from "../lib/mapProject";
 import {
   actorToMarker,
-  BOSS_PAL_KEYS,
   CONTENT,
   KIND_META,
   LANDMARK_MARKERS,
@@ -81,11 +80,15 @@ function drawMarker(
   hover: boolean,
 ) {
   const meta = KIND_META[m.kind];
-  // Boss Pals use their real Pal icon in a colored ring (gold = alpha, red = predator).
-  if (m.kind === "boss" && m.palKey) {
+  // Live Pals + boss Pals draw their real Pal icon in a colored ring
+  // (gold = alpha, red = predator, otherwise the layer color).
+  if (m.palKey) {
     const pimg = palIcons[m.palKey];
     if (pimg && pimg.complete && pimg.naturalWidth) {
-      drawPalCircle(ctx, pimg, x, y, hover ? 15 : 13, m.sub === "Predator" ? "#ec6a6a" : "#e6b450", hover);
+      const isBoss = m.kind === "boss";
+      const ring = isBoss ? (m.sub === "Predator" ? "#ec6a6a" : "#e6b450") : meta.color;
+      const r = isBoss ? (hover ? 15 : 13) : hover ? 11 : 9;
+      drawPalCircle(ctx, pimg, x, y, r, ring, hover);
       return;
     }
   }
@@ -149,6 +152,7 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const hoveredRef = useRef<MapMarker | null>(null);
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
   const palIconsRef = useRef<Record<string, HTMLImageElement>>({});
+  const palRaf = useRef(0);
 
   const [loaded, setLoaded] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -359,27 +363,29 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     iconsRef.current = map;
   }, [draw]);
 
-  // Preload boss Pal icons (batched redraw).
+  // Load Pal icons on demand for every species present (boss + live Pals).
   useEffect(() => {
-    const map: Record<string, HTMLImageElement> = {};
-    let raf = 0;
+    const cache = palIconsRef.current;
     const redraw = () => {
-      if (!raf) raf = requestAnimationFrame(() => {
-        raf = 0;
-        draw();
-      });
+      if (!palRaf.current)
+        palRaf.current = requestAnimationFrame(() => {
+          palRaf.current = 0;
+          draw();
+        });
     };
-    for (const key of BOSS_PAL_KEYS) {
-      const img = new Image();
-      img.onload = redraw;
-      img.src = `/mapicons/pals/${key}.webp`;
-      map[key] = img;
+    let added = false;
+    for (const m of allMarkers) {
+      const key = m.palKey;
+      if (key && !cache[key]) {
+        const img = new Image();
+        img.onload = redraw;
+        img.src = `/mapicons/pals/${key}.webp`;
+        cache[key] = img;
+        added = true;
+      }
     }
-    palIconsRef.current = map;
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [draw]);
+    if (added) draw();
+  }, [allMarkers, draw]);
 
   useEffect(() => {
     markersRef.current = allMarkers;

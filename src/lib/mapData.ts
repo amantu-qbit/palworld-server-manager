@@ -66,6 +66,26 @@ const ACTOR_KIND: Record<string, MarkerKind> = {
 
 const spaceWords = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, "$1 $2");
 
+/**
+ * Normalise a Palworld character id/class to its icon key (matches the bundled
+ * /mapicons/pals/{key}.webp files). Ported from palworld-save-pal.
+ */
+export function cleanseCharacterId(id: string): string {
+  return id
+    .toLowerCase()
+    .replace("predator_", "")
+    .replace("_oilrig", "")
+    .replace("raid_", "")
+    .replace("summon_", "")
+    .replace("_max", "")
+    .replace(/_\d+$/, "")
+    .replace("boss_", "")
+    .replace("quest_farmer03_", "")
+    .replace("_otomo", "");
+}
+
+const PAL_KINDS = new Set<MarkerKind>(["wildpal", "basepal", "otomopal"]);
+
 interface RawPoint {
   x: number;
   y: number;
@@ -106,7 +126,7 @@ const bosses = objs
       o.pal ? spaceWords(o.pal) : "Boss Pal",
       o.type === "predator_pal" ? "Predator" : "Field Alpha",
     );
-    if (o.pal) m.palKey = o.pal.toLowerCase();
+    if (o.pal) m.palKey = cleanseCharacterId(o.pal);
     return m;
   });
 
@@ -156,6 +176,7 @@ export function actorToMarker(a: Actor, i: number, onlineKeys: Set<string>): Map
         ? true
         : onlineKeys.has(a.userid ?? "\0") || onlineKeys.has((a.NickName ?? "").toLowerCase());
   }
+  const palKey = PAL_KINDS.has(kind) && a.Class ? cleanseCharacterId(a.Class) : undefined;
   return {
     id: a.InstanceID || `${a.UnitType}-${i}`,
     kind,
@@ -163,8 +184,9 @@ export function actorToMarker(a: Actor, i: number, onlineKeys: Set<string>): Map
     v,
     x: a.LocationX,
     y: a.LocationY,
-    name: a.NickName || a.Class || a.UnitType,
+    name: a.NickName || (a.Class ? spaceWords(a.Class) : a.UnitType),
     sub: a.GuildName,
+    palKey,
     actor: a,
     online,
   };
