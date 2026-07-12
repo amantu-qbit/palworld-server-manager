@@ -576,6 +576,7 @@ dependencies = [
  "psm-save",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
  "toml",
  "tower",
