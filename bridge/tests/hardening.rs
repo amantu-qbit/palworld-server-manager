@@ -100,3 +100,63 @@ fn crafted_map_count_errors_without_oom() {
         "crafted huge map count must error, not hang/OOM"
     );
 }
+
+/// The toothless-test gap: a `MapProperty<BoolProperty, BoolProperty>` whose
+/// declared `count` is small enough to satisfy the old on-disk
+/// `remaining()`-guard (`count <= remaining() / 2`, since a `BoolProperty` map
+/// entry's smallest on-disk encoding is 1 byte per key/value) but whose *real*
+/// in-memory allocation — `Vec::<MapEntry>::with_capacity(count)`, at
+/// `size_of::<MapEntry>()` bytes per element, not 2 — would exceed the
+/// `gvas.rs::MAX_ELEM_ALLOC_BYTES` cap by tens of megabytes. Unlike the
+/// existing `crafted_map_count_errors_without_oom` test (which supplies zero
+/// trailing bytes, so `remaining() ≈ 0` rejects trivially without ever
+/// reaching the real failure mode), this test pads the buffer to several
+/// megabytes of `remaining()` so the on-disk guard genuinely passes and only
+/// the size-aware guard catches the oversized allocation.
+#[test]
+fn crafted_map_bool_bool_count_passes_on_disk_guard_but_exceeds_elem_alloc_cap() {
+    use psm_save::save::props::MapEntry;
+
+    const MAX_ELEM_ALLOC_BYTES: usize = 256 * 1024 * 1024;
+    let elem_size = std::mem::size_of::<MapEntry>();
+    let min_on_disk_entry = 2usize; // BoolProperty(1) + BoolProperty(1)
+
+    // Smallest count whose *real* Vec<MapEntry> allocation exceeds the cap,
+    // plus a comfortable margin so the assertion below isn't a coin flip.
+    let count = MAX_ELEM_ALLOC_BYTES / elem_size + 100_000;
+    // A fixed several-MB pad — enough remaining() bytes that the old
+    // `count <= remaining() / min_on_disk_entry` on-disk guard passes for any
+    // `count` in the low millions (it does not for the `MapEntry` sizes seen
+    // in practice, verified by the assertion below).
+    let padding_len = 8 * 1024 * 1024;
+
+    // Sanity-check the setup's own assumptions before exercising the parser:
+    // the old on-disk guard alone would have accepted this count...
+    assert!(
+        count <= padding_len / min_on_disk_entry,
+        "test setup invalid: count {count} would fail even the old on-disk guard \
+         (elem_size={elem_size}, adjust padding_len)"
+    );
+    // ...but the true in-memory allocation exceeds the cap.
+    assert!(
+        count.saturating_mul(elem_size) > MAX_ELEM_ALLOC_BYTES,
+        "test setup invalid: count {count} * elem_size {elem_size} does not exceed the cap"
+    );
+
+    let mut b = gvas_header();
+    b.extend_from_slice(&fstring("Map")); // property name
+    b.extend_from_slice(&fstring("MapProperty")); // type name
+    b.extend_from_slice(&0u64.to_le_bytes()); // size (unused by read_map)
+    b.extend_from_slice(&fstring("BoolProperty")); // key_type
+    b.extend_from_slice(&fstring("BoolProperty")); // value_type
+    b.push(0x00); // optional_guid: absent
+    b.extend_from_slice(&0u32.to_le_bytes()); // padding
+    b.extend_from_slice(&(count as u32).to_le_bytes()); // count
+    b.extend(std::iter::repeat_n(0u8, padding_len)); // remaining() is several MB, not ~0
+
+    let result = parse_gvas(&b, &default_skip_set());
+    assert!(
+        matches!(result, Err(SaveError::TooLarge)),
+        "expected Err(TooLarge) from the size-aware elem-alloc guard, got {result:?}"
+    );
+}

@@ -23,11 +23,18 @@ const HEADER_LEN: usize = 12;
 const MAGIC_ZLIB: [u8; 3] = *b"PlZ";
 const MAGIC_OODLE: [u8; 3] = *b"PlM";
 
-/// Sane ceiling on a declared decompressed size (`.sav` header) or an inner
-/// GVAS array/set/map element count. No legitimate Palworld world approaches
-/// this; anything above it is a crafted or corrupt input and is rejected
-/// before the corresponding allocation is attempted (Phase-1b hardening,
-/// review finding S2).
+/// Sane ceiling on the decompressed payload size: the `.sav` header's declared
+/// `uncompressed_len` (checked in [`oodle_decompress`] before the output
+/// buffer is allocated) and the actual output length of each zlib
+/// decompression stage (checked in [`zlib_decompress`], which reads through a
+/// capped [`std::io::Read::take`] so the buffer cannot grow past this bound in
+/// the first place). Does *not* bound inner GVAS array/set/map element counts
+/// — those are bounded separately by `gvas::MAX_ELEM_ALLOC_BYTES`, which sizes
+/// its guard against each site's real in-memory element type rather than this
+/// on-disk-byte ceiling. No legitimate Palworld world approaches this;
+/// anything above it is a crafted or corrupt input and is rejected before the
+/// corresponding allocation is attempted (Phase-1b hardening, review finding
+/// S2).
 pub(crate) const MAX_DECOMPRESSED: usize = 512 * 1024 * 1024;
 
 #[derive(Debug, Error)]
@@ -135,11 +142,24 @@ fn oodle_decompress(
     Ok(output)
 }
 
+/// Decompress a single zlib stream, capping the output at
+/// [`MAX_DECOMPRESSED`] bytes. A zlib bomb (a tiny compressed input that
+/// expands to an enormous output) would otherwise make an uncapped
+/// `read_to_end` grow its buffer without bound and OOM the process; reading
+/// through a [`std::io::Read::take`] limited to one byte past the cap means
+/// the buffer itself never grows past that bound, and an over-length output
+/// is turned into an `Err` instead of a successful giant allocation. Applied
+/// per-stage, so the double-zlib (`0x32`) case caps each of its two stages
+/// independently.
 fn zlib_decompress(data: &[u8]) -> Result<Vec<u8>, SaveError> {
-    let mut decoder = ZlibDecoder::new(data);
+    let decoder = ZlibDecoder::new(data);
+    let mut limited = decoder.take(MAX_DECOMPRESSED as u64 + 1);
     let mut out = Vec::new();
-    decoder
+    limited
         .read_to_end(&mut out)
         .map_err(|e| SaveError::Zlib(e.to_string()))?;
+    if out.len() > MAX_DECOMPRESSED {
+        return Err(SaveError::TooLarge);
+    }
     Ok(out)
 }

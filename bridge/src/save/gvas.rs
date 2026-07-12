@@ -30,6 +30,8 @@
 
 use std::collections::{BTreeMap, HashSet};
 
+use uuid::Uuid;
+
 use super::decompress::SaveError;
 use super::props::{ArrayValue, ByteVal, MapEntry, Property, SetValue, StructValue};
 use super::reader::Reader;
@@ -301,6 +303,33 @@ fn min_prop_value_bytes(type_name: &str, struct_type: Option<&str>) -> usize {
     }
 }
 
+/// Ceiling on the actual in-memory bytes a single count-driven
+/// `Vec::with_capacity(count)` call may request. The `remaining()`-guards above
+/// ([`min_struct_value_bytes`] / [`min_prop_value_bytes`]) bound `count`
+/// against the smallest possible *on-disk* encoding of one element, but
+/// `Vec::with_capacity(count)` allocates `count * size_of::<Elem>()` bytes of
+/// *in-memory* storage — and in-memory element sizes can be far larger than
+/// their smallest on-disk encoding (e.g. a [`MapEntry`] is hundreds of bytes,
+/// while a `BoolProperty`/`BoolProperty` map entry's smallest on-disk encoding
+/// is 2 bytes). A spec-valid file that fits comfortably under
+/// `decompress::MAX_DECOMPRESSED` can still declare a `count` that would
+/// request tens of gigabytes here, so this second, size-aware guard is
+/// necessary in addition to (not instead of) the on-disk `remaining()`-guards.
+const MAX_ELEM_ALLOC_BYTES: usize = 256 * 1024 * 1024;
+
+/// Reject `count` if `Vec::<Elem>::with_capacity(count)` would request more
+/// than [`MAX_ELEM_ALLOC_BYTES`] bytes, where `Elem` is the real in-memory type
+/// the `Vec` at that call site collects (not its on-disk encoding). Call this
+/// alongside, not instead of, the existing `remaining()`-guard at each
+/// count-driven allocation site — defense in depth against an implausible
+/// on-disk length and an implausible in-memory allocation, respectively.
+fn check_elem_alloc<Elem>(count: usize) -> Result<(), SaveError> {
+    if count.saturating_mul(std::mem::size_of::<Elem>()) > MAX_ELEM_ALLOC_BYTES {
+        return Err(SaveError::TooLarge);
+    }
+    Ok(())
+}
+
 /// Read an `ArrayProperty` (`_read_ArrayProperty` + `array_property` +
 /// `array_value`). A `ByteProperty` array collapses to [`Property::Bytes`]; a
 /// `StructProperty` array reads its shared inner struct header once.
@@ -329,6 +358,7 @@ fn read_array(
         if count > r.remaining() / min_elem {
             return Err(SaveError::TooLarge);
         }
+        check_elem_alloc::<StructValue>(count)?;
         let mut values = Vec::with_capacity(count);
         for _ in 0..count {
             values.push(read_struct_value(r, &type_name, &elem_path, skip)?);
@@ -362,6 +392,7 @@ fn read_array(
             if count > r.remaining() / 4 {
                 return Err(SaveError::TooLarge);
             }
+            check_elem_alloc::<String>(count)?;
             let mut values = Vec::with_capacity(count);
             for _ in 0..count {
                 values.push(r.fstring());
@@ -376,6 +407,7 @@ fn read_array(
             if count > r.remaining() / 16 {
                 return Err(SaveError::TooLarge);
             }
+            check_elem_alloc::<Uuid>(count)?;
             let mut values = Vec::with_capacity(count);
             for _ in 0..count {
                 values.push(r.guid());
@@ -408,6 +440,7 @@ fn read_set(r: &mut Reader, path: &str, skip: &SkipSet) -> Result<Property, Save
         if count > r.remaining() / min_elem {
             return Err(SaveError::TooLarge);
         }
+        check_elem_alloc::<StructValue>(count)?;
         let mut values = Vec::with_capacity(count);
         for _ in 0..count {
             values.push(read_struct_value(r, &struct_type, &elem_path, skip)?);
@@ -426,6 +459,7 @@ fn read_set(r: &mut Reader, path: &str, skip: &SkipSet) -> Result<Property, Save
         if count > r.remaining() / 9 {
             return Err(SaveError::TooLarge);
         }
+        check_elem_alloc::<BTreeMap<String, Property>>(count)?;
         let mut values = Vec::with_capacity(count);
         for _ in 0..count {
             values.push(read_properties_until_end(r, "", skip)?);
@@ -465,6 +499,7 @@ fn read_map(r: &mut Reader, path: &str, skip: &SkipSet) -> Result<Property, Save
     if count > r.remaining() / min_entry {
         return Err(SaveError::TooLarge);
     }
+    check_elem_alloc::<MapEntry>(count)?;
     let mut entries = Vec::with_capacity(count);
     for _ in 0..count {
         let key = read_prop_value(r, &key_type, key_struct_type.as_deref(), &key_path, skip)?;
