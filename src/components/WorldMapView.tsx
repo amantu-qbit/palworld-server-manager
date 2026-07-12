@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Layers, Locate, Maximize2, Minimize2, Minus, Plus, TriangleAlert, X } from "lucide-react";
+import { ChevronDown, Layers, Locate, Maximize2, Minimize2, Minus, Plus, Search, TriangleAlert, X } from "lucide-react";
 import type { Actor } from "../types/api";
 import { worldToGameCoords } from "../lib/mapProject";
 import {
@@ -280,8 +280,10 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const selectedRef = useRef<string | null>(null);
   const guildModeRef = useRef(false);
   const clusteringRef = useRef(true);
+  const showBasesRef = useRef(false);
   const clustersRef = useRef<{ x: number; y: number; r: number; count: number; color: string }[]>([]);
   const clusteredCellsRef = useRef<Set<string>>(new Set());
+  const baseAreasRef = useRef<{ u: number; v: number; ru: number; color: string }[]>([]);
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
   const palIconsRef = useRef<Record<string, HTMLImageElement>>({});
   const palRaf = useRef(0);
@@ -330,8 +332,16 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
       return false;
     }
   });
+  const [showBases, setShowBases] = useState(() => {
+    try {
+      return localStorage.getItem("psm.map.bases") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [hovered, setHovered] = useState<MapMarker | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   const allMarkers = useMemo(() => {
     const live = actors.map((a, i) => actorToMarker(a, i, onlineKeys));
@@ -346,6 +356,70 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     () => (selectedId ? allMarkers.find((m) => m.id === selectedId) ?? null : null),
     [selectedId, allMarkers],
   );
+
+  // Approximate base-camp footprints: group each guild's Base Pals into camps by
+  // proximity (the API has no base boundary), then a blob per camp of 3+ Pals.
+  const baseAreas = useMemo(() => {
+    const byGuild = new Map<string, MapMarker[]>();
+    for (const m of allMarkers) {
+      if (m.kind !== "basepal" || !m.actor?.GuildName) continue;
+      const arr = byGuild.get(m.actor.GuildName);
+      if (arr) arr.push(m);
+      else byGuild.set(m.actor.GuildName, [m]);
+    }
+    const TH = 0.011; // uv distance that still counts as the same camp
+    const areas: { u: number; v: number; ru: number; color: string }[] = [];
+    for (const [guild, pals] of byGuild) {
+      const used = new Array(pals.length).fill(false);
+      for (let i = 0; i < pals.length; i++) {
+        if (used[i]) continue;
+        const stack = [i];
+        used[i] = true;
+        const comp: MapMarker[] = [];
+        while (stack.length) {
+          const j = stack.pop() as number;
+          comp.push(pals[j]);
+          for (let k = 0; k < pals.length; k++) {
+            if (used[k]) continue;
+            const du = pals[k].u - pals[j].u;
+            const dv = pals[k].v - pals[j].v;
+            if (du * du + dv * dv <= TH * TH) {
+              used[k] = true;
+              stack.push(k);
+            }
+          }
+        }
+        if (comp.length < 3) continue;
+        let su = 0;
+        let sv = 0;
+        for (const p of comp) {
+          su += p.u;
+          sv += p.v;
+        }
+        const cu = su / comp.length;
+        const cv = sv / comp.length;
+        let rr = 0;
+        for (const p of comp) rr = Math.max(rr, Math.hypot(p.u - cu, p.v - cv));
+        areas.push({ u: cu, v: cv, ru: rr + 0.006, color: guildColor(guild) });
+      }
+    }
+    return areas;
+  }, [allMarkers]);
+
+  // Search matches (players, Pals by species, landmarks by name), best kinds first.
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const out: MapMarker[] = [];
+    for (const m of allMarkers) {
+      if (m.name && m.name.toLowerCase().includes(q)) {
+        out.push(m);
+        if (out.length >= 60) break;
+      }
+    }
+    out.sort((a, b) => Z[b.kind] - Z[a.kind]);
+    return out.slice(0, 8);
+  }, [query, allMarkers]);
 
   const counts = useMemo(() => {
     const c = {} as Record<MarkerKind, number>;
@@ -378,6 +452,27 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
       guildOn && m.actor?.GuildName ? guildColor(m.actor.GuildName) : undefined;
     const emph: { m: MapMarker; x: number; y: number }[] = [];
     const labels: { text: string; x: number; y: number }[] = [];
+
+    // Base-camp footprints, under everything.
+    if (showBasesRef.current) {
+      for (const a of baseAreasRef.current) {
+        const ax = tx + a.u * span;
+        const ay = ty + a.v * span;
+        const ar = a.ru * span;
+        if (ax + ar < 0 || ay + ar < 0 || ax - ar > w || ay - ar > h) continue;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ax, ay, ar, 0, TAU);
+        ctx.globalAlpha = 0.13;
+        ctx.fillStyle = a.color;
+        ctx.fill();
+        ctx.globalAlpha = 0.55;
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = a.color;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
 
     // Pass 1: bucket clusterable Pals by screen cell to find dense groups.
     const agg = new Map<string, { sx: number; sy: number; n: number; kinds: Record<string, number> }>();
@@ -495,6 +590,30 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     [zoomAt],
   );
 
+  // Animate the whole transform (pan + zoom together) — used to fly to a search hit.
+  const animateTo = useCallback(
+    (s1: number, tx1: number, ty1: number) => {
+      stopAnim();
+      stopGlide();
+      const s0 = tf.current.s;
+      const x0 = tf.current.tx;
+      const y0 = tf.current.ty;
+      const t0 = performance.now();
+      const tick = (now: number) => {
+        const k = Math.min(1, (now - t0) / 360);
+        const e = 1 - Math.pow(1 - k, 3);
+        tf.current.s = s0 + (s1 - s0) * e;
+        tf.current.tx = x0 + (tx1 - x0) * e;
+        tf.current.ty = y0 + (ty1 - y0) * e;
+        clamp();
+        apply();
+        anim.current = k < 1 ? requestAnimationFrame(tick) : null;
+      };
+      anim.current = requestAnimationFrame(tick);
+    },
+    [clamp, apply],
+  );
+
   const center = () => ({ cx: size.current.w / 2, cy: size.current.h / 2 });
   const zoomButton = (mult: number) => {
     const { cx, cy } = center();
@@ -516,6 +635,17 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     clamp();
     apply();
   }, [clamp, apply]);
+
+  // Fly to a marker (from search), reveal its layer, and pin its detail card.
+  const focusMarker = (m: MapMarker) => {
+    const { w, h } = size.current;
+    const s1 = Math.min(MAX_SCALE, Math.max(fit.current, fit.current * 7));
+    animateTo(s1, w / 2 - m.u * MAP_PX * s1, h / 2 - m.v * MAP_PX * s1);
+    setVisible((prev) => (prev.has(m.kind) ? prev : new Set(prev).add(m.kind)));
+    setSelectedId(m.id);
+    setQuery("");
+    viewRef.current?.focus();
+  };
 
   const measure = useCallback(() => {
     const el = viewRef.current;
@@ -599,16 +729,22 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     showOfflineRef.current = showOffline;
     clusteringRef.current = clustering;
     guildModeRef.current = guildMode;
+    showBasesRef.current = showBases;
     draw();
     try {
       localStorage.setItem("psm.map.layers", JSON.stringify([...visible]));
       localStorage.setItem("psm.map.offline", showOffline ? "1" : "0");
       localStorage.setItem("psm.map.cluster", clustering ? "1" : "0");
       localStorage.setItem("psm.map.guild", guildMode ? "1" : "0");
+      localStorage.setItem("psm.map.bases", showBases ? "1" : "0");
     } catch {
       /* ignore */
     }
-  }, [visible, showOffline, clustering, guildMode, draw]);
+  }, [visible, showOffline, clustering, guildMode, showBases, draw]);
+  useEffect(() => {
+    baseAreasRef.current = baseAreas;
+    draw();
+  }, [baseAreas, draw]);
   useEffect(() => {
     hoveredRef.current = hovered;
     draw();
@@ -907,6 +1043,39 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
 
         {!loaded && <div className="wm-loading skeleton" />}
 
+        <div className="wm-search wm-nozoom" onPointerDown={stop} onDoubleClick={stop}>
+          <div className="wm-search__box">
+            <Search size={14} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && matches[0]) focusMarker(matches[0]);
+                else if (e.key === "Escape") setQuery("");
+              }}
+              placeholder="Search players, Pals…"
+              aria-label="Search the map"
+              spellCheck={false}
+            />
+            {query && (
+              <button className="wm-search__clear" onClick={() => setQuery("")} aria-label="Clear search">
+                <X size={13} />
+              </button>
+            )}
+          </div>
+          {matches.length > 0 && (
+            <div className="wm-search__results">
+              {matches.map((m) => (
+                <button key={m.id} className="wm-search__row" onClick={() => focusMarker(m)}>
+                  <span className="wm-search__dot" style={{ background: KIND_META[m.kind].color }} />
+                  <span className="wm-search__name">{m.name}</span>
+                  <span className="wm-search__kind">{KIND_META[m.kind].label.replace(/s$/, "")}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="wm-panel wm-layers wm-nozoom" onPointerDown={stop} onDoubleClick={stop}>
           <button className="wm-panel__head" onClick={() => setPanelOpen((o) => !o)}>
             <Layers size={14} />
@@ -931,6 +1100,10 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
               <label className="wm-offline">
                 <input type="checkbox" checked={guildMode} onChange={(e) => setGuildMode(e.target.checked)} />
                 Color by guild
+              </label>
+              <label className="wm-offline">
+                <input type="checkbox" checked={showBases} onChange={(e) => setShowBases(e.target.checked)} />
+                Base-camp areas
               </label>
             </div>
           )}
