@@ -7,6 +7,7 @@ pub mod gvas;
 pub mod model;
 pub mod props;
 pub mod reader;
+pub mod reference;
 
 use std::path::Path;
 
