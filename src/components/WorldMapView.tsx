@@ -70,6 +70,64 @@ function drawPalCircle(
   ctx.stroke();
 }
 
+function hpColor(pct: number) {
+  return pct > 0.5 ? "#3ad19a" : pct > 0.25 ? "#e6b450" : "#ec6a6a";
+}
+
+// Player marker: the player figure on a dark disc, wrapped in an HP ring that
+// fills clockwise from 12 o'clock in proportion to HP/MaxHP (green→amber→red).
+// pct === null means no HP data (players from /players fallback) → a plain ring.
+function drawPlayer(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  pct: number | null,
+  color: string,
+  img: HTMLImageElement | undefined,
+  hover: boolean,
+) {
+  const R = hover ? 11.5 : 9.5;
+  const lw = hover ? 3 : 2.4;
+  ctx.beginPath();
+  ctx.arc(x, y, R + 1, 0, TAU);
+  ctx.fillStyle = "rgba(8,10,14,0.82)";
+  ctx.fill();
+  if (img && img.complete && img.naturalWidth) {
+    const sz = hover ? 17 : 14;
+    ctx.drawImage(img, x - sz / 2, y - sz / 2, sz, sz);
+  } else {
+    ctx.beginPath();
+    ctx.arc(x, y, hover ? 4.6 : 3.7, 0, TAU);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+  if (pct === null) {
+    ctx.beginPath();
+    ctx.arc(x, y, R, 0, TAU);
+    ctx.strokeStyle = hover ? "#ffffff" : color;
+    ctx.lineWidth = lw;
+    ctx.stroke();
+    return;
+  }
+  ctx.beginPath();
+  ctx.arc(x, y, R, 0, TAU);
+  ctx.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx.lineWidth = lw;
+  ctx.stroke();
+  ctx.save();
+  if (hover) {
+    ctx.shadowColor = hpColor(pct);
+    ctx.shadowBlur = 8;
+  }
+  ctx.beginPath();
+  ctx.arc(x, y, R, -Math.PI / 2, -Math.PI / 2 + Math.max(pct, 0.0001) * TAU);
+  ctx.strokeStyle = hpColor(pct);
+  ctx.lineWidth = lw;
+  ctx.lineCap = "round";
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawMarker(
   ctx: CanvasRenderingContext2D,
   m: MapMarker,
@@ -80,6 +138,16 @@ function drawMarker(
   hover: boolean,
 ) {
   const meta = KIND_META[m.kind];
+  if (m.kind === "player") {
+    const hp = m.actor?.HP;
+    const mhp = m.actor?.MaxHP;
+    const pct =
+      typeof hp === "number" && typeof mhp === "number" && mhp > 0
+        ? Math.max(0, Math.min(1, hp / mhp))
+        : null;
+    drawPlayer(ctx, x, y, pct, meta.color, icons[m.kind], hover);
+    return;
+  }
   // Live Pals + boss Pals draw their real Pal icon in a colored ring
   // (gold = alpha, red = predator, otherwise the layer color).
   if (m.palKey) {
@@ -110,8 +178,7 @@ function drawMarker(
     }
     return;
   }
-  const isPlayer = m.kind === "player";
-  const r = isPlayer ? 6 : m.kind === "wildpal" ? 3.6 : 4.6;
+  const r = m.kind === "wildpal" ? 3.6 : 4.6;
   ctx.beginPath();
   ctx.arc(x, y, r + 1.4, 0, TAU);
   ctx.fillStyle = "rgba(0,0,0,0.65)";
@@ -120,11 +187,11 @@ function drawMarker(
   ctx.arc(x, y, r, 0, TAU);
   ctx.fillStyle = meta.color;
   ctx.fill();
-  if (isPlayer || hover) {
+  if (hover) {
     ctx.beginPath();
-    ctx.arc(x, y, r + (hover ? 3 : 1.6), 0, TAU);
-    ctx.strokeStyle = hover ? "#ffffff" : "rgba(255,255,255,0.85)";
-    ctx.lineWidth = hover ? 2 : 1.4;
+    ctx.arc(x, y, r + 3, 0, TAU);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
     ctx.stroke();
   }
 }
@@ -713,6 +780,8 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
                   <span>HP</span>
                   <span>
                     {hovered.actor.HP} / {hovered.actor.MaxHP}
+                    {hovered.actor.MaxHP > 0 &&
+                      ` (${Math.round((hovered.actor.HP / hovered.actor.MaxHP) * 100)}%)`}
                   </span>
                 </div>
               )}
