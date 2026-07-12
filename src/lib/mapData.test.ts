@@ -30,6 +30,18 @@ describe("palIconKey", () => {
     ).toBe("bluedragon");
   });
 
+  it("peels field-alpha _BOSS variants to the base creature icon (real server values)", () => {
+    // Confirmed from a live server's Actor.Class values.
+    expect(palIconKey("BP_Manticore_BOSS_C")).toBe("manticore"); // Blazehowl (alpha)
+    expect(palIconKey("BP_RedArmorBird_BOSS_C")).toBe("redarmorbird"); // Ragnahawk (alpha)
+  });
+
+  it("keeps genuinely distinct variant icons instead of over-stripping", () => {
+    // These are their own icon files — must not collapse to a base.
+    expect(palIconKey("BP_Human_GrassBoss_C")).toBe("human_grassboss");
+    expect(palIconKey("BP_FlowerRabbit_Quest_C")).toBe("flowerrabbit_quest");
+  });
+
   it("degrades unknown species to a stable no-icon key (a dot, never the wrong Pal)", () => {
     expect(palIconKey("TotallyNewPal9000")).toBe(cleanseCharacterId("TotallyNewPal9000"));
   });

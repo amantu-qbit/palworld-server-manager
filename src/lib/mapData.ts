@@ -99,26 +99,43 @@ const PAL_NAME_INDEX = palNames as Record<string, string>;
 const ICON_KEYS = new Set(palIconKeys as string[]);
 const normName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-/** Reduce a blueprint class / object path to its bare code name. */
+/** Reduce a blueprint class / object path to its bare code name.
+ *  e.g. ".../BP_Manticore_BOSS.BP_Manticore_BOSS_C" → "Manticore_BOSS". */
 function unwrapClass(raw: string): string {
-  let s = raw.split(/[/.]/).pop() ?? raw; // ".../BP_X.BP_X_C" → "BP_X_C"
-  s = s.replace(/_C$/i, ""); //             "BP_X_C"          → "BP_X"
-  s = s.replace(/^.*?BP_/i, ""); //          "BP_X"/"…BP_X"    → "X"
+  let s = raw.split(/[/.]/).pop() ?? raw; // path → class name
+  s = s.replace(/_C$/i, ""); //             drop the UE "_C" class suffix
+  s = s.replace(/^.*?BP_/i, ""); //          drop the "BP_"/"…BP_" prefix
+  return s;
+}
+
+/** Peel trailing alpha/raid form tokens (…_BOSS, …_Avatar, numeric) so a field
+ *  boss falls back to its base creature icon. Callers gate this on ICON_KEYS, so
+ *  a token that is itself a distinct icon ("human_grassboss") matches first. */
+function baseForm(code: string): string {
+  let s = code;
+  for (let i = 0; i < 3; i++) {
+    const n = s.replace(/_(?:boss|avatar|servant)$/i, "").replace(/_\d+$/, "");
+    if (n === s) break;
+    s = n;
+  }
   return s;
 }
 
 /**
  * Resolve an actor's Class to a bundled Pal icon key. Tries each plausible shape
- * (code name → blueprint/path → display name) and keeps the first that maps to a
- * real icon file; otherwise returns a stable key that has no icon, so the marker
- * degrades to a dot. Every branch is gated on ICON_KEYS, so an unexpected Class
- * can never resolve to the *wrong* Pal's icon.
+ * (code name → blueprint/path → alpha-variant base → display name) and keeps the
+ * first that maps to a real icon file; otherwise returns a stable key that has no
+ * icon, so the marker degrades to a dot. Every branch is gated on ICON_KEYS, so
+ * an unexpected Class can never resolve to the *wrong* Pal's icon.
  */
 export function palIconKey(raw: string): string {
   const direct = cleanseCharacterId(raw);
   if (ICON_KEYS.has(direct)) return direct;
-  const unwrapped = cleanseCharacterId(unwrapClass(raw));
-  if (ICON_KEYS.has(unwrapped)) return unwrapped;
+  const un = unwrapClass(raw);
+  const unKey = cleanseCharacterId(un); // keeps _dark/_ice/_quest/_tower variants
+  if (ICON_KEYS.has(unKey)) return unKey;
+  const baseKey = cleanseCharacterId(baseForm(un)); // …_BOSS → base creature icon
+  if (ICON_KEYS.has(baseKey)) return baseKey;
   const byName = PAL_NAME_INDEX[normName(raw)];
   if (byName && ICON_KEYS.has(byName)) return byName;
   return direct;
