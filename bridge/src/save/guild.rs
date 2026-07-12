@@ -57,7 +57,7 @@ use uuid::Uuid;
 
 use super::decompress::SaveError;
 use super::model::{Base, Guild};
-use super::props::{ByteVal, Property};
+use super::props::{ByteVal, Property, StructValue};
 use super::reader::Reader;
 
 /// Decode a `GroupSaveDataMap` [`Property::Map`] into its guilds. Non-guild
@@ -77,14 +77,32 @@ pub fn decode_guilds(map: &Property) -> Result<Vec<Guild>, SaveError> {
         if group_type(&entry.value).as_deref() != Some("EPalGroupType::Guild") {
             continue;
         }
+        // Guild identity is the map *key* (`palworld_save_pal/game/guild.py`'s
+        // `as_uuid(self._group_save_data["key"])`), not the blob's internal
+        // `group_id` — the key is the reference-canonical id.
+        let key_id = struct_guid(&entry.key)
+            .ok_or_else(|| SaveError::GroupData("guild map key is not a Guid".to_string()))?;
         let raw = entry
             .value
             .get_child("RawData")
             .and_then(Property::as_bytes)
             .ok_or_else(|| SaveError::GroupData("guild group missing RawData".to_string()))?;
-        guilds.push(decode_guild_bytes(raw)?);
+        guilds.push(decode_guild_bytes(key_id, raw)?);
     }
     Ok(guilds)
+}
+
+/// The `Uuid` inside a bare `Guid` struct property (`GroupSaveDataMap`'s map
+/// key, per `paltypes.py:46` — a bare `Guid`, unlike the `{ ID: Guid }` /
+/// `{ PlayerUId: Guid, InstanceId: Guid }` wrapper structs used elsewhere).
+fn struct_guid(p: &Property) -> Option<Uuid> {
+    match p {
+        Property::Struct {
+            value: StructValue::Guid(u),
+            ..
+        } => Some(*u),
+        _ => None,
+    }
 }
 
 /// The `EPalGroupType::*` string of a group map value, from its generic
@@ -103,10 +121,20 @@ fn group_type(value: &Property) -> Option<String> {
 
 /// Re-parse a Guild `RawData` blob into a [`Guild`] (`group.py`, Guild branch).
 /// Fails loud if the blob is not consumed exactly to EOF.
-fn decode_guild_bytes(bytes: &[u8]) -> Result<Guild, SaveError> {
+///
+/// `id` is the `GroupSaveDataMap` entry's map key — the reference-canonical
+/// guild identity — and is what ends up in [`Guild::id`]. The blob's own
+/// `group_id` is still read (the byte layout requires it), and is expected to
+/// agree with `id`; a mismatch is not a fatal error (the key wins), just a
+/// signal worth catching in development.
+fn decode_guild_bytes(id: Uuid, bytes: &[u8]) -> Result<Guild, SaveError> {
     let mut r = Reader::new(bytes);
 
     let group_id = r.guid();
+    debug_assert_eq!(
+        group_id, id,
+        "guild RawData group_id disagrees with the GroupSaveDataMap key"
+    );
     let _group_name = r.fstring();
     skip_instance_handle_ids(&mut r); // tarray< guid + instance_id >
     let _org_type = r.read_u8(); // Guild is in the org-type-tagged set
@@ -134,7 +162,7 @@ fn decode_guild_bytes(bytes: &[u8]) -> Result<Guild, SaveError> {
         .collect();
 
     Ok(Guild {
-        id: group_id.to_string(),
+        id: id.to_string(),
         name: guild_name,
         base_camp_level,
         guild_chest: None,
