@@ -3,6 +3,7 @@ import { worldToUv } from "./mapProject";
 import ftRaw from "../data/mapdata/fast_travel.json";
 import effigyRaw from "../data/mapdata/effigies.json";
 import objRaw from "../data/mapdata/map_objects.json";
+import palNames from "../data/palNames.json";
 
 export type MarkerKind =
   | "player"
@@ -82,6 +83,25 @@ export function cleanseCharacterId(id: string): string {
     .replace("boss_", "")
     .replace("quest_farmer03_", "")
     .replace("_otomo", "");
+}
+
+/**
+ * Live servers report a Pal's species in Actor.Class as its *localized display
+ * name* (e.g. "Petallia", "Blazehowl") — not the internal code name the icon
+ * files are keyed on ("flowerdoll", "manticore"). This index (generated from
+ * palworld-save-pal's en/pals.json, see scripts/gen-pal-names.mjs) maps a
+ * normalised display name → icon key so live Pals render their real icon.
+ */
+const PAL_NAME_INDEX = palNames as Record<string, string>;
+const normName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/**
+ * Resolve an actor's Class to a bundled Pal icon key. Tries the display-name
+ * index first (the real-server case); falls back to the cleansed id so raw code
+ * names and future/unknown species still resolve or degrade cleanly to a dot.
+ */
+export function palIconKey(raw: string): string {
+  return PAL_NAME_INDEX[normName(raw)] ?? cleanseCharacterId(raw);
 }
 
 const PAL_KINDS = new Set<MarkerKind>(["wildpal", "basepal", "otomopal"]);
@@ -176,7 +196,7 @@ export function actorToMarker(a: Actor, i: number, onlineKeys: Set<string>): Map
         ? true
         : onlineKeys.has(a.userid ?? "\0") || onlineKeys.has((a.NickName ?? "").toLowerCase());
   }
-  const palKey = PAL_KINDS.has(kind) && a.Class ? cleanseCharacterId(a.Class) : undefined;
+  const palKey = PAL_KINDS.has(kind) && a.Class ? palIconKey(a.Class) : undefined;
   return {
     id: a.InstanceID || `${a.UnitType}-${i}`,
     kind,
