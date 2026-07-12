@@ -7,6 +7,42 @@
   grid-template-columns: 240px 1fr;
   height: 100%;
   overflow: hidden;
+  transition: grid-template-columns var(--dur) var(--ease);
+}
+
+/* ---- Collapsed sidebar (icons only) ---- */
+.app-shell--collapsed {
+  grid-template-columns: 68px 1fr;
+}
+.app-shell--collapsed .sidebar {
+  padding: 20px 8px;
+}
+.app-shell--collapsed .sidebar__brand {
+  justify-content: center;
+  padding: 4px 0 18px;
+}
+.app-shell--collapsed .sidebar__brandtext,
+.app-shell--collapsed .sidebar__grouplabel,
+.app-shell--collapsed .nav__label,
+.app-shell--collapsed .sidebar__connmeta {
+  display: none;
+}
+.app-shell--collapsed .nav {
+  justify-content: center;
+  padding: 9px 0;
+  gap: 0;
+}
+.app-shell--collapsed .nav.is-active::before {
+  left: -8px;
+}
+.app-shell--collapsed .sidebar__conn {
+  flex-direction: column;
+  gap: 9px;
+  padding: 9px 0;
+}
+.sidebar__collapse {
+  margin-bottom: 10px;
+  color: var(--faint);
 }
 
 /* ---- Sidebar ---- */

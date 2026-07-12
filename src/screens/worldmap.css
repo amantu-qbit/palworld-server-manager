@@ -1,80 +1,34 @@
 /* ------------------------------------------------------------------ *
- *  World Map — real Palpagos map with live actor markers
+ *  World Map — immersive canvas map with live actors + landmarks
  * ------------------------------------------------------------------ */
 
-.wm-grid {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: var(--s-4);
-  align-items: start;
-}
-@media (max-width: 960px) {
-  .wm-grid {
-    grid-template-columns: 1fr;
-  }
+.page--map {
+  overflow: hidden;
+  gap: 0;
+  padding: 16px 20px 20px;
 }
 
-.wm-side {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-}
-
-.wm-hint {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 12px 14px;
-  border-radius: var(--r-md);
-  background: var(--warn-soft);
-  box-shadow: inset 0 0 0 1px rgba(230, 180, 80, 0.24);
-  color: var(--dim);
-  font-size: 12.5px;
-  line-height: 1.5;
-}
-.wm-hint svg { color: var(--warn); flex: none; margin-top: 1px; }
-.wm-hint b { color: var(--text); font-weight: 600; }
-.wm-hint code {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--warn);
-  background: rgba(230, 180, 80, 0.1);
-  padding: 1px 5px;
-  border-radius: 5px;
-}
-
-/* ---- Map ---- */
-.wm-map-card {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-/* Canvas wrapper — holds the square map; becomes a fullscreen overlay when expanded. */
+/* Canvas wrapper — fills the page; becomes a fullscreen overlay when expanded. */
 .wm-canvas {
   position: relative;
-  /* square, but never taller than the viewport so the controls stay on screen */
-  width: min(100%, calc(100vh - 200px));
-  max-width: 100%;
-  aspect-ratio: 1 / 1;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 .wm-canvas--fs {
   position: fixed;
   inset: 0;
-  width: auto;
-  height: auto;
-  max-width: none;
-  aspect-ratio: auto;
+  flex: none;
   z-index: 90;
   background: #000;
 }
+
 .wm-view {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   background: var(--surface-0);
   box-shadow: var(--inset);
   cursor: grab;
@@ -89,10 +43,12 @@
   border-radius: 0;
   box-shadow: none;
 }
+
 .wm-stage {
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 1;
   transform-origin: 0 0;
   will-change: transform;
 }
@@ -100,51 +56,215 @@
   width: 100%;
   height: 100%;
   display: block;
-  /* stretch to fill the square stage, matching the map's calibrated square extent */
   object-fit: fill;
-  user-select: none;
-  -webkit-user-drag: none;
+  pointer-events: none;
+}
+.wm-markers {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   pointer-events: none;
 }
 .wm-loading {
   position: absolute;
   inset: 0;
-  border-radius: var(--r-md);
-}
-
-/* markers — counter-scaled by --inv so they stay a constant screen size */
-.wm-mk {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  padding: 0;
-  border-radius: 50%;
-  background: var(--c);
-  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.55);
-  transform: translate(-50%, -50%) scale(var(--inv, 1));
-  transform-origin: center;
-  cursor: pointer;
-}
-.wm-mk--player {
-  width: 13px;
-  height: 13px;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6), 0 0 8px 1px var(--c);
-  z-index: 2;
-}
-.wm-mk:hover {
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c);
+  border-radius: var(--r-lg);
   z-index: 3;
 }
 
-/* navigation controls */
+/* ---- Floating panels (solid, no backdrop-filter → smooth over the moving map) ---- */
+.wm-panel {
+  position: absolute;
+  z-index: 5;
+  background: rgba(9, 9, 11, 0.92);
+  border-radius: var(--r-md);
+  box-shadow: 0 10px 30px -14px rgba(0, 0, 0, 0.9), inset 0 0 0 1px var(--line-2);
+}
+
+.wm-layers {
+  top: 12px;
+  left: 12px;
+  width: 214px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+}
+.wm-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.wm-panel__head svg {
+  color: var(--accent);
+}
+.wm-panel__chev {
+  margin-left: auto;
+  color: var(--faint);
+  transition: transform var(--dur) var(--ease);
+}
+.wm-panel__chev.is-open {
+  transform: rotate(180deg);
+}
+.wm-panel__body {
+  padding: 0 8px 9px;
+  overflow-y: auto;
+}
+.wm-lgroup {
+  font-size: 9.5px;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 9px 4px 4px;
+}
+.wm-layer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 6px;
+  border-radius: var(--r-xs);
+  color: var(--dim);
+  font-size: 12px;
+  text-align: left;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.wm-layer:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.wm-layer.is-off {
+  opacity: 0.38;
+}
+.wm-layer__ic {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex: none;
+}
+.wm-layer__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin: 0 3.5px;
+  flex: none;
+}
+.wm-layer__label {
+  flex: 1;
+}
+.wm-layer__count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.wm-offline {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 6px 3px;
+  font-size: 11.5px;
+  color: var(--dim);
+  cursor: pointer;
+}
+.wm-offline input {
+  accent-color: var(--accent);
+  width: 13px;
+  height: 13px;
+}
+
+/* ---- Selected marker details ---- */
+.wm-detail {
+  bottom: 12px;
+  left: 12px;
+  width: 232px;
+  max-width: calc(100% - 24px);
+  padding: 12px 13px;
+}
+.wm-detail__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+.wm-detail__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+.wm-detail__top b {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wm-detail__kind {
+  margin-left: auto;
+  font-size: 9.5px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--faint);
+  flex: none;
+}
+.wm-detail__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.wm-detail__rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+.wm-detail__rows > div > span:first-child {
+  color: var(--faint);
+}
+.wm-detail__rows > div > span:last-child {
+  color: var(--text);
+  text-align: right;
+}
+
+/* ---- Fallback note ---- */
+.wm-note {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: var(--r-full);
+  background: rgba(28, 22, 8, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(230, 180, 80, 0.3);
+  color: var(--warn);
+  font-size: 12px;
+  max-width: calc(100% - 24px);
+}
+.wm-note svg {
+  flex: none;
+}
+
+/* ---- Navigation controls ---- */
 .wm-ctrls {
   position: absolute;
   right: 12px;
   bottom: 12px;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   gap: 7px;
-  z-index: 4;
 }
 .wm-ctrl {
   display: grid;
@@ -153,144 +273,30 @@
   height: 34px;
   border-radius: var(--r-sm);
   color: var(--dim);
-  background: rgba(8, 8, 10, 0.72);
+  background: rgba(9, 9, 11, 0.92);
   box-shadow: inset 0 0 0 1px var(--line-2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 .wm-ctrl:hover {
   color: var(--text);
-  background: rgba(20, 20, 24, 0.82);
+  background: rgba(22, 22, 26, 0.95);
 }
 .wm-ctrl:active {
   transform: translateY(0.5px);
 }
 
-/* zoom-level badge */
 .wm-badge {
   position: absolute;
-  left: 12px;
-  bottom: 12px;
-  z-index: 4;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
   padding: 4px 9px;
   border-radius: var(--r-sm);
   font-family: var(--mono);
   font-size: 11px;
   color: var(--dim);
-  background: rgba(8, 8, 10, 0.72);
+  background: rgba(9, 9, 11, 0.92);
   box-shadow: inset 0 0 0 1px var(--line-2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   font-variant-numeric: tabular-nums;
   pointer-events: none;
-}
-
-/* fullscreen readout / hint bar */
-.wm-fsbar {
-  position: absolute;
-  left: 12px;
-  top: 12px;
-  z-index: 4;
-  max-width: calc(100% - 24px);
-  padding: 7px 12px;
-  border-radius: var(--r-sm);
-  background: rgba(8, 8, 10, 0.72);
-  box-shadow: inset 0 0 0 1px var(--line-2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  pointer-events: none;
-}
-.wm-fsbar__sel {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-size: 12.5px;
-}
-.wm-fsbar__sel b {
-  color: var(--text);
-  font-weight: 600;
-}
-.wm-fsbar__coords {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--accent);
-}
-.wm-fsbar__hint {
-  font-size: 11.5px;
-  color: var(--faint);
-}
-
-.wm-attrib {
-  margin-top: 9px;
-  font-size: 10.5px;
-  color: var(--faint);
-  text-align: center;
-  font-family: var(--mono);
-  letter-spacing: -0.2px;
-}
-
-/* ---- Filter toggles ---- */
-.wm-filters {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.wm-filter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 11px;
-  border: none;
-  border-radius: var(--r-xs);
-  background: var(--surface-1);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-  transition: box-shadow var(--dur) var(--ease), opacity var(--dur) var(--ease);
-}
-.wm-filter:hover {
-  box-shadow: inset 0 0 0 1px var(--line-2);
-}
-.wm-filter--off {
-  opacity: 0.42;
-}
-.wm-filter__label {
-  flex: 1;
-}
-.wm-filter__count {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--dim);
-}
-
-/* ---- Legend / colored dots ---- */
-.wm-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: var(--r-full);
-  flex-shrink: 0;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
-}
-.wm-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.wm-legend__row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--dim);
-}
-.wm-legend__hint {
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--faint);
 }

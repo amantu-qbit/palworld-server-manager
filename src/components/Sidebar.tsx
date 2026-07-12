@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { LogOut } from "lucide-react";
+import { LogOut, PanelLeft, PanelLeftClose } from "lucide-react";
 
 export interface NavItem {
   id: string;
@@ -15,9 +15,11 @@ interface Props {
   host: string;
   connected: boolean;
   onDisconnect: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
-export function Sidebar({ items, active, onSelect, host, connected, onDisconnect }: Props) {
+export function Sidebar({ items, active, onSelect, host, connected, onDisconnect, collapsed, onToggleCollapse }: Props) {
   const groups = items.reduce<Record<string, NavItem[]>>((acc, it) => {
     (acc[it.group] ??= []).push(it);
     return acc;
@@ -27,7 +29,7 @@ export function Sidebar({ items, active, onSelect, host, connected, onDisconnect
     <aside className="sidebar">
       <div className="sidebar__brand">
         <div className="brandmark" aria-hidden />
-        <div>
+        <div className="sidebar__brandtext">
           <b>Palworld</b>
           <span>Server Manager</span>
         </div>
@@ -45,9 +47,10 @@ export function Sidebar({ items, active, onSelect, host, connected, onDisconnect
                   className={`nav${active === it.id ? " is-active" : ""}`}
                   onClick={() => onSelect(it.id)}
                   aria-current={active === it.id ? "page" : undefined}
+                  title={it.label}
                 >
                   <Icon />
-                  {it.label}
+                  <span className="nav__label">{it.label}</span>
                 </button>
               );
             })}
@@ -56,6 +59,15 @@ export function Sidebar({ items, active, onSelect, host, connected, onDisconnect
       </nav>
 
       <div className="sidebar__foot">
+        <button
+          className="nav sidebar__collapse"
+          onClick={onToggleCollapse}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <PanelLeft /> : <PanelLeftClose />}
+          <span className="nav__label">Collapse</span>
+        </button>
         <div className="sidebar__conn">
           <span className="chip__dot" style={{ color: connected ? "var(--good)" : "var(--faint)" }} />
           <div className="sidebar__connmeta">

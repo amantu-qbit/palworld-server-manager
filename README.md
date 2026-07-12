@@ -46,7 +46,7 @@ It's a tiny native app (a few MB, powered by [Tauri](https://tauri.app) — not 
 ## 🚀 Features
 
 - **📊 Real‑time dashboard** — server FPS on an animated instrument dial, uptime, players online, frame time, a live population trend, and a top‑players board. Everything refreshes on an interval you control.
-- **🗺️ Live world map** — every player and Pal plotted on the actual Palpagos map by their in‑game coordinates, with pan, crisp zoom, per‑type filters (players / wild / base / otomo / NPC), and hover details.
+- **🗺️ Live world map** — every player and Pal plotted on the real in‑game map, alongside **fast‑travel points, dungeons, Lifmunk effigies, and boss Pals**. Smooth pan / zoom / pinch, a fullscreen mode, layer toggles with live counts, an offline‑player filter, and hover details — markers are canvas‑rendered so it stays fluid with hundreds on screen.
 - **👥 Player management** — a searchable, sortable roster with color‑coded ping; open any player to **kick**, **ban**, or **unban** with a typed‑confirmation safety gate.
 - **🖥️ Command console** — broadcast **announcements**, trigger a **save**, schedule a **shutdown** with a countdown, or **force‑stop** — each with a live activity log and confirmations for destructive actions.
 - **⚙️ Settings inspector** — browse all ~60 server settings, grouped and searchable, with one‑click copy and **JSON export** for backups.

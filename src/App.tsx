@@ -47,6 +47,23 @@ const SCREENS: Record<string, ComponentType> = {
 export function App() {
   const { connected, connection, disconnect, booting } = useConnection();
   const [active, setActive] = useState("dashboard");
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("psm.sidebar") === "collapsed";
+    } catch {
+      return false;
+    }
+  });
+  const toggleCollapse = () =>
+    setCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem("psm.sidebar", next ? "collapsed" : "open");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
 
   if (booting && !connected) {
     return (
@@ -66,7 +83,7 @@ export function App() {
 
   return (
     <NavContext.Provider value={{ active, navigate: setActive }}>
-      <div className="app-shell">
+      <div className={`app-shell${collapsed ? " app-shell--collapsed" : ""}`}>
         <Sidebar
           items={NAV}
           active={active}
@@ -74,6 +91,8 @@ export function App() {
           host={`${connection.host}:${connection.port}`}
           connected
           onDisconnect={disconnect}
+          collapsed={collapsed}
+          onToggleCollapse={toggleCollapse}
         />
         <div className="main">
           <UpdateBanner />
