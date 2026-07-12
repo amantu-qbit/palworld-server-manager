@@ -4,6 +4,8 @@ import type { Actor } from "../types/api";
 import { worldToGameCoords } from "../lib/mapProject";
 import {
   actorToMarker,
+  BOSS_PAL_KEYS,
+  CONTENT,
   KIND_META,
   LANDMARK_MARKERS,
   MARKER_ORDER,
@@ -11,14 +13,13 @@ import {
 import type { MapMarker, MarkerKind } from "../lib/mapData";
 
 const mapUrl = "/palworld-map.webp";
-const MAP_PX = 8192; // native square texture size
+const MAP_PX = 8192;
 const MAX_SCALE = 2;
 const WHEEL_K = 0.0016;
 const DBL_ZOOM = 1.9;
 const KEY_PAN = 72;
 const TAU = Math.PI * 2;
 
-// Draw order (low → high, so players sit on top of landmarks/pals).
 const Z: Record<MarkerKind, number> = {
   effigy: 0,
   fasttravel: 1,
@@ -33,9 +34,41 @@ const Z: Record<MarkerKind, number> = {
 
 interface Props {
   actors: Actor[];
-  onlinePlayerIds: Set<string>;
-  /** True when we only have /players (GameData API off) — Pals unavailable. */
+  /** Keys (userId + lowercased names) of currently-connected players. */
+  onlineKeys: Set<string>;
   fallback: boolean;
+}
+
+function drawPalCircle(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  r: number,
+  ring: string,
+  hover: boolean,
+) {
+  ctx.save();
+  if (hover) {
+    ctx.shadowColor = ring;
+    ctx.shadowBlur = 10;
+  }
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, TAU);
+  ctx.fillStyle = "#0b0b0d";
+  ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r - 1.5, 0, TAU);
+  ctx.clip();
+  ctx.drawImage(img, x - r, y - r, r * 2, r * 2);
+  ctx.restore();
+  ctx.beginPath();
+  ctx.arc(x, y, r - 0.75, 0, TAU);
+  ctx.strokeStyle = ring;
+  ctx.lineWidth = hover ? 2.4 : 1.8;
+  ctx.stroke();
 }
 
 function drawMarker(
@@ -44,12 +77,25 @@ function drawMarker(
   x: number,
   y: number,
   icons: Record<string, HTMLImageElement>,
+  palIcons: Record<string, HTMLImageElement>,
   hover: boolean,
 ) {
   const meta = KIND_META[m.kind];
+  // Boss Pals use their real Pal icon in a colored ring (gold = alpha, red = predator).
+  if (m.kind === "boss" && m.palKey) {
+    const pimg = palIcons[m.palKey];
+    if (pimg && pimg.complete && pimg.naturalWidth) {
+      drawPalCircle(ctx, pimg, x, y, hover ? 15 : 13, m.sub === "Predator" ? "#ec6a6a" : "#e6b450", hover);
+      return;
+    }
+  }
   const img = meta.icon ? icons[m.kind] : undefined;
   if (img && img.complete && img.naturalWidth) {
     const sz = m.kind === "effigy" ? 16 : m.kind === "boss" ? 22 : 20;
+    ctx.beginPath();
+    ctx.arc(x, y, sz * 0.6, 0, TAU);
+    ctx.fillStyle = "rgba(6,6,9,0.5)";
+    ctx.fill();
     if (hover) {
       ctx.save();
       ctx.shadowColor = "#ffffff";
@@ -80,7 +126,7 @@ function drawMarker(
   }
 }
 
-export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
+export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -88,7 +134,7 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
   const badgeRef = useRef<HTMLSpanElement>(null);
 
   const tf = useRef({ s: 0, tx: 0, ty: 0 });
-  const fit = useRef(0);
+  const fit = useRef(0); // whole-map fit (zoom-out floor)
   const size = useRef({ w: 0, h: 0 });
   const dprRef = useRef(1);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -102,22 +148,46 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
   const showOfflineRef = useRef(false);
   const hoveredRef = useRef<MapMarker | null>(null);
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
+  const palIconsRef = useRef<Record<string, HTMLImageElement>>({});
 
   const [loaded, setLoaded] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(true);
-  const [visible, setVisible] = useState<Set<MarkerKind>>(
-    () => new Set(MARKER_ORDER.filter((k) => KIND_META[k].on)),
-  );
-  const [showOffline, setShowOffline] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(() => {
+    try {
+      return localStorage.getItem("psm.map.panel") !== "0";
+    } catch {
+      return true;
+    }
+  });
+  const [visible, setVisible] = useState<Set<MarkerKind>>(() => {
+    try {
+      const raw = localStorage.getItem("psm.map.layers");
+      if (raw) {
+        const arr = (JSON.parse(raw) as string[]).filter((k): k is MarkerKind =>
+          (MARKER_ORDER as string[]).includes(k),
+        );
+        return new Set(arr);
+      }
+    } catch {
+      /* ignore */
+    }
+    return new Set(MARKER_ORDER.filter((k) => KIND_META[k].on));
+  });
+  const [showOffline, setShowOffline] = useState(() => {
+    try {
+      return localStorage.getItem("psm.map.offline") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [hovered, setHovered] = useState<MapMarker | null>(null);
 
   const allMarkers = useMemo(() => {
-    const live = actors.map((a, i) => actorToMarker(a, i, onlinePlayerIds));
+    const live = actors.map((a, i) => actorToMarker(a, i, onlineKeys));
     const merged = [...live, ...LANDMARK_MARKERS];
     merged.sort((a, b) => Z[a.kind] - Z[b.kind]);
     return merged;
-  }, [actors, onlinePlayerIds]);
+  }, [actors, onlineKeys]);
 
   const counts = useMemo(() => {
     const c = {} as Record<MarkerKind, number>;
@@ -129,20 +199,19 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
     return c;
   }, [allMarkers, showOffline]);
 
-  // ---- canvas drawing ----
   const draw = useCallback(() => {
     const cv = canvasElRef.current;
     const ctx = cv?.getContext("2d");
     if (!cv || !ctx) return;
     const { w, h } = size.current;
-    const dpr = dprRef.current;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(dprRef.current, 0, 0, dprRef.current, 0, 0);
     ctx.clearRect(0, 0, w, h);
     const { s, tx, ty } = tf.current;
     const span = MAP_PX * s;
     const vis = visibleRef.current;
     const showOff = showOfflineRef.current;
     const icons = iconsRef.current;
+    const palIcons = palIconsRef.current;
     const hoverId = hoveredRef.current?.id;
     let hov: { m: MapMarker; x: number; y: number } | null = null;
     for (const m of markersRef.current) {
@@ -151,10 +220,10 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
       const x = tx + m.u * span;
       const y = ty + m.v * span;
       if (x < -24 || y < -24 || x > w + 24 || y > h + 24) continue;
-      drawMarker(ctx, m, x, y, icons, false);
+      drawMarker(ctx, m, x, y, icons, palIcons, false);
       if (m.id === hoverId) hov = { m, x, y };
     }
-    if (hov) drawMarker(ctx, hov.m, hov.x, hov.y, icons, true);
+    if (hov) drawMarker(ctx, hov.m, hov.x, hov.y, icons, palIcons, true);
   }, []);
 
   const apply = useCallback(() => {
@@ -225,10 +294,18 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
     animateZoom(tf.current.s * mult, cx, cy);
   };
 
-  const doFit = useCallback(() => {
+  // Default/reset view: fill the viewport with the island content (not empty ocean).
+  const fitView = useCallback(() => {
     stopAnim();
     stopGlide();
-    tf.current = { s: fit.current, tx: 0, ty: 0 };
+    const { w, h } = size.current;
+    if (w === 0 || h === 0) return;
+    const cw = (CONTENT.uMax - CONTENT.uMin) * MAP_PX;
+    const ch = (CONTENT.vMax - CONTENT.vMin) * MAP_PX;
+    const s = Math.min(MAX_SCALE, Math.max(fit.current, Math.min(w / cw, h / ch)));
+    const cu = (CONTENT.uMin + CONTENT.uMax) / 2;
+    const cv = (CONTENT.vMin + CONTENT.vMax) / 2;
+    tf.current = { s, tx: w / 2 - cu * MAP_PX * s, ty: h / 2 - cv * MAP_PX * s };
     clamp();
     apply();
   }, [clamp, apply]);
@@ -253,9 +330,7 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
 
   useLayoutEffect(() => {
     measure();
-    if (tf.current.s <= 0) tf.current.s = fit.current;
-    clamp();
-    apply();
+    fitView();
     const ro = new ResizeObserver(() => {
       measure();
       clamp();
@@ -263,15 +338,12 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
     });
     if (viewRef.current) ro.observe(viewRef.current);
     return () => ro.disconnect();
-  }, [measure, clamp, apply]);
+  }, [measure, fitView, clamp, apply]);
 
-  // Re-fit to the viewport whenever we enter/leave fullscreen.
   useLayoutEffect(() => {
     measure();
-    tf.current = { s: fit.current, tx: 0, ty: 0 };
-    clamp();
-    apply();
-  }, [expanded, measure, clamp, apply]);
+    fitView();
+  }, [expanded, measure, fitView]);
 
   // Preload landmark icons.
   useEffect(() => {
@@ -287,7 +359,28 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
     iconsRef.current = map;
   }, [draw]);
 
-  // Keep imperative refs in sync + redraw.
+  // Preload boss Pal icons (batched redraw).
+  useEffect(() => {
+    const map: Record<string, HTMLImageElement> = {};
+    let raf = 0;
+    const redraw = () => {
+      if (!raf) raf = requestAnimationFrame(() => {
+        raf = 0;
+        draw();
+      });
+    };
+    for (const key of BOSS_PAL_KEYS) {
+      const img = new Image();
+      img.onload = redraw;
+      img.src = `/mapicons/pals/${key}.webp`;
+      map[key] = img;
+    }
+    palIconsRef.current = map;
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [draw]);
+
   useEffect(() => {
     markersRef.current = allMarkers;
     draw();
@@ -296,13 +389,25 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
     visibleRef.current = visible;
     showOfflineRef.current = showOffline;
     draw();
+    try {
+      localStorage.setItem("psm.map.layers", JSON.stringify([...visible]));
+      localStorage.setItem("psm.map.offline", showOffline ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
   }, [visible, showOffline, draw]);
   useEffect(() => {
     hoveredRef.current = hovered;
     draw();
   }, [hovered, draw]);
+  useEffect(() => {
+    try {
+      localStorage.setItem("psm.map.panel", panelOpen ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }, [panelOpen]);
 
-  // Wheel / trackpad zoom.
   useEffect(() => {
     const el = viewRef.current;
     if (!el) return;
@@ -340,7 +445,7 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
     const vis = visibleRef.current;
     const showOff = showOfflineRef.current;
     let best: MapMarker | null = null;
-    let bestD = 13 * 13;
+    let bestD = 14 * 14;
     for (const m of markersRef.current) {
       if (!vis.has(m.kind)) continue;
       if (m.kind === "player" && !showOff && m.online === false) continue;
@@ -478,7 +583,7 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
         zoomButton(1 / 1.3);
         break;
       case "0":
-        doFit();
+        fitView();
         break;
       case "Escape":
         if (expanded) setExpanded(false);
@@ -557,7 +662,6 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
 
         {!loaded && <div className="wm-loading skeleton" />}
 
-        {/* Layers panel */}
         <div className="wm-panel wm-layers wm-nozoom" onPointerDown={stop} onDoubleClick={stop}>
           <button className="wm-panel__head" onClick={() => setPanelOpen((o) => !o)}>
             <Layers size={14} />
@@ -578,7 +682,6 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
           )}
         </div>
 
-        {/* Selected marker details */}
         {hovered && gc && (
           <div className="wm-panel wm-detail wm-nozoom" onPointerDown={stop} onDoubleClick={stop}>
             <div className="wm-detail__top">
@@ -630,7 +733,6 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
           </div>
         )}
 
-        {/* Controls */}
         <div className="wm-ctrls wm-nozoom" onPointerDown={stop} onDoubleClick={stop}>
           <button className="wm-ctrl" onClick={() => zoomButton(1.4)} aria-label="Zoom in" title="Zoom in">
             <Plus size={16} />
@@ -638,7 +740,7 @@ export function WorldMapView({ actors, onlinePlayerIds, fallback }: Props) {
           <button className="wm-ctrl" onClick={() => zoomButton(1 / 1.4)} aria-label="Zoom out" title="Zoom out">
             <Minus size={16} />
           </button>
-          <button className="wm-ctrl" onClick={doFit} aria-label="Fit map" title="Fit map">
+          <button className="wm-ctrl" onClick={fitView} aria-label="Fit map" title="Fit map">
             <Locate size={16} />
           </button>
           <button

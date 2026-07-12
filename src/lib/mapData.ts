@@ -26,6 +26,8 @@ export interface MapMarker {
   y: number;
   name: string;
   sub?: string;
+  /** lowercased pal key for boss markers → /mapicons/pals/{palKey}.webp */
+  palKey?: string;
   /** present for live actors from the game-data snapshot */
   actor?: Actor;
   /** for player markers: currently connected? */
@@ -36,13 +38,10 @@ interface KindInfo {
   label: string;
   color: string;
   group: "live" | "landmark";
-  /** icon served from public/mapicons; live pals draw as dots instead */
   icon?: string;
-  /** default layer visibility */
   on: boolean;
 }
 
-// Order here drives the layer-panel order.
 export const KIND_META: Record<MarkerKind, KindInfo> = {
   player: { label: "Players", color: "#34d3ea", group: "live", icon: "/mapicons/player.webp", on: true },
   otomopal: { label: "Party Pals", color: "#4cc2f0", group: "live", on: true },
@@ -98,30 +97,65 @@ const dungeons = objs
   .map((o, i) => landmark(`dg-${i}`, "dungeon", o.x, o.y, "Dungeon"));
 const bosses = objs
   .filter((o) => o.type === "alpha_pal" || o.type === "predator_pal")
-  .map((o, i) =>
-    landmark(
+  .map((o, i) => {
+    const m = landmark(
       `bs-${i}`,
       "boss",
       o.x,
       o.y,
       o.pal ? spaceWords(o.pal) : "Boss Pal",
       o.type === "predator_pal" ? "Predator" : "Field Alpha",
-    ),
-  );
+    );
+    if (o.pal) m.palKey = o.pal.toLowerCase();
+    return m;
+  });
 
-/** All bundled static landmarks (fast travel, dungeons, effigies, bosses). */
+/** All bundled static landmarks. */
 export const LANDMARK_MARKERS: MapMarker[] = [...fastTravel, ...dungeons, ...bosses, ...effigies];
 
-/** Convert a live game-data actor into a marker. */
-export function actorToMarker(a: Actor, i: number, onlineIds: Set<string>): MapMarker {
+/** Unique boss pal keys, for icon preloading. */
+export const BOSS_PAL_KEYS: string[] = [...new Set(bosses.map((b) => b.palKey).filter(Boolean) as string[])];
+
+/**
+ * Bounding box (normalised) of the actual playable content — the islands — so the
+ * default view fills the viewport with land instead of empty ocean.
+ */
+function bbox(ms: MapMarker[]) {
+  let uMin = 1;
+  let uMax = 0;
+  let vMin = 1;
+  let vMax = 0;
+  for (const m of ms) {
+    if (m.u < uMin) uMin = m.u;
+    if (m.u > uMax) uMax = m.u;
+    if (m.v < vMin) vMin = m.v;
+    if (m.v > vMax) vMax = m.v;
+  }
+  return { uMin, uMax, vMin, vMax };
+}
+const _b = bbox([...fastTravel, ...dungeons, ...bosses]);
+const PAD = 0.02;
+export const CONTENT = {
+  uMin: Math.max(0, _b.uMin - PAD),
+  uMax: Math.min(1, _b.uMax + PAD),
+  vMin: Math.max(0, _b.vMin - PAD),
+  vMax: Math.min(1, _b.vMax + PAD),
+};
+
+/**
+ * Convert a live actor into a marker. A player is "online" if it matches the live
+ * /players list (by userId or name) — offline pawns that linger in the snapshot don't.
+ */
+export function actorToMarker(a: Actor, i: number, onlineKeys: Set<string>): MapMarker {
   const { u, v } = worldToUv(a.LocationX, a.LocationY);
   const kind = ACTOR_KIND[a.UnitType] ?? "wildpal";
-  const online =
-    kind === "player"
-      ? a.userid
-        ? onlineIds.has(a.userid)
-        : a.IsActive !== "false"
-      : undefined;
+  let online: boolean | undefined;
+  if (kind === "player") {
+    online =
+      onlineKeys.size === 0
+        ? true
+        : onlineKeys.has(a.userid ?? "\0") || onlineKeys.has((a.NickName ?? "").toLowerCase());
+  }
   return {
     id: a.InstanceID || `${a.UnitType}-${i}`,
     kind,

@@ -143,17 +143,21 @@
   opacity: 0.38;
 }
 .wm-layer__ic {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
+  padding: 2px;
   object-fit: contain;
   flex: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
 }
 .wm-layer__dot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  margin: 0 3.5px;
+  margin: 0 5.5px;
   flex: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
 }
 .wm-layer__label {
   flex: 1;

@@ -24,6 +24,9 @@ function pingColor(ping: number): string {
   return "var(--bad)";
 }
 
+/** Trim the API's long float ping to at most 2 decimals. */
+const fmtPing = (ping: number) => Number(ping.toFixed(2));
+
 export function Players() {
   const players = usePlayers();
   const toast = useToast();
@@ -89,7 +92,7 @@ export function Players() {
       align: "right",
       sortable: true,
       render: (p) => (
-        <span style={{ fontFamily: "var(--mono)", color: pingColor(p.ping) }}>{p.ping}ms</span>
+        <span style={{ fontFamily: "var(--mono)", color: pingColor(p.ping) }}>{fmtPing(p.ping)}ms</span>
       ),
     },
     {
@@ -228,7 +231,7 @@ export function Players() {
               <span className="kv__k">IP</span>
               <span className="kv__v">{selected.ip}</span>
               <span className="kv__k">Ping</span>
-              <span className="kv__v">{selected.ping} ms</span>
+              <span className="kv__v">{fmtPing(selected.ping)} ms</span>
               <span className="kv__k">Level</span>
               <span className="kv__v">{selected.level}</span>
               <span className="kv__k">Buildings</span>

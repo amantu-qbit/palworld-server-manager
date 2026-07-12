@@ -33,11 +33,17 @@ export function WorldMap() {
     }));
   }, [snapshot, playersQ.data]);
 
-  // Currently-connected players (used to filter out actors of players who left).
-  const onlinePlayerIds = useMemo(
-    () => new Set((playersQ.data ?? []).map((p) => p.userId).filter(Boolean)),
-    [playersQ.data],
-  );
+  // Keys of currently-connected players (userId + names), used to filter out the
+  // pawns of players who left the server but still linger in the game-data snapshot.
+  const onlineKeys = useMemo(() => {
+    const s = new Set<string>();
+    for (const p of playersQ.data ?? []) {
+      if (p.userId) s.add(p.userId);
+      if (p.name) s.add(p.name.toLowerCase());
+      if (p.accountName) s.add(p.accountName.toLowerCase());
+    }
+    return s;
+  }, [playersQ.data]);
 
   const loading = fallback ? playersQ.isLoading && !playersQ.data : false;
   const errored = fallback && playersQ.isError && !playersQ.data;
@@ -70,7 +76,7 @@ export function WorldMap() {
             <Skeleton style={{ width: "100%", height: "100%", borderRadius: "var(--r-lg)" }} />
           </div>
         ) : (
-          <WorldMapView actors={actors} onlinePlayerIds={onlinePlayerIds} fallback={fallback} />
+          <WorldMapView actors={actors} onlineKeys={onlineKeys} fallback={fallback} />
         )}
       </div>
     </>
