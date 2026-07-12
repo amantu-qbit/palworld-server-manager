@@ -116,7 +116,12 @@ fn read_header(r: &mut Reader) -> Result<(), SaveError> {
 /// Read a property set until the `"None"` terminator name
 /// (`properties_until_end`). Each property is keyed by name; its dotted path is
 /// `{path}.{name}`.
-fn read_properties_until_end(
+///
+/// Exposed to sibling decoders (e.g. [`super::character`]) so they can re-parse a
+/// Palworld `RawData` blob as an inner GVAS property stream — mirroring how the
+/// reference `character.decode` wraps a fresh reader around the raw bytes and
+/// calls `properties_until_end`.
+pub(crate) fn read_properties_until_end(
     r: &mut Reader,
     path: &str,
     skip: &SkipSet,

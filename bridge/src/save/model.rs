@@ -246,4 +246,13 @@ pub struct World {
     pub players: Vec<PlayerSummary>,
     /// All guilds in the world.
     pub guilds: Vec<Guild>,
+    /// Every Pal decoded from `CharacterSaveParameterMap` (owned and wild).
+    pub pals: Vec<Pal>,
+}
+
+impl World {
+    /// Total number of Pals in the world.
+    pub fn pal_count(&self) -> usize {
+        self.pals.len()
+    }
 }

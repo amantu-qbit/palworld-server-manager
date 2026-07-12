@@ -40,6 +40,13 @@ pub enum SaveError {
     /// does not (yet) decode. Carries the type name and the dotted path.
     #[error("unhandled GVAS type `{0}` at `{1}`")]
     UnhandledType(String, String),
+    /// A filesystem error while reading a save file (path/message).
+    #[error("io error: {0}")]
+    Io(String),
+    /// A character `RawData` blob did not match the expected layout
+    /// (property stream + trailing group/unknown bytes). Carries a description.
+    #[error("malformed character RawData: {0}")]
+    CharacterData(String),
 }
 
 pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {
