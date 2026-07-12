@@ -27,6 +27,10 @@ const MAGIC_OODLE: [u8; 3] = *b"PlM";
 pub enum SaveError {
     #[error("bad magic bytes in .sav header")]
     BadMagic,
+    /// The magic bytes were valid `PlZ` (zlib), but the following save-type
+    /// byte did not match any known variant (`0x30`/`0x31`/`0x32`).
+    #[error("unknown save type: 0x{0:02x}")]
+    UnknownSaveType(u8),
     #[error("truncated .sav file")]
     Truncated,
     #[error("oodle decompression error: {0}")]
@@ -83,7 +87,7 @@ pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {
                 let once = zlib_decompress(compressed)?;
                 zlib_decompress(&once)?
             }
-            _ => return Err(SaveError::BadMagic),
+            _ => return Err(SaveError::UnknownSaveType(save_type)),
         }
     } else {
         return Err(SaveError::BadMagic);

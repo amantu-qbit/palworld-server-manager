@@ -21,10 +21,14 @@ use model::{PlayerSummary, World};
 /// `CharacterSaveParameterMap` into players + pals, and assembles the world.
 ///
 /// Each pal already carries its `owner_uid` (from its `SaveParameter`), so a
-/// player's `pal_count` is the number of pals it owns. For this fixture that is
-/// identical to the reference's pal-box + party occupancy: every owned pal is in
-/// one of those two character containers (see [`crate::save::containers`], which
-/// decodes the container → pal-slot mapping and the per-player container ids).
+/// player's `pal_count` is simply the number of pals whose `owner_uid` matches
+/// that player's uid — the same owner-uid filter the reference's
+/// `_get_player_pals` uses. This includes pals stationed at a base or out on
+/// an expedition (they keep the owner's `owner_uid` but live in *base*
+/// character containers, not the player's pal-box/party), so `pal_count` is
+/// not limited to pal-box + party occupancy (see [`crate::save::containers`],
+/// which decodes the container → pal-slot mapping and the per-player
+/// container ids).
 /// The world's total pal count is available via [`World::pal_count`].
 pub fn load_world(dir: &Path) -> Result<World, SaveError> {
     let level_path = dir.join("Level.sav");
