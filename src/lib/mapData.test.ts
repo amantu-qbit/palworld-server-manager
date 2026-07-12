@@ -17,10 +17,20 @@ describe("palIconKey", () => {
     expect(palIconKey("Kitsun Noct")).toBe("amaterasuwolf_dark");
   });
 
-  it("falls back to the cleansed id for code-name style / unknown values", () => {
-    // A raw code name still resolves (keeps boss/static markers working).
+  it("resolves a bare code name (keeps boss/static markers working)", () => {
     expect(palIconKey("GrassMammoth")).toBe("grassmammoth");
-    // An unknown species degrades to a stable key (renders as a dot, no crash).
+    expect(palIconKey("BlueDragon")).toBe("bluedragon");
+  });
+
+  it("unwraps UE blueprint classes and object paths", () => {
+    expect(palIconKey("BP_BlueDragon_C")).toBe("bluedragon");
+    expect(palIconKey("BP_FlowerDoll_C")).toBe("flowerdoll");
+    expect(
+      palIconKey("/Game/Pal/Blueprints/Monster/BlueDragon/BP_BlueDragon.BP_BlueDragon_C"),
+    ).toBe("bluedragon");
+  });
+
+  it("degrades unknown species to a stable no-icon key (a dot, never the wrong Pal)", () => {
     expect(palIconKey("TotallyNewPal9000")).toBe(cleanseCharacterId("TotallyNewPal9000"));
   });
 });

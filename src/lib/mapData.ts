@@ -4,6 +4,7 @@ import ftRaw from "../data/mapdata/fast_travel.json";
 import effigyRaw from "../data/mapdata/effigies.json";
 import objRaw from "../data/mapdata/map_objects.json";
 import palNames from "../data/palNames.json";
+import palIconKeys from "../data/palIconKeys.json";
 
 export type MarkerKind =
   | "player"
@@ -86,22 +87,41 @@ export function cleanseCharacterId(id: string): string {
 }
 
 /**
- * Live servers report a Pal's species in Actor.Class as its *localized display
- * name* (e.g. "Petallia", "Blazehowl") — not the internal code name the icon
- * files are keyed on ("flowerdoll", "manticore"). This index (generated from
- * palworld-save-pal's en/pals.json, see scripts/gen-pal-names.mjs) maps a
- * normalised display name → icon key so live Pals render their real icon.
+ * Servers report a Pal's species in Actor.Class, but the exact shape varies —
+ * it may be a bare code name ("BlueDragon"), a UE blueprint class
+ * ("BP_BlueDragon_C"), a full object path (".../BP_BlueDragon.BP_BlueDragon_C"),
+ * or a localized display name ("Azurobe") — none of which match the icon files
+ * keyed on the lowercased code name ("bluedragon"). PAL_NAME_INDEX maps a
+ * normalised display name → icon key (from palworld-save-pal's en/pals.json,
+ * see scripts/gen-pal-names.mjs); ICON_KEYS is the set of bundled icon files.
  */
 const PAL_NAME_INDEX = palNames as Record<string, string>;
+const ICON_KEYS = new Set(palIconKeys as string[]);
 const normName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
+/** Reduce a blueprint class / object path to its bare code name. */
+function unwrapClass(raw: string): string {
+  let s = raw.split(/[/.]/).pop() ?? raw; // ".../BP_X.BP_X_C" → "BP_X_C"
+  s = s.replace(/_C$/i, ""); //             "BP_X_C"          → "BP_X"
+  s = s.replace(/^.*?BP_/i, ""); //          "BP_X"/"…BP_X"    → "X"
+  return s;
+}
+
 /**
- * Resolve an actor's Class to a bundled Pal icon key. Tries the display-name
- * index first (the real-server case); falls back to the cleansed id so raw code
- * names and future/unknown species still resolve or degrade cleanly to a dot.
+ * Resolve an actor's Class to a bundled Pal icon key. Tries each plausible shape
+ * (code name → blueprint/path → display name) and keeps the first that maps to a
+ * real icon file; otherwise returns a stable key that has no icon, so the marker
+ * degrades to a dot. Every branch is gated on ICON_KEYS, so an unexpected Class
+ * can never resolve to the *wrong* Pal's icon.
  */
 export function palIconKey(raw: string): string {
-  return PAL_NAME_INDEX[normName(raw)] ?? cleanseCharacterId(raw);
+  const direct = cleanseCharacterId(raw);
+  if (ICON_KEYS.has(direct)) return direct;
+  const unwrapped = cleanseCharacterId(unwrapClass(raw));
+  if (ICON_KEYS.has(unwrapped)) return unwrapped;
+  const byName = PAL_NAME_INDEX[normName(raw)];
+  if (byName && ICON_KEYS.has(byName)) return byName;
+  return direct;
 }
 
 const PAL_KINDS = new Set<MarkerKind>(["wildpal", "basepal", "otomopal"]);

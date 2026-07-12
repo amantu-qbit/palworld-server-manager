@@ -797,6 +797,18 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
                   {gc.x}, {gc.y}
                 </span>
               </div>
+              {hovered.actor?.Class && (
+                <div>
+                  <span>Class</span>
+                  <span
+                    className="mono"
+                    title={hovered.actor.Class}
+                    style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                  >
+                    {hovered.actor.Class}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

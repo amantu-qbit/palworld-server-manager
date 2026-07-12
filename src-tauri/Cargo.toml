@@ -1,6 +1,6 @@
 [package]
 name = "palworld-server-manager"
-version = "0.1.8"
+version = "0.1.9"
 description = "A modern desktop control panel for Palworld dedicated servers."
 edition = "2021"
 rust-version = "1.77"
