@@ -51,21 +51,43 @@
   align-items: center;
   gap: 4px;
 }
-.wm-view {
+/* Canvas wrapper — holds the square map; becomes a fullscreen overlay when expanded. */
+.wm-canvas {
   position: relative;
-  /* square, but never taller than the viewport so the zoom controls stay on screen */
+  /* square, but never taller than the viewport so the controls stay on screen */
   width: min(100%, calc(100vh - 200px));
   max-width: 100%;
   aspect-ratio: 1 / 1;
+}
+.wm-canvas--fs {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  aspect-ratio: auto;
+  z-index: 90;
+  background: #000;
+}
+.wm-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border-radius: var(--r-md);
   background: var(--surface-0);
   box-shadow: var(--inset);
   cursor: grab;
   touch-action: none;
+  user-select: none;
+  outline: none;
 }
 .wm-view:active {
   cursor: grabbing;
+}
+.wm-canvas--fs .wm-view {
+  border-radius: 0;
+  box-shadow: none;
 }
 .wm-stage {
   position: absolute;
@@ -114,24 +136,89 @@
   z-index: 3;
 }
 
-/* zoom controls */
-.wm-zoom {
+/* navigation controls */
+.wm-ctrls {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
+  right: 12px;
+  bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
+  z-index: 4;
 }
-.wm-zoom .icobtn {
+.wm-ctrl {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  color: var(--dim);
   background: rgba(8, 8, 10, 0.72);
+  box-shadow: inset 0 0 0 1px var(--line-2);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: inset 0 0 0 1px var(--line-2);
-  color: var(--dim);
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
-.wm-zoom .icobtn:hover {
+.wm-ctrl:hover {
   color: var(--text);
+  background: rgba(20, 20, 24, 0.82);
+}
+.wm-ctrl:active {
+  transform: translateY(0.5px);
+}
+
+/* zoom-level badge */
+.wm-badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 4;
+  padding: 4px 9px;
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  background: rgba(8, 8, 10, 0.72);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* fullscreen readout / hint bar */
+.wm-fsbar {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 4;
+  max-width: calc(100% - 24px);
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(8, 8, 10, 0.72);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+.wm-fsbar__sel {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 12.5px;
+}
+.wm-fsbar__sel b {
+  color: var(--text);
+  font-weight: 600;
+}
+.wm-fsbar__coords {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--accent);
+}
+.wm-fsbar__hint {
+  font-size: 11.5px;
+  color: var(--faint);
 }
 
 .wm-attrib {

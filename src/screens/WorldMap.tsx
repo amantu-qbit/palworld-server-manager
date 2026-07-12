@@ -108,8 +108,10 @@ export function WorldMap() {
           <div className="wm-grid">
             {/* Map */}
             <div className="card wm-map-card">
-              <WorldMapView actors={actors} visible={visible} onHover={setHover} />
-              <div className="wm-attrib">Map artwork © Pocketpair, Inc. · scroll to zoom, drag to pan</div>
+              <WorldMapView actors={actors} visible={visible} onHover={setHover} hovered={hover} />
+              <div className="wm-attrib">
+                Map artwork © Pocketpair, Inc. · scroll to zoom · drag to pan · double-click or ⛶ for fullscreen
+              </div>
             </div>
 
             <div className="wm-side">
