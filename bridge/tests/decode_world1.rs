@@ -8,12 +8,19 @@
 
 use std::path::Path;
 
+use psm_save::save::containers::{
+    decode_character_containers, decode_dynamic_items, decode_item_containers,
+    read_player_container_ids,
+};
+use psm_save::save::decompress::decompress_sav;
+use psm_save::save::gvas::{default_skip_set, parse_gvas};
 use psm_save::save::load_world;
 use psm_save::save::model::World;
 
+const WORLD1_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/saves/world1");
+
 fn world1() -> World {
-    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/saves/world1");
-    load_world(Path::new(dir)).expect("load world1")
+    load_world(Path::new(WORLD1_DIR)).expect("load world1")
 }
 
 #[test]
@@ -56,4 +63,118 @@ fn world1_jetdragon_fields_match_reference() {
         jet.owner_uid, "8c2f1930-0000-0000-0000-000000000000",
         "JetDragon is owned by player O"
     );
+}
+
+#[test]
+fn player_pal_ownership_matches_fixture() {
+    let w = world1();
+    let sky = w
+        .players
+        .iter()
+        .find(|p| p.uid.to_string().to_lowercase().starts_with("43797f87"))
+        .unwrap();
+    assert_eq!(sky.pal_count, 0, "Sky owns no pals in world1");
+    // The other player therefore owns some of the 11.
+    let o = w
+        .players
+        .iter()
+        .find(|p| p.uid.to_string().to_lowercase().starts_with("8c2f1930"))
+        .unwrap();
+    assert!(o.pal_count > 0);
+    // Player O owns all 11 pals; Sky owns none.
+    assert_eq!(o.pal_count, 11, "player O owns all 11 pals");
+}
+
+#[test]
+fn player_o_inventory_has_real_items() {
+    // GROUND TRUTH (palworld-save-tools reference decoder on this fixture):
+    //   player O (8c2f1930-...)'s CommonContainerId is e204737a-... and its
+    //   first four slots are Wood x77, Stone x74, Pal_crystal_S x99, SFArrow x997.
+    let bytes = std::fs::read(format!("{WORLD1_DIR}/Level.sav")).expect("read Level.sav");
+    let raw = decompress_sav(&bytes).expect("decompress");
+    let gvas = parse_gvas(&raw, &default_skip_set()).expect("parse gvas");
+    let wsd = gvas.root.get("worldSaveData").expect("worldSaveData");
+
+    let dynamic_items =
+        decode_dynamic_items(wsd.get_child("DynamicItemSaveData").expect("DynamicItemSaveData"))
+            .expect("decode dynamic items");
+    let item_containers = decode_item_containers(
+        wsd.get_child("ItemContainerSaveData").expect("ItemContainerSaveData"),
+        &dynamic_items,
+    )
+    .expect("decode item containers");
+
+    // Player O's five inventory container ids come from its per-player .sav.
+    let ids = read_player_container_ids(Path::new(&format!(
+        "{WORLD1_DIR}/Players/8C2F1930000000000000000000000000.sav"
+    )))
+    .expect("read player O container ids");
+    assert_eq!(ids.common, "e204737a-49d2-8cb5-526c-598291dc30f6");
+
+    let common = item_containers
+        .get(&ids.common.parse().expect("uuid"))
+        .expect("player O common container present in Level.sav");
+
+    // At least one non-empty slot with a real (non-"None") static_id.
+    let real: Vec<&str> = common
+        .slots
+        .iter()
+        .filter(|s| !s.static_id.is_empty() && s.static_id != "None")
+        .map(|s| s.static_id.as_str())
+        .collect();
+    assert!(
+        !real.is_empty(),
+        "player O's common inventory has at least one real item"
+    );
+
+    // Exact ground-truth item: 77x Wood in slot 0.
+    let wood = common
+        .slots
+        .iter()
+        .find(|s| s.static_id == "Wood")
+        .expect("player O has Wood in common inventory");
+    assert_eq!(wood.slot_index, 0);
+    assert_eq!(wood.count, 77, "player O has 77 Wood");
+}
+
+#[test]
+fn character_containers_hold_all_pals() {
+    // GROUND TRUTH (palworld-save-tools reference decoder on this fixture):
+    //   every one of the 11 pals sits in a pal-box/party character container;
+    //   player O's pal-box holds 6 and its party holds 5.
+    let bytes = std::fs::read(format!("{WORLD1_DIR}/Level.sav")).expect("read Level.sav");
+    let raw = decompress_sav(&bytes).expect("decompress");
+    let gvas = parse_gvas(&raw, &default_skip_set()).expect("parse gvas");
+    let wsd = gvas.root.get("worldSaveData").expect("worldSaveData");
+
+    let char_containers = decode_character_containers(
+        wsd.get_child("CharacterContainerSaveData").expect("CharacterContainerSaveData"),
+    )
+    .expect("decode character containers");
+
+    // Total occupied slots across all containers == total pals in the world.
+    let total_occupied: usize = char_containers.values().map(|v| v.len()).sum();
+    assert_eq!(total_occupied, 11, "all 11 pals occupy a character-container slot");
+
+    // Player O's pal-box (6) + party (5) == its 11 owned pals.
+    let ids = read_player_container_ids(Path::new(&format!(
+        "{WORLD1_DIR}/Players/8C2F1930000000000000000000000000.sav"
+    )))
+    .expect("read player O container ids");
+    let pal_box = char_containers
+        .get(&ids.pal_storage.parse().expect("uuid"))
+        .expect("player O pal-box present");
+    let party = char_containers
+        .get(&ids.otomo.parse().expect("uuid"))
+        .expect("player O party present");
+    assert_eq!(pal_box.len(), 6, "player O pal-box holds 6 pals");
+    assert_eq!(party.len(), 5, "player O party holds 5 pals");
+
+    // Sky's pal-box + party are empty.
+    let sky = read_player_container_ids(Path::new(&format!(
+        "{WORLD1_DIR}/Players/43797F87000000000000000000000000.sav"
+    )))
+    .expect("read Sky container ids");
+    assert_eq!(char_containers[&sky.pal_storage.parse().unwrap()].len(), 0);
+    assert_eq!(char_containers[&sky.otomo.parse().unwrap()].len(), 0);
 }

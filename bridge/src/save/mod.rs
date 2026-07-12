@@ -1,5 +1,6 @@
 //! Save-directory decoding (read-only).
 pub mod character;
+pub mod containers;
 pub mod decompress;
 pub mod gvas;
 pub mod model;
@@ -17,9 +18,12 @@ use model::{PlayerSummary, World};
 /// Reads `<dir>/Level.sav`, decompresses it, parses the GVAS envelope, decodes
 /// `CharacterSaveParameterMap` into players + pals, and assembles the world.
 ///
-/// Player pal-ownership counts are left at `0` here (each summary's `pal_count`);
-/// they are wired up once guild/group ownership is decoded in a later task. The
-/// world's total pal count is available via [`World::pal_count`].
+/// Each pal already carries its `owner_uid` (from its `SaveParameter`), so a
+/// player's `pal_count` is the number of pals it owns. For this fixture that is
+/// identical to the reference's pal-box + party occupancy: every owned pal is in
+/// one of those two character containers (see [`crate::save::containers`], which
+/// decodes the container → pal-slot mapping and the per-player container ids).
+/// The world's total pal count is available via [`World::pal_count`].
 pub fn load_world(dir: &Path) -> Result<World, SaveError> {
     let level_path = dir.join("Level.sav");
     let bytes = std::fs::read(&level_path)
@@ -42,14 +46,17 @@ pub fn load_world(dir: &Path) -> Result<World, SaveError> {
 
     let player_summaries = players
         .iter()
-        .map(|p| PlayerSummary {
-            uid: p.uid.clone(),
-            nickname: p.nickname.clone(),
-            level: p.level,
-            guild_id: p.guild_id.clone(),
-            // Ownership is wired up in a later task; 0 for now.
-            pal_count: 0,
-            last_online: None,
+        .map(|p| {
+            // A player owns every pal whose `owner_uid` is this player's uid.
+            let pal_count = pals.iter().filter(|pal| pal.owner_uid == p.uid).count() as i32;
+            PlayerSummary {
+                uid: p.uid.clone(),
+                nickname: p.nickname.clone(),
+                level: p.level,
+                guild_id: p.guild_id.clone(),
+                pal_count,
+                last_online: None,
+            }
         })
         .collect();
 

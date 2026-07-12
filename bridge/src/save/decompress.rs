@@ -47,6 +47,10 @@ pub enum SaveError {
     /// (property stream + trailing group/unknown bytes). Carries a description.
     #[error("malformed character RawData: {0}")]
     CharacterData(String),
+    /// An item/character container (or a slot's `RawData`) did not match the
+    /// expected layout. Carries a description.
+    #[error("malformed container data: {0}")]
+    ContainerData(String),
 }
 
 pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {
