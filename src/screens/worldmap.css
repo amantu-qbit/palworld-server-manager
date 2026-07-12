@@ -219,6 +219,22 @@
   color: var(--faint);
   flex: none;
 }
+.wm-detail__close {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: -4px -4px -4px 2px;
+  border-radius: 6px;
+  color: var(--faint);
+  cursor: pointer;
+  flex: none;
+  transition: background 0.12s, color 0.12s;
+}
+.wm-detail__close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
 .wm-detail__rows {
   display: flex;
   flex-direction: column;

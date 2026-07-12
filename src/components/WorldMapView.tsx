@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Layers, Locate, Maximize2, Minimize2, Minus, Plus, TriangleAlert } from "lucide-react";
+import { ChevronDown, Layers, Locate, Maximize2, Minimize2, Minus, Plus, TriangleAlert, X } from "lucide-react";
 import type { Actor } from "../types/api";
 import { worldToGameCoords } from "../lib/mapProject";
 import {
@@ -196,6 +196,33 @@ function drawMarker(
   }
 }
 
+function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// A small name pill above a marker (used for players).
+function drawLabel(ctx: CanvasRenderingContext2D, text: string, x: number, y: number) {
+  ctx.font = "600 11px 'Geist Sans', system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const bw = Math.ceil(ctx.measureText(text).width) + 12;
+  const bh = 16;
+  const ly = y - 18;
+  roundRectPath(ctx, x - bw / 2, ly - bh / 2, bw, bh, 4);
+  ctx.fillStyle = "rgba(8,10,14,0.8)";
+  ctx.fill();
+  ctx.fillStyle = "#eef2f7";
+  ctx.fillText(text, x, ly + 0.5);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+}
+
 export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
@@ -217,6 +244,7 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const visibleRef = useRef<Set<MarkerKind>>(new Set());
   const showOfflineRef = useRef(false);
   const hoveredRef = useRef<MapMarker | null>(null);
+  const selectedRef = useRef<string | null>(null);
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
   const palIconsRef = useRef<Record<string, HTMLImageElement>>({});
   const palRaf = useRef(0);
@@ -252,6 +280,7 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     }
   });
   const [hovered, setHovered] = useState<MapMarker | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const allMarkers = useMemo(() => {
     const live = actors.map((a, i) => actorToMarker(a, i, onlineKeys));
@@ -259,6 +288,13 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     merged.sort((a, b) => Z[a.kind] - Z[b.kind]);
     return merged;
   }, [actors, onlineKeys]);
+
+  // A pinned marker (clicked). Resolved from the live list by id so its detail
+  // stays fresh across the ~3s game-data refetch. hover previews take priority.
+  const selected = useMemo(
+    () => (selectedId ? allMarkers.find((m) => m.id === selectedId) ?? null : null),
+    [selectedId, allMarkers],
+  );
 
   const counts = useMemo(() => {
     const c = {} as Record<MarkerKind, number>;
@@ -284,7 +320,9 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     const icons = iconsRef.current;
     const palIcons = palIconsRef.current;
     const hoverId = hoveredRef.current?.id;
-    let hov: { m: MapMarker; x: number; y: number } | null = null;
+    const selId = selectedRef.current;
+    const emph: { m: MapMarker; x: number; y: number }[] = [];
+    const labels: { text: string; x: number; y: number }[] = [];
     for (const m of markersRef.current) {
       if (!vis.has(m.kind)) continue;
       if (m.kind === "player" && !showOff && m.online === false) continue;
@@ -292,9 +330,11 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
       const y = ty + m.v * span;
       if (x < -24 || y < -24 || x > w + 24 || y > h + 24) continue;
       drawMarker(ctx, m, x, y, icons, palIcons, false);
-      if (m.id === hoverId) hov = { m, x, y };
+      if (m.kind === "player" && m.name) labels.push({ text: m.name, x, y });
+      if (m.id === hoverId || m.id === selId) emph.push({ m, x, y });
     }
-    if (hov) drawMarker(ctx, hov.m, hov.x, hov.y, icons, palIcons, true);
+    for (const l of labels) drawLabel(ctx, l.text.length > 18 ? `${l.text.slice(0, 17)}…` : l.text, l.x, l.y);
+    for (const e of emph) drawMarker(ctx, e.m, e.x, e.y, icons, palIcons, true);
   }, []);
 
   const apply = useCallback(() => {
@@ -474,6 +514,10 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     draw();
   }, [hovered, draw]);
   useEffect(() => {
+    selectedRef.current = selectedId;
+    draw();
+  }, [selectedId, draw]);
+  useEffect(() => {
     try {
       localStorage.setItem("psm.map.panel", panelOpen ? "1" : "0");
     } catch {
@@ -595,13 +639,16 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     } catch {
       /* ignore */
     }
-    const wasTap = e.pointerType !== "mouse" && pan.current !== null && pan.current.moved < 6;
+    const wasClick = pan.current !== null && pan.current.moved < 6;
     pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) pinch.current = null;
     if (pointers.current.size === 0) {
-      if (wasTap && viewRef.current) {
+      if (wasClick && viewRef.current) {
+        // Click/tap a marker to pin its detail card; click empty space to unpin.
         const r = viewRef.current.getBoundingClientRect();
-        setHoverIfChanged(hitTest(e.clientX - r.left, e.clientY - r.top));
+        const hit = hitTest(e.clientX - r.left, e.clientY - r.top);
+        setSelectedId(hit ? hit.id : null);
+        if (e.pointerType !== "mouse") setHoverIfChanged(null);
       } else if (pan.current) {
         startGlide(pan.current.vx, pan.current.vy);
       }
@@ -659,7 +706,8 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
         fitView();
         break;
       case "Escape":
-        if (expanded) setExpanded(false);
+        if (selectedRef.current) setSelectedId(null);
+        else if (expanded) setExpanded(false);
         else handled = false;
         break;
       default:
@@ -692,7 +740,9 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     });
 
   const stop = (e: React.SyntheticEvent) => e.stopPropagation();
-  const gc = hovered ? worldToGameCoords(hovered.x, hovered.y) : null;
+  const active = hovered ?? selected;
+  const pinned = !!active && !!selected && active.id === selected.id;
+  const gc = active ? worldToGameCoords(active.x, active.y) : null;
   const liveKinds = MARKER_ORDER.filter((k) => KIND_META[k].group === "live");
   const landmarkKinds = MARKER_ORDER.filter((k) => KIND_META[k].group === "landmark");
 
@@ -755,40 +805,45 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
           )}
         </div>
 
-        {hovered && gc && (
+        {active && gc && (
           <div className="wm-panel wm-detail wm-nozoom" onPointerDown={stop} onDoubleClick={stop}>
             <div className="wm-detail__top">
-              <span className="wm-detail__dot" style={{ background: KIND_META[hovered.kind].color }} />
-              <b>{hovered.name}</b>
-              <span className="wm-detail__kind">{KIND_META[hovered.kind].label.replace(/s$/, "")}</span>
+              <span className="wm-detail__dot" style={{ background: KIND_META[active.kind].color }} />
+              <b>{active.name}</b>
+              <span className="wm-detail__kind">{KIND_META[active.kind].label.replace(/s$/, "")}</span>
+              {pinned && (
+                <button className="wm-detail__close" onClick={() => setSelectedId(null)} aria-label="Unpin" title="Unpin (Esc)">
+                  <X size={13} />
+                </button>
+              )}
             </div>
             <div className="wm-detail__rows">
-              {!hovered.actor && hovered.sub && (
+              {!active.actor && active.sub && (
                 <div>
                   <span>Type</span>
-                  <span>{hovered.sub}</span>
+                  <span>{active.sub}</span>
                 </div>
               )}
-              {hovered.actor?.level != null && (
+              {active.actor?.level != null && (
                 <div>
                   <span>Level</span>
-                  <span>{hovered.actor.level}</span>
+                  <span>{active.actor.level}</span>
                 </div>
               )}
-              {hovered.actor?.HP != null && hovered.actor?.MaxHP != null && (
+              {active.actor?.HP != null && active.actor?.MaxHP != null && (
                 <div>
                   <span>HP</span>
                   <span>
-                    {hovered.actor.HP} / {hovered.actor.MaxHP}
-                    {hovered.actor.MaxHP > 0 &&
-                      ` (${Math.round((hovered.actor.HP / hovered.actor.MaxHP) * 100)}%)`}
+                    {active.actor.HP} / {active.actor.MaxHP}
+                    {active.actor.MaxHP > 0 &&
+                      ` (${Math.round((active.actor.HP / active.actor.MaxHP) * 100)}%)`}
                   </span>
                 </div>
               )}
-              {hovered.actor?.GuildName && (
+              {active.actor?.GuildName && (
                 <div>
                   <span>Guild</span>
-                  <span>{hovered.actor.GuildName}</span>
+                  <span>{active.actor.GuildName}</span>
                 </div>
               )}
               <div>
@@ -797,15 +852,15 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
                   {gc.x}, {gc.y}
                 </span>
               </div>
-              {hovered.actor?.Class && (
+              {active.actor?.Class && (
                 <div>
                   <span>Class</span>
                   <span
                     className="mono"
-                    title={hovered.actor.Class}
+                    title={active.actor.Class}
                     style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                   >
-                    {hovered.actor.Class}
+                    {active.actor.Class}
                   </span>
                 </div>
               )}
