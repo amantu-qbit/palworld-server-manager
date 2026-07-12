@@ -50,11 +50,15 @@ pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {
     let decompressed = if magic == MAGIC_OODLE {
         oodle_decompress(body, compressed_len, uncompressed_len)?
     } else if magic == MAGIC_ZLIB {
+        if body.len() < compressed_len {
+            return Err(SaveError::Truncated);
+        }
+        let compressed = &body[..compressed_len];
         match save_type {
-            0x30 => body.to_vec(),
-            0x31 => zlib_decompress(body)?,
+            0x30 => compressed.to_vec(),
+            0x31 => zlib_decompress(compressed)?,
             0x32 => {
-                let once = zlib_decompress(body)?;
+                let once = zlib_decompress(compressed)?;
                 zlib_decompress(&once)?
             }
             _ => return Err(SaveError::BadMagic),
@@ -80,9 +84,12 @@ fn oodle_decompress(
     }
     let compressed = &body[..compressed_len];
     let mut output = vec![0u8; uncompressed_len];
-    Extractor::new()
+    let written = Extractor::new()
         .read_from_slice(compressed, &mut output)
         .map_err(|e| SaveError::Oodle(e.to_string()))?;
+    if written != uncompressed_len {
+        return Err(SaveError::Truncated);
+    }
     Ok(output)
 }
 
