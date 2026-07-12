@@ -23,10 +23,23 @@ const HEADER_LEN: usize = 12;
 const MAGIC_ZLIB: [u8; 3] = *b"PlZ";
 const MAGIC_OODLE: [u8; 3] = *b"PlM";
 
+/// Sane ceiling on a declared decompressed size (`.sav` header) or an inner
+/// GVAS array/set/map element count. No legitimate Palworld world approaches
+/// this; anything above it is a crafted or corrupt input and is rejected
+/// before the corresponding allocation is attempted (Phase-1b hardening,
+/// review finding S2).
+pub(crate) const MAX_DECOMPRESSED: usize = 512 * 1024 * 1024;
+
 #[derive(Debug, Error)]
 pub enum SaveError {
     #[error("bad magic bytes in .sav header")]
     BadMagic,
+    /// A file-controlled declared size (the `.sav` header's
+    /// `uncompressed_len`, or an inner GVAS array/set/map element count)
+    /// exceeds [`MAX_DECOMPRESSED`] or what the remaining input bytes could
+    /// plausibly contain. Rejected before allocating/looping on it.
+    #[error("declared size exceeds sane limit")]
+    TooLarge,
     /// The magic bytes were valid `PlZ` (zlib), but the following save-type
     /// byte did not match any known variant (`0x30`/`0x31`/`0x32`).
     #[error("unknown save type: 0x{0:02x}")]
@@ -107,6 +120,9 @@ fn oodle_decompress(
 ) -> Result<Vec<u8>, SaveError> {
     if body.len() < compressed_len {
         return Err(SaveError::Truncated);
+    }
+    if uncompressed_len > MAX_DECOMPRESSED {
+        return Err(SaveError::TooLarge);
     }
     let compressed = &body[..compressed_len];
     let mut output = vec![0u8; uncompressed_len];

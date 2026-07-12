@@ -267,6 +267,40 @@ fn read_struct_value(
     })
 }
 
+/// Minimum on-disk bytes a single [`StructValue`] of `struct_type` can
+/// occupy. Used only to sanity-check a file-controlled `u32` element count
+/// against the reader's remaining bytes *before* pre-allocating a `Vec` for
+/// that many elements (Phase-1b hardening, review finding S2) — mirrors the
+/// `count > r.remaining() / 4` guard in `containers.rs::parse_weapon_body`.
+/// Known primitive structs have a fixed encoded size; any other struct type
+/// is a nested property set, whose smallest possible instance is a single
+/// `"None"` terminator name (a 4-byte length prefix + 5-byte ASCII body).
+fn min_struct_value_bytes(struct_type: &str) -> usize {
+    match struct_type {
+        "Vector" => 24,
+        "Quat" => 32,
+        "LinearColor" => 16,
+        "Color" => 4,
+        "DateTime" => 8,
+        "Guid" => 16,
+        _ => 9,
+    }
+}
+
+/// Minimum on-disk bytes a single bare `prop_value` of `type_name` can
+/// occupy (mirrors [`read_prop_value`]'s dispatch). Same purpose as
+/// [`min_struct_value_bytes`], for bounding a `MapProperty` entry count.
+fn min_prop_value_bytes(type_name: &str, struct_type: Option<&str>) -> usize {
+    match type_name {
+        "StructProperty" => min_struct_value_bytes(struct_type.unwrap_or("StructProperty")),
+        "EnumProperty" | "NameProperty" | "StrProperty" => 4,
+        "IntProperty" | "UInt32Property" => 4,
+        "Int64Property" => 8,
+        "BoolProperty" => 1,
+        _ => 1,
+    }
+}
+
 /// Read an `ArrayProperty` (`_read_ArrayProperty` + `array_property` +
 /// `array_value`). A `ByteProperty` array collapses to [`Property::Bytes`]; a
 /// `StructProperty` array reads its shared inner struct header once.
@@ -291,6 +325,10 @@ fn read_array(
         let _inner_id = r.guid();
         r.skip(1);
         let elem_path = format!("{path}.{prop_name}");
+        let min_elem = min_struct_value_bytes(&type_name);
+        if count > r.remaining() / min_elem {
+            return Err(SaveError::TooLarge);
+        }
         let mut values = Vec::with_capacity(count);
         for _ in 0..count {
             values.push(read_struct_value(r, &type_name, &elem_path, skip)?);
@@ -319,6 +357,11 @@ fn read_array(
             Ok(Property::Bytes(r.read(count).to_vec()))
         }
         "EnumProperty" | "NameProperty" => {
+            // Each element is at minimum an empty fstring (a 4-byte length
+            // prefix with no body).
+            if count > r.remaining() / 4 {
+                return Err(SaveError::TooLarge);
+            }
             let mut values = Vec::with_capacity(count);
             for _ in 0..count {
                 values.push(r.fstring());
@@ -329,6 +372,10 @@ fn read_array(
             })
         }
         "Guid" => {
+            // Each element is a fixed 16-byte guid.
+            if count > r.remaining() / 16 {
+                return Err(SaveError::TooLarge);
+            }
             let mut values = Vec::with_capacity(count);
             for _ in 0..count {
                 values.push(r.guid());
@@ -357,6 +404,10 @@ fn read_set(r: &mut Reader, path: &str, skip: &SkipSet) -> Result<Property, Save
             .unwrap_or("StructProperty")
             .to_string();
         let elem_path = format!("{path}.StructProperty");
+        let min_elem = min_struct_value_bytes(&struct_type);
+        if count > r.remaining() / min_elem {
+            return Err(SaveError::TooLarge);
+        }
         let mut values = Vec::with_capacity(count);
         for _ in 0..count {
             values.push(read_struct_value(r, &struct_type, &elem_path, skip)?);
@@ -370,7 +421,11 @@ fn read_set(r: &mut Reader, path: &str, skip: &SkipSet) -> Result<Property, Save
         })
     } else {
         // Non-struct sets: each element is a nested property set. The reference
-        // resets the path to "" here.
+        // resets the path to "" here. Its smallest possible instance is a
+        // single "None" terminator name (4-byte length prefix + 5-byte body).
+        if count > r.remaining() / 9 {
+            return Err(SaveError::TooLarge);
+        }
         let mut values = Vec::with_capacity(count);
         for _ in 0..count {
             values.push(read_properties_until_end(r, "", skip)?);
@@ -405,6 +460,11 @@ fn read_map(r: &mut Reader, path: &str, skip: &SkipSet) -> Result<Property, Save
         None
     };
 
+    let min_entry = min_prop_value_bytes(&key_type, key_struct_type.as_deref())
+        + min_prop_value_bytes(&value_type, value_struct_type.as_deref());
+    if count > r.remaining() / min_entry {
+        return Err(SaveError::TooLarge);
+    }
     let mut entries = Vec::with_capacity(count);
     for _ in 0..count {
         let key = read_prop_value(r, &key_type, key_struct_type.as_deref(), &key_path, skip)?;

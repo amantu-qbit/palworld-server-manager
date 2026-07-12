@@ -239,7 +239,7 @@ fn read_guild_tail_v1(tail: &[u8]) -> Result<(Uuid, Vec<Uuid>), SaveError> {
         )));
     }
     let admin = r.guid();
-    let players = read_guild_players_v1(&mut r);
+    let players = read_guild_players_v1(&mut r)?;
     if r.remaining() != 4 {
         return Err(SaveError::GroupData(format!(
             "guild tail not consumed to EOF: {} bytes before/after trailing",
@@ -250,8 +250,15 @@ fn read_guild_tail_v1(tail: &[u8]) -> Result<(Uuid, Vec<Uuid>), SaveError> {
 }
 
 /// v1 members: `tarray< guid(16) + i64 + fstring >`, collecting the uids.
-fn read_guild_players_v1(r: &mut Reader) -> Vec<Uuid> {
+fn read_guild_players_v1(r: &mut Reader) -> Result<Vec<Uuid>, SaveError> {
     let count = r.read_u32() as usize;
+    // Each member is at minimum a 16-byte guid + 8-byte i64 + a 4-byte empty
+    // fstring (length-prefix-only, no body) — sanity-check the file-controlled
+    // count against the reader's remaining bytes before pre-allocating.
+    const MIN_PLAYER_BYTES: usize = 16 + 8 + 4;
+    if count > r.remaining() / MIN_PLAYER_BYTES {
+        return Err(SaveError::TooLarge);
+    }
     let mut uids = Vec::with_capacity(count);
     for _ in 0..count {
         let uid = r.guid();
@@ -259,7 +266,7 @@ fn read_guild_players_v1(r: &mut Reader) -> Vec<Uuid> {
         let _player_name = r.fstring();
         uids.push(uid);
     }
-    uids
+    Ok(uids)
 }
 
 // --- bounds-checked primitives for the speculative v2 attempt --------------
