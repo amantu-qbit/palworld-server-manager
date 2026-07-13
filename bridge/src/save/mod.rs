@@ -9,11 +9,32 @@ pub mod props;
 pub mod reader;
 pub mod reference;
 
+use std::collections::HashMap;
 use std::path::Path;
 
+use uuid::Uuid;
+
 use decompress::{decompress_sav, SaveError};
-use gvas::{default_skip_set, parse_gvas};
-use model::{PlayerSummary, World};
+use gvas::{default_skip_set, parse_gvas, Gvas};
+use model::{DynamicItem, ItemContainer, PlayerSummary, World};
+
+/// The `Level.sav` GVAS parse plus every container/index derived from it in
+/// one pass: the decoded [`World`] (players/pals/guilds) and the resolved
+/// item-container + dynamic-item maps needed to answer inventory queries.
+///
+/// Built by [`load_world_with_containers`], which parses `Level.sav` exactly
+/// once and produces all three fields from that single parse — see that
+/// function's doc comment.
+#[derive(Debug, Clone, Default)]
+pub struct WorldBundle {
+    /// Players, pals, and guilds — identical to [`load_world`]'s result.
+    pub world: World,
+    /// `ItemContainerSaveData`, decoded and keyed by container id. Each
+    /// slot's `dynamic_item` is already resolved against `dynamic_items`.
+    pub item_containers: HashMap<Uuid, ItemContainer>,
+    /// `DynamicItemSaveData`, decoded and keyed by `local_id`.
+    pub dynamic_items: HashMap<Uuid, DynamicItem>,
+}
 
 /// Load a save directory's `Level.sav` into a [`World`].
 ///
@@ -31,13 +52,66 @@ use model::{PlayerSummary, World};
 /// container ids).
 /// The world's total pal count is available via [`World::pal_count`].
 pub fn load_world(dir: &Path) -> Result<World, SaveError> {
+    let gvas = parse_level_sav(dir)?;
+    build_world(&gvas)
+}
+
+/// Load a save directory's `Level.sav` into a [`WorldBundle`]: the [`World`]
+/// plus the decoded item-container and dynamic-item indexes, all from a
+/// single decompress + GVAS parse of `Level.sav`.
+///
+/// This is the parse-once counterpart to calling [`load_world`] and then
+/// separately re-reading/re-parsing `Level.sav` to decode
+/// `ItemContainerSaveData`/`DynamicItemSaveData` (as
+/// `bridge/tests/decode_world1.rs` does today) — here both come from the same
+/// in-memory [`Gvas`] tree that [`build_world`] also consumes.
+///
+/// `ItemContainerSaveData`/`DynamicItemSaveData` are expected top-level
+/// members of `worldSaveData` in every real Palworld save; mirroring the
+/// existing `GroupSaveDataMap` handling, a save that happens to omit one
+/// yields an empty map for it rather than an error, so a minimal/edge-case
+/// fixture doesn't fail to load just because it has no items.
+pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> {
+    let gvas = parse_level_sav(dir)?;
+    let world = build_world(&gvas)?;
+
+    let world_save_data = gvas
+        .root
+        .get("worldSaveData")
+        .ok_or_else(|| SaveError::CharacterData("Level.sav missing worldSaveData".to_string()))?;
+
+    let dynamic_items = match world_save_data.get_child("DynamicItemSaveData") {
+        Some(prop) => containers::decode_dynamic_items(prop)?,
+        None => HashMap::new(),
+    };
+    let item_containers = match world_save_data.get_child("ItemContainerSaveData") {
+        Some(prop) => containers::decode_item_containers(prop, &dynamic_items)?,
+        None => HashMap::new(),
+    };
+
+    Ok(WorldBundle {
+        world,
+        item_containers,
+        dynamic_items,
+    })
+}
+
+/// Read, decompress, and GVAS-parse `<dir>/Level.sav`. Shared by
+/// [`load_world`] and [`load_world_with_containers`] so both perform exactly
+/// one decompress + parse pass over the file.
+fn parse_level_sav(dir: &Path) -> Result<Gvas, SaveError> {
     let level_path = dir.join("Level.sav");
     let bytes = std::fs::read(&level_path)
         .map_err(|e| SaveError::Io(format!("{}: {e}", level_path.display())))?;
 
     let raw = decompress_sav(&bytes)?;
-    let gvas = parse_gvas(&raw, &default_skip_set())?;
+    parse_gvas(&raw, &default_skip_set())
+}
 
+/// Decode the [`World`] (players/pals/guilds) from an already-parsed
+/// `Level.sav` [`Gvas`] tree. Shared by [`load_world`] and
+/// [`load_world_with_containers`].
+fn build_world(gvas: &Gvas) -> Result<World, SaveError> {
     let world_save_data = gvas
         .root
         .get("worldSaveData")

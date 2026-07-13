@@ -1,4 +1,4 @@
-//! Decoded-`World` cache.
+//! Decoded-save (`WorldBundle`) cache.
 //!
 //! Decoding `Level.sav` is CPU-bound and, per the Phase-1a decoder ledger,
 //! not yet fully panic-free on malformed input (a known-deferred hardening
@@ -20,9 +20,10 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 use std::time::UNIX_EPOCH;
 
+use psm_save::save::containers::{read_player_container_ids, PlayerContainerIds};
 use psm_save::save::decompress::SaveError;
-use psm_save::save::load_world;
-use psm_save::save::model::World;
+use psm_save::save::load_world_with_containers;
+use psm_save::save::WorldBundle;
 use thiserror::Error;
 
 /// Cache key: `(mtime_secs, size_bytes)` of `<save_dir>/Level.sav`. Either
@@ -30,11 +31,11 @@ use thiserror::Error;
 /// invalidates the cached decode.
 type CacheKey = (u64, u64);
 
-/// A previously-decoded `World`, tagged with the file key it was decoded
-/// from.
+/// A previously-decoded [`WorldBundle`], tagged with the file key it was
+/// decoded from.
 struct Cached {
     key: CacheKey,
-    world: Arc<World>,
+    bundle: Arc<WorldBundle>,
 }
 
 /// Shared server state: the save directory to read from, plus a
@@ -44,7 +45,7 @@ pub struct AppState {
     cached: RwLock<Option<Cached>>,
 }
 
-/// Errors from [`AppState::world`].
+/// Errors from [`AppState::bundle`].
 #[derive(Debug, Error)]
 pub enum StateError {
     /// Failed to stat (or read the mtime of) `<save_dir>/Level.sav`.
@@ -71,28 +72,29 @@ impl AppState {
         }
     }
 
-    /// Return the decoded `World` for the current `Level.sav`.
+    /// Return the decoded [`WorldBundle`] (world + item containers + dynamic
+    /// items) for the current `Level.sav`.
     ///
     /// Stats `<save_dir>/Level.sav` for `(mtime, size)`; if that key matches
     /// what's cached, returns the cached `Arc` without touching the
     /// decoder. Otherwise decodes off-thread (see module docs for the
     /// panic-safety rationale), caches the result under the new key, and
     /// returns it.
-    pub async fn world(&self) -> Result<Arc<World>, StateError> {
+    pub async fn bundle(&self) -> Result<Arc<WorldBundle>, StateError> {
         let key = self.current_key()?;
 
-        if let Some(world) = self.cached_if_fresh(key) {
-            return Ok(world);
+        if let Some(bundle) = self.cached_if_fresh(key) {
+            return Ok(bundle);
         }
 
-        let world = decode_off_thread(self.save_dir.clone()).await?;
+        let bundle = decode_off_thread(self.save_dir.clone()).await?;
 
         let mut guard = self.cached.write().unwrap_or_else(|poisoned| poisoned.into_inner());
         *guard = Some(Cached {
             key,
-            world: Arc::clone(&world),
+            bundle: Arc::clone(&bundle),
         });
-        Ok(world)
+        Ok(bundle)
     }
 
     /// Read `<save_dir>/Level.sav`'s (mtime seconds since the Unix epoch,
@@ -108,13 +110,13 @@ impl AppState {
         Ok((mtime, meta.len()))
     }
 
-    /// Return the cached `World` iff its key matches `key` exactly.
-    fn cached_if_fresh(&self, key: CacheKey) -> Option<Arc<World>> {
+    /// Return the cached [`WorldBundle`] iff its key matches `key` exactly.
+    fn cached_if_fresh(&self, key: CacheKey) -> Option<Arc<WorldBundle>> {
         let guard = self.cached.read().unwrap_or_else(|poisoned| poisoned.into_inner());
         guard
             .as_ref()
             .filter(|cached| cached.key == key)
-            .map(|cached| Arc::clone(&cached.world))
+            .map(|cached| Arc::clone(&cached.bundle))
     }
 
     /// The directory this state reads `Level.sav` (and future save files)
@@ -128,20 +130,55 @@ impl AppState {
     pub fn level_sav_exists(&self) -> bool {
         self.save_dir.join("Level.sav").is_file()
     }
+
+    /// Read a player's five inventory + two character container ids from
+    /// `<save_dir>/Players/<UPPERCASE-UID-NO-DASHES>.sav`.
+    ///
+    /// Runs on a blocking-pool thread with the same `catch_unwind` panic
+    /// boundary as [`AppState::bundle`] (the underlying GVAS property reader
+    /// panics on a malformed/crafted buffer by contract — see
+    /// `psm_save::save::reader`'s doc comment), so a corrupt per-player save
+    /// file cannot crash the server either. Not cached: per-player `.sav`
+    /// files are small and read on demand.
+    pub async fn player_container_ids(&self, uid: &str) -> Result<PlayerContainerIds, StateError> {
+        let sav_path = self.save_dir.join("Players").join(player_sav_filename(uid));
+
+        let outcome = tokio::task::spawn_blocking(move || {
+            std::panic::catch_unwind(AssertUnwindSafe(|| read_player_container_ids(&sav_path)))
+        })
+        .await;
+
+        match outcome {
+            Ok(Ok(Ok(ids))) => Ok(ids),
+            Ok(Ok(Err(save_error))) => Err(StateError::Load(save_error)),
+            Ok(Err(_panic_payload)) => Err(StateError::Decode),
+            Err(_join_error) => Err(StateError::Decode),
+        }
+    }
 }
 
-/// Decode `<dir>/Level.sav` on a blocking-pool thread, catching any panic
-/// from the decoder so it surfaces as [`StateError::Decode`] instead of
-/// unwinding into the async runtime (which would abort the process).
-async fn decode_off_thread(dir: PathBuf) -> Result<Arc<World>, StateError> {
+/// The per-player `.sav` filename Palworld uses for a given uid: the
+/// canonical hyphenated uid with the dashes stripped and the hex uppercased,
+/// e.g. `8c2f1930-0000-0000-0000-000000000000` ->
+/// `8C2F1930000000000000000000000000.sav`. Lowercase orphans records on
+/// Linux dedicated servers, so this must always uppercase.
+fn player_sav_filename(uid: &str) -> String {
+    format!("{}.sav", uid.replace('-', "").to_uppercase())
+}
+
+/// Decode `<dir>/Level.sav` (plus its item containers/dynamic items) on a
+/// blocking-pool thread, catching any panic from the decoder so it surfaces
+/// as [`StateError::Decode`] instead of unwinding into the async runtime
+/// (which would abort the process).
+async fn decode_off_thread(dir: PathBuf) -> Result<Arc<WorldBundle>, StateError> {
     let outcome = tokio::task::spawn_blocking(move || {
-        std::panic::catch_unwind(AssertUnwindSafe(|| load_world(&dir)))
+        std::panic::catch_unwind(AssertUnwindSafe(|| load_world_with_containers(&dir)))
     })
     .await;
 
     match outcome {
         // Decoded cleanly.
-        Ok(Ok(Ok(world))) => Ok(Arc::new(world)),
+        Ok(Ok(Ok(bundle))) => Ok(Arc::new(bundle)),
         // Decoder ran to completion but reported a normal error.
         Ok(Ok(Err(save_error))) => Err(StateError::Load(save_error)),
         // Decoder panicked — caught by `catch_unwind`, never reaches the caller as a panic.

@@ -37,23 +37,27 @@ fn cleanup(dir: &Path) {
 }
 
 #[tokio::test]
-async fn world_decodes_two_players_from_fixture() {
+async fn bundle_decodes_two_players_from_fixture() {
     let state = AppState::new(PathBuf::from(WORLD1_DIR));
 
-    let world = state.world().await.expect("world() should decode world1");
+    let bundle = state.bundle().await.expect("bundle() should decode world1");
 
-    assert_eq!(world.players.len(), 2, "world1 fixture has exactly 2 players");
+    assert_eq!(bundle.world.players.len(), 2, "world1 fixture has exactly 2 players");
+    assert!(
+        !bundle.item_containers.is_empty(),
+        "world1 fixture's bundle has a non-empty item_containers index"
+    );
 }
 
 #[tokio::test]
 async fn second_call_returns_same_arc_without_redecoding() {
     let state = AppState::new(PathBuf::from(WORLD1_DIR));
 
-    let a = state.world().await.expect("first world() call should decode");
+    let a = state.bundle().await.expect("first bundle() call should decode");
     let b = state
-        .world()
+        .bundle()
         .await
-        .expect("second world() call should hit the cache");
+        .expect("second bundle() call should hit the cache");
 
     assert!(
         Arc::ptr_eq(&a, &b),
@@ -66,7 +70,7 @@ async fn cache_invalidates_and_redecodes_when_mtime_changes() {
     let dir = copy_world1_into_scratch_dir("mtime-invalidation");
     let state = AppState::new(dir.clone());
 
-    let a = state.world().await.expect("first world() call should decode");
+    let a = state.bundle().await.expect("first bundle() call should decode");
 
     // Bump the file's mtime forward without touching its contents/size, to
     // isolate the mtime half of the (mtime, size) cache key.
@@ -79,15 +83,15 @@ async fn cache_invalidates_and_redecodes_when_mtime_changes() {
         .expect("set_modified should succeed on a local scratch file");
 
     let b = state
-        .world()
+        .bundle()
         .await
-        .expect("world() after mtime bump should redecode successfully");
+        .expect("bundle() after mtime bump should redecode successfully");
 
     assert!(
         !Arc::ptr_eq(&a, &b),
         "a changed mtime must invalidate the cache and produce a fresh Arc"
     );
-    assert_eq!(b.players.len(), 2, "redecoded world still has 2 players");
+    assert_eq!(b.world.players.len(), 2, "redecoded world still has 2 players");
 
     cleanup(&dir);
 }
@@ -101,7 +105,7 @@ async fn missing_save_file_is_an_io_error() {
     ));
     let state = AppState::new(dir);
 
-    let result = state.world().await;
+    let result = state.bundle().await;
 
     assert!(
         matches!(result, Err(StateError::Io(_))),
@@ -124,7 +128,7 @@ async fn malformed_save_is_a_load_error_not_a_panic() {
     std::fs::write(dir.join("Level.sav"), [0u8; 20]).expect("write malformed Level.sav");
 
     let state = AppState::new(dir.clone());
-    let result = state.world().await;
+    let result = state.bundle().await;
 
     assert!(
         matches!(result, Err(StateError::Load(_))),

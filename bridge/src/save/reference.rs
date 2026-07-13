@@ -56,6 +56,26 @@ impl Reference {
     pub fn element_name(&self, id: &str) -> Option<&str> {
         self.elements.get(id).map(String::as_str)
     }
+
+    /// The full item catalog (internal id -> display name).
+    pub fn items(&self) -> &HashMap<String, String> {
+        &self.items
+    }
+
+    /// The full active (attack) skill catalog (internal id -> display name).
+    pub fn active_skills(&self) -> &HashMap<String, String> {
+        &self.active_skills
+    }
+
+    /// The full passive skill catalog (internal id -> display name).
+    pub fn passive_skills(&self) -> &HashMap<String, String> {
+        &self.passive_skills
+    }
+
+    /// The full element catalog (internal id -> display name).
+    pub fn elements(&self) -> &HashMap<String, String> {
+        &self.elements
+    }
 }
 
 /// Parse a vendored catalog JSON blob (`{ id: { localized_name, ... }, ... }`)

@@ -14,7 +14,7 @@ use psm_save::save::containers::{
 };
 use psm_save::save::decompress::decompress_sav;
 use psm_save::save::gvas::{default_skip_set, parse_gvas};
-use psm_save::save::load_world;
+use psm_save::save::{load_world, load_world_with_containers};
 use psm_save::save::model::World;
 
 const WORLD1_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/saves/world1");
@@ -193,4 +193,40 @@ fn character_containers_hold_all_pals() {
     .expect("read Sky container ids");
     assert_eq!(char_containers[&sky.pal_storage.parse().unwrap()].len(), 0);
     assert_eq!(char_containers[&sky.otomo.parse().unwrap()].len(), 0);
+}
+
+#[test]
+fn load_world_with_containers_matches_load_world_and_has_item_containers() {
+    // `load_world_with_containers` must decode Level.sav exactly once and
+    // still agree with `load_world` on the world contents (2 players, 11
+    // pals), while also yielding a non-empty `item_containers` index.
+    let bundle =
+        load_world_with_containers(Path::new(WORLD1_DIR)).expect("load world1 with containers");
+
+    assert_eq!(bundle.world.players.len(), 2, "world1 has exactly 2 players");
+    assert_eq!(bundle.world.pal_count(), 11, "world1 has exactly 11 pals");
+    assert_eq!(bundle.world, world1(), "bundle.world matches load_world's result");
+
+    assert!(
+        !bundle.item_containers.is_empty(),
+        "world1's item_containers must be non-empty"
+    );
+
+    // Player O's common container (ground truth from `player_o_inventory_has_real_items`)
+    // must be resolvable through the bundle's item_containers index, with the
+    // same Wood x77 slot.
+    let ids = read_player_container_ids(Path::new(&format!(
+        "{WORLD1_DIR}/Players/8C2F1930000000000000000000000000.sav"
+    )))
+    .expect("read player O container ids");
+    let common = bundle
+        .item_containers
+        .get(&ids.common.parse().expect("uuid"))
+        .expect("player O common container present in bundle");
+    let wood = common
+        .slots
+        .iter()
+        .find(|s| s.static_id == "Wood")
+        .expect("player O has Wood in common inventory");
+    assert_eq!(wood.count, 77, "player O has 77 Wood");
 }
