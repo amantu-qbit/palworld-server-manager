@@ -72,3 +72,43 @@ async fn health_with_no_authorization_header_is_unauthorized() {
 
     assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
 }
+
+/// Regression test for the auth-bypass footgun: axum's `.layer()` only
+/// wraps routes registered before the call. This asserts the current
+/// guarantee that no path — known or unknown — is reachable without a
+/// token, so a future route accidentally added outside `app_routes()`
+/// (see `server.rs`) trips this test instead of silently shipping
+/// unauthenticated.
+#[tokio::test]
+async fn no_path_is_reachable_without_a_token() {
+    for path in ["/v1/health", "/v1/does-not-exist"] {
+        let app = make_router();
+        let request = Request::builder()
+            .uri(path)
+            .body(Body::empty())
+            .expect("build request");
+
+        let response = app.oneshot(request).await.expect("request should succeed");
+
+        assert_eq!(
+            response.status(),
+            StatusCode::UNAUTHORIZED,
+            "path {path} should require auth, got {}",
+            response.status()
+        );
+    }
+}
+
+#[tokio::test]
+async fn health_with_non_bearer_authorization_scheme_is_unauthorized() {
+    let app = make_router();
+    let request = Request::builder()
+        .uri("/v1/health")
+        .header("Authorization", "Basic Zm9v")
+        .body(Body::empty())
+        .expect("build request");
+
+    let response = app.oneshot(request).await.expect("request should succeed");
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+}

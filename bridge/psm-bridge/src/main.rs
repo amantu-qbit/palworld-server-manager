@@ -16,7 +16,7 @@ async fn main() {
         .expect("configured bind address and port must form a valid socket address");
 
     let app_state = Arc::new(state::AppState::new(config.save_dir.clone()));
-    let router = server::router(app_state, Arc::new(config.token.clone()));
+    let router = server::router(app_state, Arc::new(config.token));
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await

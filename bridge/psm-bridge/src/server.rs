@@ -3,6 +3,10 @@
 //! Every route is wrapped in a Bearer-auth check — there is no unauthenticated
 //! route in this API, including `/v1/health`. Phase 1b is read-only:
 //! `writes_enabled` is hard-coded `false` regardless of configuration.
+//!
+//! SECURITY: all endpoint routes are registered in [`app_routes`], the one
+//! function `.layer()` in [`router`] wraps. See that function's doc comment
+//! before adding a new route.
 
 use std::sync::Arc;
 
@@ -24,16 +28,30 @@ struct ServerState {
     token: Arc<String>,
 }
 
+/// SECURITY: EVERY endpoint route MUST be added inside this function.
+///
+/// `router()` applies the Bearer-auth layer to exactly the routes registered
+/// here. A route registered anywhere else (e.g. merged into the `Router`
+/// returned by `router()` after `.layer()` has already been applied) is
+/// UNAUTHENTICATED — axum's `.layer()` only wraps routes added to the
+/// `Router` *before* the `.layer()` call, not routes added after.
+fn app_routes() -> Router<ServerState> {
+    Router::new().route("/v1/health", get(health))
+    // Task 6+ endpoints go HERE, all auto-protected.
+}
+
 /// Build the bridge HTTP router.
 ///
-/// Currently exposes `GET /v1/health`. Every route is wrapped in a
-/// Bearer-auth layer (see [`auth`]) that requires the `Authorization` header
-/// to equal `Bearer {token}`.
+/// Currently exposes `GET /v1/health`. Every route registered in
+/// [`app_routes`] is wrapped in a Bearer-auth layer (see [`auth`]) that
+/// requires the `Authorization` header to equal `Bearer {token}`.
 pub fn router(state: Arc<AppState>, token: Arc<String>) -> Router {
     let server_state = ServerState { app: state, token };
 
-    Router::new()
-        .route("/v1/health", get(health))
+    app_routes()
+        // SECURITY: this layer only wraps routes registered in `app_routes()`
+        // above. Do not add `.route(...)` calls below this line — they would
+        // be unauthenticated.
         .layer(middleware::from_fn_with_state(server_state.clone(), auth))
         .with_state(server_state)
 }
