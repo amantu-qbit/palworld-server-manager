@@ -1,0 +1,83 @@
+import { invoke } from "@tauri-apps/api/core";
+import { isTauri } from "./index";
+import type { Connection } from "../types/api";
+import type {
+  BridgeHealth,
+  Guild,
+  PlayerDetail,
+  PlayerSummary,
+  ReferenceCatalog,
+} from "../types/bridge";
+
+/**
+ * The Tier-2 bridge surface. Independent of `PalworldApi` — it talks to
+ * psm-bridge.exe over Bearer auth, and is only reachable when the owner has
+ * configured a bridge port + token. Two implementations:
+ *  - `tauriBridge` — a Rust `bridge_get` command does the request (desktop app).
+ *  - `httpBridge`  — the browser build routes through the `/__bridge__` dev proxy.
+ */
+export interface BridgeApi {
+  /** Hand bridge creds to the backend (tauri) or store them (browser). */
+  configure(c: Connection): Promise<void>;
+  health(): Promise<BridgeHealth>;
+  players(): Promise<PlayerSummary[]>;
+  playerDetail(uid: string): Promise<PlayerDetail>;
+  guilds(): Promise<Guild[]>;
+  reference(catalog: string): Promise<ReferenceCatalog>;
+}
+
+const path = {
+  playerDetail: (uid: string) => `/players/${encodeURIComponent(uid)}`,
+  reference: (catalog: string) => `/reference/${encodeURIComponent(catalog)}`,
+};
+
+const tauriBridge: BridgeApi = {
+  async configure(c) {
+    if (c.bridgePort && c.bridgeToken) {
+      await invoke("save_bridge", { host: c.host, port: c.bridgePort, token: c.bridgeToken });
+    } else {
+      await invoke("clear_bridge");
+    }
+  },
+  health: () => invoke<BridgeHealth>("bridge_get", { path: "/health" }),
+  players: () => invoke<PlayerSummary[]>("bridge_get", { path: "/players" }),
+  playerDetail: (uid) => invoke<PlayerDetail>("bridge_get", { path: path.playerDetail(uid) }),
+  guilds: () => invoke<Guild[]>("bridge_get", { path: "/guilds" }),
+  reference: (catalog) => invoke<ReferenceCatalog>("bridge_get", { path: path.reference(catalog) }),
+};
+
+let conn: Connection | null = null;
+
+async function call<T>(p: string): Promise<T> {
+  if (!conn?.bridgePort || !conn?.bridgeToken) throw new Error("Bridge not configured.");
+  const res = await fetch(`/__bridge__${p}`, {
+    headers: {
+      "x-bridge-host": conn.host,
+      "x-bridge-port": String(conn.bridgePort),
+      "x-bridge-token": conn.bridgeToken,
+    },
+  }).catch(() => {
+    throw new Error("Could not reach the app proxy. Are you running `npm run dev`?");
+  });
+
+  if (res.status === 401) throw new Error("Bridge authentication failed. Check the bridge token.");
+  if (res.status === 502 || res.status === 504) {
+    throw new Error("Could not reach the bridge. Is psm-bridge.exe running on the server?");
+  }
+  if (!res.ok) throw new Error(`Bridge returned ${res.status}`);
+  const text = await res.text();
+  return (text ? JSON.parse(text) : {}) as T;
+}
+
+const httpBridge: BridgeApi = {
+  async configure(c) {
+    conn = c;
+  },
+  health: () => call<BridgeHealth>("/health"),
+  players: () => call<PlayerSummary[]>("/players"),
+  playerDetail: (uid) => call<PlayerDetail>(path.playerDetail(uid)),
+  guilds: () => call<Guild[]>("/guilds"),
+  reference: (catalog) => call<ReferenceCatalog>(path.reference(catalog)),
+};
+
+export const bridgeApi: BridgeApi = isTauri() ? tauriBridge : httpBridge;

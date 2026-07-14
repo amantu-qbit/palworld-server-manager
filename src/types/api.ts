@@ -85,6 +85,10 @@ export interface Connection {
   host: string;
   port: number;
   password: string; // username is always "admin"
+  /** Optional Tier-2 bridge (psm-bridge.exe) port. Absence ⇒ Tier 1 only. */
+  bridgePort?: number;
+  /** Optional Tier-2 bridge Bearer token. */
+  bridgeToken?: string;
 }
 
 export interface ActionResult {

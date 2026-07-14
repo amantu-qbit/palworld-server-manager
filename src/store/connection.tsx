@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { Connection } from "../types/api";
 import { api, isTauri } from "../api";
+import { bridgeApi } from "../api/bridge";
 import { queryClient } from "../hooks/queries";
 
 const STORAGE_KEY = "psm.connection";
@@ -58,6 +59,13 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       if (isTauri()) {
         await invoke("save_connection", { host: c.host, port: c.port, password: c.password });
       }
+      // Hand the optional Tier-2 bridge creds to the backend (or clear them).
+      // Failure here must not block the Tier-1 connection.
+      try {
+        await bridgeApi.configure(c);
+      } catch {
+        /* ignore — bridge is optional */
+      }
       queryClient.clear(); // drop any prior data so screens load fresh
       setConnection(c);
       setRemembered(c);
@@ -74,6 +82,8 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
 
   const disconnect = useCallback(() => {
     setConnection(null);
+    // Forget the bridge token in the backend too.
+    bridgeApi.configure({ host: "", port: 0, password: "" }).catch(() => {});
     queryClient.clear();
   }, []);
 
