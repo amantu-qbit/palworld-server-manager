@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Loader2,
   PawPrint,
+  Power,
   Radar,
   ShieldBan,
   SlidersHorizontal,
@@ -24,6 +25,7 @@ import { Console } from "./screens/Console";
 import { Settings } from "./screens/Settings";
 import { BanManager } from "./screens/BanManager";
 import { Characters } from "./screens/Characters";
+import { ServerControl } from "./screens/ServerControl";
 import { Support } from "./screens/Support";
 import { UpdateBanner } from "./components/UpdateBanner";
 
@@ -45,11 +47,13 @@ const SCREENS: Record<string, ComponentType> = {
   settings: Settings,
   bans: BanManager,
   characters: Characters,
+  servercontrol: ServerControl,
   support: Support,
 };
 
 /** Nav shown only when the Tier-2 bridge is detected. */
 const BRIDGE_NAV: NavItem[] = [
+  { id: "servercontrol", label: "Server Control", icon: Power, group: "Server+" },
   { id: "characters", label: "Characters", icon: PawPrint, group: "Server+" },
 ];
 

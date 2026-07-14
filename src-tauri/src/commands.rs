@@ -177,3 +177,14 @@ pub async fn clear_bridge(state: State<'_, AppState>) -> Result<(), String> {
 pub async fn bridge_get(state: State<'_, AppState>, path: String) -> Result<Value, String> {
     bridge::get(&current_bridge(&state)?, &path).await
 }
+
+/// POST a bridge endpoint (`/server/start`, `/server/stop`, `/server/restart`)
+/// with an optional JSON body, returning the parsed JSON response.
+#[tauri::command]
+pub async fn bridge_post(
+    state: State<'_, AppState>,
+    path: String,
+    body: Option<Value>,
+) -> Result<Value, String> {
+    bridge::post(&current_bridge(&state)?, &path, body).await
+}

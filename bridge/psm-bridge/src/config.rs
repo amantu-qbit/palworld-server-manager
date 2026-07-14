@@ -18,6 +18,19 @@ pub struct Config {
     pub token: String,
     pub save_dir: PathBuf,
     pub allow_writes: bool,
+    /// Process-supervision config; `None` unless `[server_process]` (with an
+    /// `exe`) is set, in which case the server-control endpoints are enabled.
+    pub server_process: Option<ServerProcessConfig>,
+}
+
+/// How the supervisor launches PalServer.exe. Present only when the owner
+/// opts in via `[server_process]` in bridge.toml.
+#[derive(Debug, Clone)]
+pub struct ServerProcessConfig {
+    /// Path to the server executable (e.g. `.../PalServer.exe`).
+    pub exe: PathBuf,
+    /// Launch arguments passed to the executable.
+    pub args: Vec<String>,
 }
 
 /// Errors that can occur while loading configuration.
@@ -51,6 +64,13 @@ struct RawConfig {
     auth: Option<RawAuth>,
     paths: Option<RawPaths>,
     safety: Option<RawSafety>,
+    server_process: Option<RawServerProcess>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct RawServerProcess {
+    exe: Option<String>,
+    args: Option<Vec<String>>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -113,6 +133,14 @@ fn resolve(raw: RawConfig, cli_port: Option<u16>, env_port: Option<String>) -> C
     let paths = raw.paths.unwrap_or_default();
     let safety = raw.safety.unwrap_or_default();
 
+    // Enabled only when [server_process] provides an `exe`.
+    let server_process = raw.server_process.and_then(|sp| {
+        sp.exe.filter(|e| !e.is_empty()).map(|exe| ServerProcessConfig {
+            exe: PathBuf::from(exe),
+            args: sp.args.unwrap_or_default(),
+        })
+    });
+
     let port = cli_port
         .or_else(|| env_port.and_then(|v| v.parse::<u16>().ok()))
         .or(server.port)
@@ -138,6 +166,7 @@ fn resolve(raw: RawConfig, cli_port: Option<u16>, env_port: Option<String>) -> C
         token,
         save_dir,
         allow_writes,
+        server_process,
     }
 }
 

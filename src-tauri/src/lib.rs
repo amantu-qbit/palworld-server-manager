@@ -28,7 +28,8 @@ pub fn run() {
             commands::load_connection,
             commands::save_bridge,
             commands::clear_bridge,
-            commands::bridge_get
+            commands::bridge_get,
+            commands::bridge_post
         ])
         .run(tauri::generate_context!())
         .expect("error while running Palworld Server Manager");

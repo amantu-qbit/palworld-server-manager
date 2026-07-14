@@ -11,6 +11,16 @@ export interface BridgeHealth {
   writes_enabled: boolean;
 }
 
+/** `GET /v1/server/status` — process-supervisor state. */
+export interface ServerStatus {
+  /** Whether `[server_process]` is configured in bridge.toml. */
+  configured: boolean;
+  /** Whether a supervised server process is currently running. */
+  running: boolean;
+  pid: number | null;
+  uptime_secs: number | null;
+}
+
 export interface PlayerSummary {
   uid: string;
   nickname: string;

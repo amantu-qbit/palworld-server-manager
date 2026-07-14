@@ -1,0 +1,118 @@
+/* ------------------------------------------------------------------ *
+ *  Server Control (Tier-2 bridge) — start / stop / restart PalServer
+ * ------------------------------------------------------------------ */
+
+.sc {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.sc-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sc-status__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--faint);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04);
+}
+.sc-status.is-up .sc-status__dot {
+  background: var(--good);
+  box-shadow: 0 0 0 4px rgba(58, 209, 154, 0.14);
+}
+.sc-status.is-down .sc-status__dot {
+  background: var(--bad, #ec6a6a);
+  box-shadow: 0 0 0 4px rgba(236, 106, 106, 0.12);
+}
+.sc-status__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.sc-status__main b {
+  font-size: 15px;
+  color: var(--text);
+}
+.sc-status__main small {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--dim);
+}
+.sc-status__busy {
+  color: var(--accent);
+  flex: none;
+}
+
+.sc-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sc-actions button {
+  min-width: 130px;
+}
+
+.sc-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--dim);
+}
+.sc-hint--warn {
+  color: var(--warn);
+}
+
+.sc-force {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---- Not-configured setup card ---- */
+.sc-setup {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sc-setup > svg {
+  color: var(--accent);
+}
+.sc-setup h3 {
+  margin: 2px 0 0;
+  font-size: 15px;
+  color: var(--text);
+}
+.sc-setup p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--dim);
+}
+.sc-setup .mono {
+  font-family: var(--mono);
+  color: var(--text);
+}
+.sc-toml {
+  margin: 4px 0;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface-0, rgba(0, 0, 0, 0.35));
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-x: auto;
+  white-space: pre;
+}
