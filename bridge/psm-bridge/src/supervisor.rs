@@ -14,7 +14,7 @@
 //! graceful restart orchestrates REST `/shutdown` → wait → `start`.
 
 use std::process::{Child, Command, Stdio};
-use std::sync::Mutex;
+use std::sync::{Mutex, RwLock};
 use std::time::Instant;
 
 use serde::Serialize;
@@ -46,7 +46,7 @@ struct Running {
 /// Owns the (optionally) launched server process. Cheap to hold behind an
 /// `Arc`; all mutation goes through the inner `Mutex`.
 pub struct Supervisor {
-    config: Option<ServerProcessConfig>,
+    config: RwLock<Option<ServerProcessConfig>>,
     running: Mutex<Option<Running>>,
 }
 
@@ -66,13 +66,32 @@ pub struct ServerStatus {
 impl Supervisor {
     pub fn new(config: Option<ServerProcessConfig>) -> Self {
         Self {
-            config,
+            config: RwLock::new(config),
             running: Mutex::new(None),
         }
     }
 
-    fn cfg(&self) -> Result<&ServerProcessConfig, SupervisorError> {
-        self.config.as_ref().ok_or(SupervisorError::NotConfigured)
+    /// Replace the launch configuration; applied on the next `start`.
+    pub fn set_config(&self, config: Option<ServerProcessConfig>) {
+        *self.config.write().unwrap_or_else(|p| p.into_inner()) = config;
+    }
+
+    /// Whether a `[server_process]` is configured.
+    pub fn is_configured(&self) -> bool {
+        self.config.read().unwrap_or_else(|p| p.into_inner()).is_some()
+    }
+
+    /// A clone of the current launch configuration (for the settings form).
+    pub fn config_snapshot(&self) -> Option<ServerProcessConfig> {
+        self.config.read().unwrap_or_else(|p| p.into_inner()).clone()
+    }
+
+    fn cfg(&self) -> Result<ServerProcessConfig, SupervisorError> {
+        self.config
+            .read()
+            .unwrap_or_else(|p| p.into_inner())
+            .clone()
+            .ok_or(SupervisorError::NotConfigured)
     }
 
     /// Reap the tracked child if it has already exited, clearing the slot.
@@ -90,7 +109,7 @@ impl Supervisor {
 
     /// Current status (reaps a dead child as a side effect).
     pub fn status(&self) -> ServerStatus {
-        let configured = self.config.is_some();
+        let configured = self.is_configured();
         let mut slot = self.running.lock().unwrap_or_else(|p| p.into_inner());
         let pid = Self::live_pid(&mut slot);
         let uptime_secs = pid.and(slot.as_ref().map(|r| r.started.elapsed().as_secs()));
@@ -140,7 +159,9 @@ impl Supervisor {
 
     /// Force-stop the supervised server (kills its whole process tree).
     pub fn stop(&self) -> Result<ServerStatus, SupervisorError> {
-        self.cfg()?;
+        if !self.is_configured() {
+            return Err(SupervisorError::NotConfigured);
+        }
         let mut slot = self.running.lock().unwrap_or_else(|p| p.into_inner());
         let pid = Self::live_pid(&mut slot).ok_or(SupervisorError::NotRunning)?;
         kill_tree(pid).map_err(SupervisorError::Stop)?;

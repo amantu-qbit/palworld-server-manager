@@ -217,14 +217,17 @@ function NotConfigured() {
       <ServerCog size={22} />
       <h3>Server control isn’t set up yet</h3>
       <p>
-        Add a <span className="mono">[server_process]</span> section to your{" "}
-        <span className="mono">bridge.toml</span> so the bridge can launch and stop the server, then restart{" "}
-        <span className="mono">psm-bridge.exe</span>.
+        Open <span className="mono">psm-bridge.exe</span> on your server, set the{" "}
+        <b>Server executable</b> (and any launch args) in its window, and click <b>Save</b>. The
+        Start / Stop / Restart controls appear here once it’s configured.
+      </p>
+      <p className="sc-hint">
+        Prefer editing the file? Add a <span className="mono">[server_process]</span> section to{" "}
+        <span className="mono">bridge.toml</span> instead:
       </p>
       <pre className="sc-toml">{`[server_process]
 exe = "E:/SteamLibrary/steamapps/common/PalServer/PalServer.exe"
 args = ["-useperfthreads", "-NoAsyncLoadingThread"]`}</pre>
-      <p className="sc-hint">Use forward slashes in the path, and start the server with the Start button here so the bridge supervises it.</p>
     </div>
   );
 }

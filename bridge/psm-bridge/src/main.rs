@@ -1,32 +1,108 @@
-//! psm-bridge binary: loads config, builds server state, and serves the
-//! Bearer-authenticated HTTP API.
+//! psm-bridge: a native settings/control window (egui) plus a background,
+//! re-bindable REST API for the Palworld Server Manager desktop app.
+//!
+//! The console is kept alongside the window for raw logs.
 
-use std::net::SocketAddr;
-use std::path::Path;
+use std::io::Write;
+use std::path::PathBuf;
 use std::sync::Arc;
 
-use psm_bridge::{config, server, state, supervisor};
+use psm_bridge::config;
+use psm_bridge::gui::BridgeApp;
+use psm_bridge::runtime::Runtime;
+use psm_bridge::server;
+use psm_bridge::state::AppState;
 
-#[tokio::main]
-async fn main() {
-    let config = config::load(None, Path::new("bridge.toml")).expect("failed to load config");
+const CONFIG_FILE: &str = "bridge.toml";
 
-    let addr: SocketAddr = format!("{}:{}", config.bind, config.port)
-        .parse()
-        .expect("configured bind address and port must form a valid socket address");
+fn main() {
+    let config_path = PathBuf::from(CONFIG_FILE);
+    let first_run = !config_path.exists();
 
-    let app_state = Arc::new(state::AppState::new(config.save_dir.clone()));
-    let supervisor = Arc::new(supervisor::Supervisor::new(config.server_process.clone()));
-    let router = server::router(app_state, Arc::new(config.token), supervisor);
+    let config = match config::load(None, &config_path) {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("\nCould not read {}:\n  {e}\n", config_path.display());
+            eprintln!("Tip: use forward slashes in paths (C:/Palworld/... not C:\\Palworld\\...),");
+            eprintln!("or delete {} and let the app recreate it.\n", config_path.display());
+            eprint!("Press Enter to exit… ");
+            let _ = std::io::stdout().flush();
+            let _ = std::io::stdin().read_line(&mut String::new());
+            std::process::exit(1);
+        }
+    };
 
-    let listener = tokio::net::TcpListener::bind(addr)
-        .await
-        .expect("failed to bind listener");
+    // First run: persist the generated defaults so the auth token is stable
+    // across restarts (instead of regenerating every launch).
+    if first_run {
+        match config::write(&config, &config_path) {
+            Ok(()) => println!("Created {} with a fresh auth token.", config_path.display()),
+            Err(e) => eprintln!("Warning: couldn't write {}: {e}", config_path.display()),
+        }
+    }
 
-    println!("psm-bridge listening on {addr}");
-    println!("auth token required for all requests");
+    let runtime = Runtime::new(config, config_path);
 
-    axum::serve(listener, router)
-        .await
-        .expect("server error");
+    // Background API server: its own tokio runtime on a worker thread.
+    let server_runtime = runtime.clone();
+    std::thread::spawn(move || match tokio::runtime::Runtime::new() {
+        Ok(tokio_rt) => tokio_rt.block_on(serve_loop(server_runtime)),
+        Err(e) => server_runtime.log(format!("failed to start async runtime: {e}")),
+    });
+
+    // Native settings/control window on the main thread.
+    let native_options = eframe::NativeOptions {
+        viewport: eframe::egui::ViewportBuilder::default()
+            .with_inner_size([560.0, 680.0])
+            .with_min_inner_size([460.0, 520.0])
+            .with_title("PSM Bridge"),
+        ..Default::default()
+    };
+    if let Err(e) = eframe::run_native(
+        "PSM Bridge",
+        native_options,
+        Box::new(|_cc| Ok(Box::new(BridgeApp::new(runtime)))),
+    ) {
+        eprintln!("GUI error: {e}");
+    }
+}
+
+/// Serve the REST API, re-binding whenever settings change. Each iteration
+/// reads the current bind/port/token/save-dir, builds a fresh router, and
+/// serves until [`Runtime::reconfigure`] fires. The supervisor is shared, so a
+/// running game process survives re-binds.
+async fn serve_loop(runtime: Arc<Runtime>) {
+    loop {
+        let bind = runtime.bind();
+        let port = runtime.port();
+        let addr = format!("{bind}:{port}");
+
+        let listener = match tokio::net::TcpListener::bind(&addr).await {
+            Ok(l) => l,
+            Err(e) => {
+                runtime.set_bind_status(format!("Bind failed on {addr}: {e}"));
+                runtime.log(format!("bind failed on {addr}: {e} — waiting for a settings change"));
+                runtime.reconfigure.notified().await;
+                continue;
+            }
+        };
+
+        runtime.set_bind_status(format!("Listening on {addr}"));
+        runtime.log(format!("API listening on {addr}"));
+
+        let app = Arc::new(AppState::new(runtime.save_dir()));
+        let token = Arc::new(runtime.token());
+        let router = server::router(app, token, runtime.supervisor.clone());
+
+        let shutdown_rt = runtime.clone();
+        let shutdown = async move { shutdown_rt.reconfigure.notified().await };
+
+        if let Err(e) = axum::serve(listener, router)
+            .with_graceful_shutdown(shutdown)
+            .await
+        {
+            runtime.log(format!("server error: {e}"));
+        }
+        // reconfigure fired → loop and re-bind with the new settings.
+    }
 }

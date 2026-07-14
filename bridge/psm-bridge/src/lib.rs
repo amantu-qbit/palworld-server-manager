@@ -2,6 +2,8 @@
 //! desktop app.
 
 pub mod config;
+pub mod gui;
+pub mod runtime;
 pub mod server;
 pub mod state;
 pub mod supervisor;
