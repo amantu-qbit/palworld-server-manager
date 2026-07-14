@@ -20,7 +20,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 use std::time::UNIX_EPOCH;
 
-use psm_save::save::containers::{read_player_container_ids, PlayerContainerIds};
+use psm_save::save::containers::{read_player_save, PlayerSave};
 use psm_save::save::decompress::SaveError;
 use psm_save::save::load_world_with_containers;
 use psm_save::save::WorldBundle;
@@ -140,16 +140,16 @@ impl AppState {
     /// `psm_save::save::reader`'s doc comment), so a corrupt per-player save
     /// file cannot crash the server either. Not cached: per-player `.sav`
     /// files are small and read on demand.
-    pub async fn player_container_ids(&self, uid: &str) -> Result<PlayerContainerIds, StateError> {
+    pub async fn player_save(&self, uid: &str) -> Result<PlayerSave, StateError> {
         let sav_path = self.save_dir.join("Players").join(player_sav_filename(uid));
 
         let outcome = tokio::task::spawn_blocking(move || {
-            std::panic::catch_unwind(AssertUnwindSafe(|| read_player_container_ids(&sav_path)))
+            std::panic::catch_unwind(AssertUnwindSafe(|| read_player_save(&sav_path)))
         })
         .await;
 
         match outcome {
-            Ok(Ok(Ok(ids))) => Ok(ids),
+            Ok(Ok(Ok(save))) => Ok(save),
             Ok(Ok(Err(save_error))) => Err(StateError::Load(save_error)),
             Ok(Err(_panic_payload)) => Err(StateError::Decode),
             Err(_join_error) => Err(StateError::Decode),

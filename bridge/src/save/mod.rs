@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 use decompress::{decompress_sav, SaveError};
 use gvas::{default_skip_set, parse_gvas, Gvas};
-use model::{DynamicItem, ItemContainer, PlayerSummary, World};
+use model::{DynamicItem, ItemContainer, Player, PlayerSummary, World};
 
 /// The `Level.sav` GVAS parse plus every container/index derived from it in
 /// one pass: the decoded [`World`] (players/pals/guilds) and the resolved
@@ -29,6 +29,9 @@ use model::{DynamicItem, ItemContainer, PlayerSummary, World};
 pub struct WorldBundle {
     /// Players, pals, and guilds — identical to [`load_world`]'s result.
     pub world: World,
+    /// The full per-player records (level, exp, status-point allocations)
+    /// behind `world.players`' summaries — used by the player-detail endpoint.
+    pub players: Vec<Player>,
     /// `ItemContainerSaveData`, decoded and keyed by container id. Each
     /// slot's `dynamic_item` is already resolved against `dynamic_items`.
     pub item_containers: HashMap<Uuid, ItemContainer>,
@@ -53,7 +56,7 @@ pub struct WorldBundle {
 /// The world's total pal count is available via [`World::pal_count`].
 pub fn load_world(dir: &Path) -> Result<World, SaveError> {
     let gvas = parse_level_sav(dir)?;
-    build_world(&gvas)
+    Ok(build_world(&gvas)?.0)
 }
 
 /// Load a save directory's `Level.sav` into a [`WorldBundle`]: the [`World`]
@@ -73,7 +76,7 @@ pub fn load_world(dir: &Path) -> Result<World, SaveError> {
 /// fixture doesn't fail to load just because it has no items.
 pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> {
     let gvas = parse_level_sav(dir)?;
-    let world = build_world(&gvas)?;
+    let (world, players) = build_world(&gvas)?;
 
     let world_save_data = gvas
         .root
@@ -91,6 +94,7 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
 
     Ok(WorldBundle {
         world,
+        players,
         item_containers,
         dynamic_items,
     })
@@ -111,7 +115,7 @@ fn parse_level_sav(dir: &Path) -> Result<Gvas, SaveError> {
 /// Decode the [`World`] (players/pals/guilds) from an already-parsed
 /// `Level.sav` [`Gvas`] tree. Shared by [`load_world`] and
 /// [`load_world_with_containers`].
-fn build_world(gvas: &Gvas) -> Result<World, SaveError> {
+fn build_world(gvas: &Gvas) -> Result<(World, Vec<Player>), SaveError> {
     let world_save_data = gvas
         .root
         .get("worldSaveData")
@@ -154,9 +158,10 @@ fn build_world(gvas: &Gvas) -> Result<World, SaveError> {
         })
         .collect();
 
-    Ok(World {
+    let world = World {
         players: player_summaries,
         guilds,
         pals,
-    })
+    };
+    Ok((world, players))
 }
