@@ -1,0 +1,19 @@
+[workspace]
+members = ["psm-bridge"]
+
+[package]
+name = "psm-save"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+flate2 = "1"
+uuid = { version = "1", features = ["serde", "v4"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+oozextract = "0.5.4"
+
+[dev-dependencies]
+# (integration tests use std only for now)
