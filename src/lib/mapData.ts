@@ -1,7 +1,8 @@
 import type { Actor } from "../types/api";
-import { worldToUv } from "./mapProject";
+import { projectWorld, type MapArea } from "./mapProject";
 import ftRaw from "../data/mapdata/fast_travel.json";
-import effigyRaw from "../data/mapdata/effigies.json";
+import relicRaw from "../data/mapdata/effigies.json";
+import bossRaw from "../data/mapdata/bosses.json";
 import objRaw from "../data/mapdata/map_objects.json";
 import palNames from "../data/palNames.json";
 import palIconKeys from "../data/palIconKeys.json";
@@ -14,13 +15,15 @@ export type MarkerKind =
   | "npc"
   | "fasttravel"
   | "dungeon"
-  | "effigy"
-  | "boss";
+  | "boss"
+  | "relic";
 
 export interface MapMarker {
   id: string;
   kind: MarkerKind;
-  /** normalised map position, precomputed */
+  /** Which map area (MainMap / World Tree) this marker's coordinates fall in. */
+  area: MapArea;
+  /** normalised map position within its area's texture, precomputed */
   u: number;
   v: number;
   /** world coords */
@@ -53,7 +56,8 @@ export const KIND_META: Record<MarkerKind, KindInfo> = {
   fasttravel: { label: "Fast Travel", color: "#7fe3f0", group: "landmark", icon: "/mapicons/fasttravel.webp", on: true },
   dungeon: { label: "Dungeons", color: "#c58bf0", group: "landmark", icon: "/mapicons/dungeon.webp", on: true },
   boss: { label: "Boss Pals", color: "#ec6a6a", group: "landmark", icon: "/mapicons/boss.webp", on: true },
-  effigy: { label: "Effigies", color: "#8fe388", group: "landmark", icon: "/mapicons/effigy.webp", on: false },
+  // Palworld 1.0 renamed Lifmunk Effigies to Relics; the map pins are their locations.
+  relic: { label: "Relics", color: "#8fe388", group: "landmark", icon: "/mapicons/effigy.webp", on: false },
 };
 
 export const MARKER_ORDER = Object.keys(KIND_META) as MarkerKind[];
@@ -109,14 +113,14 @@ function unwrapClass(raw: string): string {
 }
 
 /**
- * Resolve an actor's Class to a bundled Pal icon key. After unwrapping the
- * blueprint/path to a bare code name, it tries the most specific form first
- * (keeping distinct variant icons like _dark/_ice/_quest/_tower), then
- * progressively drops trailing "_variant" segments (…_BOSS, …_MiddleBoss,
- * …_Avatar, numbers) until it reaches the base creature's icon — so any power-
- * tier variant, present or future, falls back correctly. Every candidate is
- * gated on ICON_KEYS, so an unexpected Class can never resolve to the *wrong*
- * Pal; unresolved values return a stable key with no icon (a dot).
+ * Resolve an actor's Class (or a boss character_id) to a bundled Pal icon key.
+ * After unwrapping the blueprint/path to a bare code name, it tries the most
+ * specific form first (keeping distinct variant icons like _dark/_ice/_quest/
+ * _tower), then progressively drops trailing "_variant" segments (…_BOSS,
+ * …_MiddleBoss, …_Avatar, numbers) until it reaches the base creature's icon —
+ * so any power-tier variant, present or future, falls back correctly. Every
+ * candidate is gated on ICON_KEYS, so an unexpected value can never resolve to
+ * the *wrong* Pal; unresolved values return a stable key with no icon (a dot).
  */
 export function palIconKey(raw: string): string {
   const direct = cleanseCharacterId(raw);
@@ -156,48 +160,69 @@ interface RawObj {
   x: number;
   y: number;
   type: string;
-  pal?: string;
+}
+interface RawBoss {
+  spawner_id: string;
+  character_id: string;
+  level: number;
+  x: number;
+  y: number;
+  z?: number;
 }
 
+/** A world coordinate becomes a marker on whichever map area it falls in. */
 function landmark(id: string, kind: MarkerKind, x: number, y: number, name: string, sub?: string): MapMarker {
-  const { u, v } = worldToUv(x, y);
-  return { id, kind, u, v, x, y, name, sub };
+  const { area, u, v } = projectWorld(x, y);
+  return { id, kind, area, u, v, x, y, name, sub };
+}
+
+/** Display name for a boss: species for a real Pal, humanised spawner for the
+ *  human bosses (whose character_id is literally "None"). */
+function bossName(characterId: string, spawnerId: string): string {
+  if (characterId && characterId !== "None") {
+    const n = characterId
+      .replace(/^BOSS_/i, "")
+      .replace(/_/g, " ")
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .trim();
+    if (n) return n;
+  }
+  const n = spawnerId
+    .replace(/^(BOSS|REGION)_/i, "")
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+  return n || "Boss";
 }
 
 const fastTravel = Object.entries(ftRaw as Record<string, RawPoint>).map(([g, p]) =>
   landmark(`ft-${g}`, "fasttravel", p.x, p.y, p.localized_name || "Fast Travel Point"),
 );
-const effigies = Object.entries(effigyRaw as Record<string, RawPoint>).map(([g, p]) =>
-  landmark(`ef-${g}`, "effigy", p.x, p.y, "Lifmunk Effigy"),
+const relics = Object.entries(relicRaw as Record<string, RawPoint>).map(([g, p]) =>
+  landmark(`rl-${g}`, "relic", p.x, p.y, "Relic"),
 );
 const objs = objRaw as RawObj[];
 const dungeons = objs
   .filter((o) => o.type === "dungeon")
   .map((o, i) => landmark(`dg-${i}`, "dungeon", o.x, o.y, "Dungeon"));
-const bosses = objs
-  .filter((o) => o.type === "alpha_pal" || o.type === "predator_pal")
-  .map((o, i) => {
-    const m = landmark(
-      `bs-${i}`,
-      "boss",
-      o.x,
-      o.y,
-      o.pal ? spaceWords(o.pal) : "Boss Pal",
-      o.type === "predator_pal" ? "Predator" : "Field Alpha",
-    );
-    if (o.pal) m.palKey = cleanseCharacterId(o.pal);
-    return m;
-  });
+// Palworld 1.0 moved named boss/alpha data into bosses.json (with species + level);
+// map_objects.json no longer carries the pal species, so bosses come from here.
+const bosses = Object.values(bossRaw as Record<string, RawBoss>).map((b, i) => {
+  const m = landmark(`bs-${i}`, "boss", b.x, b.y, bossName(b.character_id, b.spawner_id), `Lv ${b.level}`);
+  if (b.character_id && b.character_id !== "None") m.palKey = palIconKey(b.character_id);
+  return m;
+});
 
-/** All bundled static landmarks. */
-export const LANDMARK_MARKERS: MapMarker[] = [...fastTravel, ...dungeons, ...bosses, ...effigies];
+/** All bundled static landmarks (across both map areas). */
+export const LANDMARK_MARKERS: MapMarker[] = [...fastTravel, ...dungeons, ...bosses, ...relics];
 
 /** Unique boss pal keys, for icon preloading. */
 export const BOSS_PAL_KEYS: string[] = [...new Set(bosses.map((b) => b.palKey).filter(Boolean) as string[])];
 
 /**
- * Bounding box (normalised) of the actual playable content — the islands — so the
- * default view fills the viewport with land instead of empty ocean.
+ * Bounding box (normalised) of the actual playable content in one area — used to
+ * fill the viewport with land instead of empty ocean when that area is shown.
  */
 function bbox(ms: MapMarker[]) {
   let uMin = 1;
@@ -210,23 +235,37 @@ function bbox(ms: MapMarker[]) {
     if (m.v < vMin) vMin = m.v;
     if (m.v > vMax) vMax = m.v;
   }
+  // No markers in this area → the whole texture.
+  if (uMin > uMax) return { uMin: 0, uMax: 1, vMin: 0, vMax: 1 };
   return { uMin, uMax, vMin, vMax };
 }
-const _b = bbox([...fastTravel, ...dungeons, ...bosses]);
+
 const PAD = 0.02;
-export const CONTENT = {
-  uMin: Math.max(0, _b.uMin - PAD),
-  uMax: Math.min(1, _b.uMax + PAD),
-  vMin: Math.max(0, _b.vMin - PAD),
-  vMax: Math.min(1, _b.vMax + PAD),
+function pad(b: { uMin: number; uMax: number; vMin: number; vMax: number }) {
+  return {
+    uMin: Math.max(0, b.uMin - PAD),
+    uMax: Math.min(1, b.uMax + PAD),
+    vMin: Math.max(0, b.vMin - PAD),
+    vMax: Math.min(1, b.vMax + PAD),
+  };
+}
+
+/** Initial view bounds for each map area (fit to its content). */
+const fitMarkers = [...fastTravel, ...dungeons, ...bosses];
+export const CONTENT_BY_AREA: Record<MapArea, { uMin: number; uMax: number; vMin: number; vMax: number }> = {
+  MainMap: pad(bbox(fitMarkers.filter((m) => m.area === "MainMap"))),
+  Tree: pad(bbox(fitMarkers.filter((m) => m.area === "Tree"))),
 };
+
+/** Default (main-map) content bounds. */
+export const CONTENT = CONTENT_BY_AREA.MainMap;
 
 /**
  * Convert a live actor into a marker. A player is "online" if it matches the live
  * /players list (by userId or name) — offline pawns that linger in the snapshot don't.
  */
 export function actorToMarker(a: Actor, i: number, onlineKeys: Set<string>): MapMarker {
-  const { u, v } = worldToUv(a.LocationX, a.LocationY);
+  const { area, u, v } = projectWorld(a.LocationX, a.LocationY);
   const kind = ACTOR_KIND[a.UnitType] ?? "wildpal";
   let online: boolean | undefined;
   if (kind === "player") {
@@ -239,6 +278,7 @@ export function actorToMarker(a: Actor, i: number, onlineKeys: Set<string>): Map
   return {
     id: a.InstanceID || `${a.UnitType}-${i}`,
     kind,
+    area,
     u,
     v,
     x: a.LocationX,

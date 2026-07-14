@@ -227,6 +227,43 @@
   z-index: 6;
   width: min(300px, 46vw);
 }
+
+/* Map-area switcher (Palpagos / World Tree) — bottom-centre. */
+.wm-areas {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(16, 19, 26, 0.94);
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.wm-area {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--faint);
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 13px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+.wm-area:hover {
+  color: var(--text);
+}
+.wm-area.is-on {
+  background: rgba(52, 211, 234, 0.14);
+  color: #34d3ea;
+}
 .wm-search__box {
   display: flex;
   align-items: center;
