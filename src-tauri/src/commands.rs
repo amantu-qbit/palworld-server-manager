@@ -1,4 +1,5 @@
 use crate::api::{self, Creds};
+use crate::bridge::{self, BridgeCreds};
 use serde_json::{json, Value};
 use std::sync::Mutex;
 use tauri::State;
@@ -6,6 +7,9 @@ use tauri::State;
 #[derive(Default)]
 pub struct AppState {
     pub creds: Mutex<Option<Creds>>,
+    /// Tier-2 bridge credentials (host + chosen port + Bearer token). `None`
+    /// until the owner configures the bridge; absence means Tier 1 only.
+    pub bridge: Mutex<Option<BridgeCreds>>,
 }
 
 fn current(state: &State<AppState>) -> Result<Creds, String> {
@@ -15,6 +19,15 @@ fn current(state: &State<AppState>) -> Result<Creds, String> {
         .map_err(|_| "state error".to_string())?
         .clone()
         .ok_or_else(|| "Not connected.".to_string())
+}
+
+fn current_bridge(state: &State<AppState>) -> Result<BridgeCreds, String> {
+    state
+        .bridge
+        .lock()
+        .map_err(|_| "state error".to_string())?
+        .clone()
+        .ok_or_else(|| "Bridge not configured.".to_string())
 }
 
 #[tauri::command]
@@ -131,4 +144,36 @@ pub async fn load_connection(state: State<'_, AppState>) -> Result<Option<Value>
         .map_err(|_| "state error".to_string())?
         .as_ref()
         .map(|c| json!({ "host": c.host, "port": c.port })))
+}
+
+// --- Tier-2 bridge (psm-bridge.exe) -----------------------------------------
+
+/// Store the bridge credentials so subsequent `bridge_get` calls are
+/// authenticated. The token stays in the Rust layer, out of the webview.
+#[tauri::command]
+pub async fn save_bridge(
+    state: State<'_, AppState>,
+    host: String,
+    port: u16,
+    token: String,
+) -> Result<(), String> {
+    *state.bridge.lock().map_err(|_| "state error".to_string())? =
+        Some(BridgeCreds { host, port, token });
+    Ok(())
+}
+
+/// Forget any stored bridge credentials (e.g. on disconnect or when the owner
+/// clears the bridge fields).
+#[tauri::command]
+pub async fn clear_bridge(state: State<'_, AppState>) -> Result<(), String> {
+    *state.bridge.lock().map_err(|_| "state error".to_string())? = None;
+    Ok(())
+}
+
+/// GET a bridge endpoint (`/health`, `/players`, `/players/{uid}`, …) and
+/// return the parsed JSON. Errors as a readable string on auth/transport
+/// failure — the frontend surfaces it.
+#[tauri::command]
+pub async fn bridge_get(state: State<'_, AppState>, path: String) -> Result<Value, String> {
+    bridge::get(&current_bridge(&state)?, &path).await
 }

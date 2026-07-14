@@ -43,9 +43,48 @@ function palApiProxy(): Plugin {
   };
 }
 
+/**
+ * Dev-only proxy for the Tier-2 bridge (psm-bridge.exe). Twin of `palApiProxy`,
+ * but forwards `/__bridge__/*` to `http://<host>:<port>/v1/*` with a Bearer
+ * token. The Tauri desktop app uses its Rust `bridge_get` command instead.
+ */
+function bridgeApiProxy(): Plugin {
+  return {
+    name: "bridge-api-proxy",
+    configureServer(server) {
+      server.middlewares.use("/__bridge__", (req, res) => {
+        const host = String(req.headers["x-bridge-host"] || "localhost");
+        const port = Number(req.headers["x-bridge-port"]) || 8213;
+        const token = String(req.headers["x-bridge-token"] || "");
+        const headers: Record<string, string> = {
+          authorization: "Bearer " + token,
+          accept: "application/json",
+        };
+        const contentType = req.headers["content-type"];
+        if (contentType) headers["content-type"] = String(contentType);
+
+        const upstream = http.request(
+          { host, port, path: "/v1" + (req.url || ""), method: req.method, headers, timeout: 30000 },
+          (r) => {
+            res.statusCode = r.statusCode || 502;
+            res.setHeader("content-type", String(r.headers["content-type"] || "application/json"));
+            r.pipe(res);
+          },
+        );
+        upstream.on("timeout", () => upstream.destroy(new Error("timeout")));
+        upstream.on("error", () => {
+          if (!res.headersSent) res.statusCode = 502;
+          res.end('{"error":"Could not reach the bridge."}');
+        });
+        req.pipe(upstream);
+      });
+    },
+  };
+}
+
 // Tauri expects a fixed dev port and no clearing of the terminal.
 export default defineConfig({
-  plugins: [react(), palApiProxy()],
+  plugins: [react(), palApiProxy(), bridgeApiProxy()],
   clearScreen: false,
   server: {
     port: 1420,

@@ -4,6 +4,7 @@ import {
   Heart,
   LayoutDashboard,
   Loader2,
+  PawPrint,
   Radar,
   ShieldBan,
   SlidersHorizontal,
@@ -14,6 +15,7 @@ import { Sidebar } from "./components/Sidebar";
 import type { NavItem } from "./components/Sidebar";
 import { NavContext } from "./store/nav";
 import { useConnection } from "./store/connection";
+import { useBridge } from "./hooks/bridge";
 import { Connect } from "./screens/Connect";
 import { Dashboard } from "./screens/Dashboard";
 import { Players } from "./screens/Players";
@@ -21,6 +23,7 @@ import { WorldMap } from "./screens/WorldMap";
 import { Console } from "./screens/Console";
 import { Settings } from "./screens/Settings";
 import { BanManager } from "./screens/BanManager";
+import { Characters } from "./screens/Characters";
 import { Support } from "./screens/Support";
 import { UpdateBanner } from "./components/UpdateBanner";
 
@@ -41,8 +44,14 @@ const SCREENS: Record<string, ComponentType> = {
   console: Console,
   settings: Settings,
   bans: BanManager,
+  characters: Characters,
   support: Support,
 };
+
+/** Nav shown only when the Tier-2 bridge is detected. */
+const BRIDGE_NAV: NavItem[] = [
+  { id: "characters", label: "Characters", icon: PawPrint, group: "Server+" },
+];
 
 export function App() {
   const { connected, connection, disconnect, booting } = useConnection();
@@ -65,6 +74,8 @@ export function App() {
       return next;
     });
 
+  const bridge = useBridge();
+
   if (booting && !connected) {
     return (
       <div className="boot">
@@ -79,14 +90,19 @@ export function App() {
 
   if (!connected || !connection) return <Connect />;
 
-  const Screen = SCREENS[active] ?? Dashboard;
+  // The "Server+" group appears only when the bridge is detected.
+  const nav = bridge.available ? [...NAV, ...BRIDGE_NAV] : NAV;
+  // If the bridge drops while a bridge-only screen is open, fall back gracefully.
+  const bridgeOnly = BRIDGE_NAV.some((n) => n.id === active);
+  const activeId = bridgeOnly && !bridge.available ? "dashboard" : active;
+  const Screen = SCREENS[activeId] ?? Dashboard;
 
   return (
-    <NavContext.Provider value={{ active, navigate: setActive }}>
+    <NavContext.Provider value={{ active: activeId, navigate: setActive }}>
       <div className={`app-shell${collapsed ? " app-shell--collapsed" : ""}`}>
         <Sidebar
-          items={NAV}
-          active={active}
+          items={nav}
+          active={activeId}
           onSelect={setActive}
           host={`${connection.host}:${connection.port}`}
           connected

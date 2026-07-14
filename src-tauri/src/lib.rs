@@ -1,4 +1,5 @@
 mod api;
+mod bridge;
 mod commands;
 
 use commands::AppState;
@@ -24,7 +25,10 @@ pub fn run() {
             commands::shutdown,
             commands::force_stop,
             commands::save_connection,
-            commands::load_connection
+            commands::load_connection,
+            commands::save_bridge,
+            commands::clear_bridge,
+            commands::bridge_get
         ])
         .run(tauri::generate_context!())
         .expect("error while running Palworld Server Manager");
