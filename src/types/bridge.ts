@@ -93,6 +93,18 @@ export interface ItemContainer {
 
 export interface PlayerDetail {
   summary: PlayerSummary;
+  level: number;
+  exp: number;
+  /** Stat-point allocations, e.g. { MaxHP: 3, MaxSP: 2, ... }. */
+  status_points: Record<string, number>;
+  ext_status_points: Record<string, number>;
+  /** Unlocked technology codes (resolve names with src/data/techNames.json). */
+  technologies: string[];
+  technology_points: number;
+  boss_technology_points: number;
+  /** Container ids so a pal's location (party / box / base) can be labelled. */
+  pal_box_container: string;
+  party_container: string;
   pals: Pal[];
   inventory: ItemContainer[];
 }

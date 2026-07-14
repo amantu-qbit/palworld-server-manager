@@ -123,7 +123,12 @@ fn decode_raw_data(bytes: &[u8]) -> Result<(BTreeMap<String, Property>, Uuid), S
     Ok((object, group_id))
 }
 
-/// Build a "lite" [`Player`] from its `SaveParameter` and map-key identity.
+/// Build a [`Player`] from its `SaveParameter` and map-key identity.
+///
+/// Level.sav carries the player's identity/vitals plus their status-point
+/// allocations (`GotStatusPointList` / `GotExStatusPointList`, the same shape
+/// pals use). Technologies live in the per-player `<uid>.sav` and are filled in
+/// on demand by [`crate::save::containers::read_player_save`].
 fn build_player(sp: &BTreeMap<String, Property>, uid: Uuid, instance_id: Uuid) -> Player {
     Player {
         uid: guid_string(uid),
@@ -134,6 +139,8 @@ fn build_player(sp: &BTreeMap<String, Property>, uid: Uuid, instance_id: Uuid) -
         hp: get_fixed_point64(sp, "Hp"),
         stomach: get_float(sp, "FullStomach", 150.0) as i32,
         sanity: get_float(sp, "SanityValue", 100.0) as i32,
+        status_point_list: get_status_points(sp, "GotStatusPointList"),
+        ext_status_point_list: get_status_points(sp, "GotExStatusPointList"),
         ..Player::default()
     }
 }
@@ -303,6 +310,30 @@ fn get_names(m: &BTreeMap<String, Property>, k: &str) -> Vec<String> {
         }) => v.clone(),
         _ => Vec::new(),
     }
+}
+
+/// A `GotStatusPointList` / `GotExStatusPointList`: an array of
+/// `{ StatusName: Name, StatusPoint: Int }` structs, flattened to a
+/// `status-name → points` map (the player's/pal's stat allocations).
+fn get_status_points(m: &BTreeMap<String, Property>, key: &str) -> BTreeMap<String, i32> {
+    let mut out = BTreeMap::new();
+    if let Some(Property::Array {
+        value: ArrayValue::Structs { values, .. },
+        ..
+    }) = m.get(key)
+    {
+        for v in values {
+            if let StructValue::Properties(pm) = v {
+                let name = match pm.get("StatusName") {
+                    Some(Property::Name(s)) | Some(Property::Str(s)) => s.clone(),
+                    _ => continue,
+                };
+                let point = pm.get("StatusPoint").and_then(as_int).unwrap_or(0) as i32;
+                out.insert(name, point);
+            }
+        }
+    }
+    out
 }
 
 /// `GotWorkSuitabilityAddRankList`: an array of `{ WorkSuitability: Enum, Rank:

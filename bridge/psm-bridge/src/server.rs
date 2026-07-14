@@ -8,7 +8,7 @@
 //! function `.layer()` in [`router`] wraps. See that function's doc comment
 //! before adding a new route.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, OnceLock};
 
 use axum::extract::{Path, Request, State};
@@ -20,8 +20,9 @@ use axum::{Json, Router};
 use serde::Serialize;
 use uuid::Uuid;
 
+use psm_save::save::containers::PlayerContainerIds;
 use psm_save::save::decompress::SaveError;
-use psm_save::save::model::{ItemContainer, Pal, PlayerSummary};
+use psm_save::save::model::{ItemContainer, Pal, Player, PlayerSummary};
 use psm_save::save::reference::{load_reference, Reference};
 use psm_save::save::WorldBundle;
 
@@ -161,17 +162,14 @@ async fn list_players(State(state): State<ServerState>) -> Response {
     }
 }
 
-/// `GET /v1/players/{id}` — composed player detail: the character-map
-/// summary, the player's pals, and their resolved inventory.
+/// `GET /v1/players/{id}` — full player detail: the character-map summary,
+/// level/exp and stat-point allocations (from `Level.sav`), unlocked
+/// technologies + points (from the per-player `<uid>.sav`), the player's pals
+/// (party/box/base — all their owned pals), the party/pal-box container ids so
+/// the client can group them, and their resolved inventory.
 ///
-/// NOTE (deferred): full player detail per the design doc — stats,
-/// technologies + points, missions, fast-travel/effigies — is **not**
-/// included. Phase 1a only decodes the "lite" player fields carried by the
-/// `CharacterSaveParameterMap` entry (identity/nickname/level/vitals) plus
-/// the container ids; decoding the rest of a player's own `<uid>.sav` is an
-/// explicitly deferred decoder task (see the Task 6 brief), so this endpoint
-/// composes only what Phase 1a already has rather than fabricating the
-/// missing fields.
+/// A player whose per-player `.sav` is missing on disk yields empty
+/// technologies + inventory rather than an error (the player id is still valid).
 async fn player_detail(State(state): State<ServerState>, Path(id): Path<String>) -> Response {
     let bundle = match state.app.bundle().await {
         Ok(bundle) => bundle,
@@ -183,14 +181,34 @@ async fn player_detail(State(state): State<ServerState>, Path(id): Path<String>)
     let Some(summary) = bundle.world.players.iter().find(|p| p.uid == uid).cloned() else {
         return not_found();
     };
-    let pals = pals_owned_by(&bundle, &uid);
-    let inventory = match resolve_inventory(&state.app, &bundle, &uid).await {
-        Ok(inventory) => inventory,
+    let full: Player = bundle
+        .players
+        .iter()
+        .find(|p| p.uid == uid)
+        .cloned()
+        .unwrap_or_default();
+
+    // Per-player `.sav`: container ids + technologies. Missing file ⇒ defaults.
+    let save = match state.app.player_save(&uid).await {
+        Ok(s) => s,
+        Err(StateError::Load(SaveError::Io(_))) => Default::default(),
         Err(e) => return internal_error(e),
     };
 
+    let pals = pals_owned_by(&bundle, &uid);
+    let inventory = resolve_inventory(&bundle, &save.containers);
+
     Json(PlayerDetail {
         summary,
+        level: full.level,
+        exp: full.exp,
+        status_points: full.status_point_list,
+        ext_status_points: full.ext_status_point_list,
+        technologies: save.technologies,
+        technology_points: save.technology_points,
+        boss_technology_points: save.boss_technology_points,
+        pal_box_container: save.containers.pal_storage,
+        party_container: save.containers.otomo,
         pals,
         inventory,
     })
@@ -200,6 +218,19 @@ async fn player_detail(State(state): State<ServerState>, Path(id): Path<String>)
 #[derive(Serialize)]
 struct PlayerDetail {
     summary: PlayerSummary,
+    level: i32,
+    exp: i32,
+    /// Stat-point allocations, e.g. `{ "MaxHP": 3, "MaxSP": 2, ... }`.
+    status_points: BTreeMap<String, i32>,
+    ext_status_points: BTreeMap<String, i32>,
+    /// Unlocked technology codes (resolved to names client-side).
+    technologies: Vec<String>,
+    technology_points: i32,
+    boss_technology_points: i32,
+    /// Party (`OtomoCharacterContainerId`) and pal-box
+    /// (`PalStorageContainerId`) ids, so the client can label a pal's location.
+    pal_box_container: String,
+    party_container: String,
     pals: Vec<Pal>,
     inventory: Vec<ItemContainer>,
 }
@@ -246,37 +277,20 @@ async fn player_inventory(State(state): State<ServerState>, Path(id): Path<Strin
         return not_found();
     }
 
-    match resolve_inventory(&state.app, &bundle, &uid).await {
-        Ok(inventory) => Json(inventory).into_response(),
-        Err(e) => internal_error(e),
-    }
+    let save = match state.app.player_save(&uid).await {
+        Ok(s) => s,
+        Err(StateError::Load(SaveError::Io(_))) => Default::default(),
+        Err(e) => return internal_error(e),
+    };
+    Json(resolve_inventory(&bundle, &save.containers)).into_response()
 }
 
-/// Resolve a known player's five inventory containers: reads their per-player
-/// `<UID>.sav` for the container ids (`AppState::player_container_ids`), then
-/// looks each id up in the cached `bundle.item_containers` (already decoded
-/// with each slot's `dynamic_item` resolved against `dynamic_items` — see
-/// `psm_save::save::containers::decode_item_containers`). The returned
-/// containers are tagged with their `container_type` (the decoder itself
-/// doesn't know which of the five roles a given container id plays; the
-/// caller does, from which `PlayerContainerIds` field resolved it).
-///
-/// Design choice (Task 6 brief, "pick one, note it"): a *known* player whose
-/// per-player `.sav` is missing from disk yields an empty inventory
-/// (`Ok(vec![])`), not a 404 — the player id itself is valid, only the
-/// on-disk container-id lookup came up empty. `404` is reserved for an
-/// unrecognized player id, checked by the caller before this is reached.
-async fn resolve_inventory(
-    app: &AppState,
-    bundle: &WorldBundle,
-    uid: &str,
-) -> Result<Vec<ItemContainer>, StateError> {
-    let ids = match app.player_container_ids(uid).await {
-        Ok(ids) => ids,
-        Err(StateError::Load(SaveError::Io(_))) => return Ok(Vec::new()),
-        Err(e) => return Err(e),
-    };
-
+/// Resolve a player's five inventory containers from their (already-read)
+/// container ids: look each id up in the cached `bundle.item_containers` (each
+/// slot's `dynamic_item` already resolved against `dynamic_items`) and tag it
+/// with its role. Unknown/empty ids are skipped, so a player with no matching
+/// containers on disk yields an empty vec.
+fn resolve_inventory(bundle: &WorldBundle, ids: &PlayerContainerIds) -> Vec<ItemContainer> {
     let container_ids: [(&str, &str); 5] = [
         ("Common", ids.common.as_str()),
         ("Essential", ids.essential.as_str()),
@@ -296,7 +310,7 @@ async fn resolve_inventory(
             out.push(container);
         }
     }
-    Ok(out)
+    out
 }
 
 /// `GET /v1/guilds` — every guild in `Level.sav`.

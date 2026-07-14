@@ -107,6 +107,27 @@ async fn player_detail_composes_summary_pals_and_inventory() {
         body.contains("\"static_id\":\"Wood\""),
         "detail.inventory should contain a Wood slot, got: {body}"
     );
+    // Full player detail: level from Level.sav, technologies from the per-player .sav.
+    assert_eq!(
+        detail["level"].as_i64(),
+        Some(65),
+        "detail.level should be O's level 65, got: {body}"
+    );
+    let techs = detail["technologies"].as_array().expect("technologies array");
+    assert!(
+        !techs.is_empty(),
+        "a level-65 player should have unlocked technologies decoded from their .sav, got: {body}"
+    );
+    assert!(
+        techs.iter().all(|t| t.is_string()),
+        "technologies should be a list of code strings, got: {body}"
+    );
+    assert!(
+        detail["pal_box_container"]
+            .as_str()
+            .is_some_and(|s| !s.is_empty()),
+        "detail.pal_box_container should be set for grouping, got: {body}"
+    );
 }
 
 #[tokio::test]

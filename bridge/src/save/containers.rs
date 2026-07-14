@@ -198,10 +198,24 @@ pub fn decode_character_containers(
     Ok(out)
 }
 
-/// Read the seven container ids a player references from its per-player
-/// `<UID>.sav`. Decompresses + parses the GVAS envelope, then navigates
-/// `SaveData` exactly as `player.py` does.
-pub fn read_player_container_ids(sav_path: &Path) -> Result<PlayerContainerIds, SaveError> {
+/// Everything the player-detail endpoint pulls from a player's `<UID>.sav`:
+/// their container ids plus their unlocked technologies and technology points.
+#[derive(Debug, Clone, Default)]
+pub struct PlayerSave {
+    /// The seven container ids (pal-box, party, and the five inventory bags).
+    pub containers: PlayerContainerIds,
+    /// Unlocked recipe/technology codes (`UnlockedRecipeTechnologyNames`).
+    pub technologies: Vec<String>,
+    /// Spendable technology points (`TechnologyPoint`).
+    pub technology_points: i32,
+    /// Ancient/boss technology points (`bossTechnologyPoint`).
+    pub boss_technology_points: i32,
+}
+
+/// Read a player's container ids, unlocked technologies, and technology points
+/// from its per-player `<UID>.sav`. Decompresses + parses the GVAS envelope,
+/// then navigates `SaveData` exactly as `player.py` does.
+pub fn read_player_save(sav_path: &Path) -> Result<PlayerSave, SaveError> {
     let bytes = std::fs::read(sav_path)
         .map_err(|e| SaveError::Io(format!("{}: {e}", sav_path.display())))?;
     let raw = decompress_sav(&bytes)?;
@@ -231,7 +245,7 @@ pub fn read_player_container_ids(sav_path: &Path) -> Result<PlayerContainerIds, 
             .unwrap_or_default()
     };
 
-    Ok(PlayerContainerIds {
+    let containers = PlayerContainerIds {
         pal_storage: id_of("PalStorageContainerId"),
         otomo: id_of("OtomoCharacterContainerId"),
         common: inv_id("CommonContainerId"),
@@ -239,7 +253,38 @@ pub fn read_player_container_ids(sav_path: &Path) -> Result<PlayerContainerIds, 
         weapon_loadout: inv_id("WeaponLoadOutContainerId"),
         player_equip_armor: inv_id("PlayerEquipArmorContainerId"),
         food_equip: inv_id("FoodEquipContainerId"),
+    };
+
+    Ok(PlayerSave {
+        containers,
+        technologies: string_array(save_data, "UnlockedRecipeTechnologyNames"),
+        technology_points: int_child(save_data, "TechnologyPoint"),
+        boss_technology_points: int_child(save_data, "bossTechnologyPoint"),
     })
+}
+
+/// Convenience: just the container ids from a player's `<UID>.sav`.
+pub fn read_player_container_ids(sav_path: &Path) -> Result<PlayerContainerIds, SaveError> {
+    Ok(read_player_save(sav_path)?.containers)
+}
+
+/// The string elements of a `NameProperty`/`EnumProperty` array child, or `[]`.
+fn string_array(parent: &Property, key: &str) -> Vec<String> {
+    match parent.get_child(key) {
+        Some(Property::Array {
+            value: ArrayValue::Names(v),
+            ..
+        }) => v.clone(),
+        _ => Vec::new(),
+    }
+}
+
+/// The `i32` value of an integer property child, or `0`.
+fn int_child(parent: &Property, key: &str) -> i32 {
+    match parent.get_child(key) {
+        Some(Property::Int(v)) => *v as i32,
+        _ => 0,
+    }
 }
 
 // --- per-slot RawData codecs ----------------------------------------------

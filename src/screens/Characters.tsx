@@ -1,37 +1,32 @@
 import "./characters.css";
-import { useMemo, useState } from "react";
-import { TriangleAlert, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Cpu, PackageOpen, PawPrint, Search, TriangleAlert, Users, X } from "lucide-react";
 import { TopBar } from "../components/TopBar";
-import { DataTable } from "../components/DataTable";
-import type { Column } from "../components/DataTable";
-import { Drawer } from "../components/Drawer";
 import { EmptyState } from "../components/EmptyState";
 import { Skeleton } from "../components/Skeleton";
-import { Input } from "../components/Field";
+import { PalIcon } from "../components/PalIcon";
+import { ItemIcon } from "../components/ItemIcon";
 import {
   useBridgeGuilds,
   useBridgePlayerDetail,
   useBridgePlayers,
   useBridgeReference,
 } from "../hooks/bridge";
-import type { ItemContainer, PlayerSummary } from "../types/bridge";
+import { elementColor, isRare, palInfo } from "../lib/palDex";
+import { humanize, statusLabel, techInfo, workLabel } from "../lib/palLabels";
+import type { ItemContainer, Pal, PlayerDetail, PlayerSummary } from "../types/bridge";
 
-type SortKey = "nickname" | "level" | "pal_count";
-
-/** "SheepBall" → "Sheep Ball"; "Pal_Egg" → "Pal Egg". */
-const humanize = (s: string) =>
-  s
-    .replace(/_/g, " ")
-    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
-    .trim();
+const genderSymbol = (g: string) => {
+  const l = g.toLowerCase();
+  return l.includes("female") ? "♀" : l.includes("male") ? "♂" : "";
+};
+const ivColor = (v: number) => (v >= 90 ? "#3ad19a" : v >= 60 ? "#e6b450" : "#7c8494");
 
 export function Characters() {
   const players = useBridgePlayers();
   const guilds = useBridgeGuilds();
   const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("level");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const [selected, setSelected] = useState<PlayerSummary | null>(null);
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
   const guildName = useMemo(() => {
     const m = new Map<string, string>();
@@ -40,64 +35,21 @@ export function Characters() {
   }, [guilds.data]);
 
   const data = players.data;
-
-  const rows = useMemo(() => {
-    const list = data ?? [];
+  const list = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const filtered = q
-      ? list.filter((p) => p.nickname.toLowerCase().includes(q) || p.uid.toLowerCase().includes(q))
-      : list;
-    const sorted = [...filtered].sort((a, b) => {
-      const cmp =
-        sortKey === "nickname"
-          ? a.nickname.localeCompare(b.nickname)
-          : (a[sortKey] as number) - (b[sortKey] as number);
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-    return sorted;
-  }, [data, search, sortKey, sortDir]);
+    const rows = (data ?? []).filter(
+      (p) => !q || p.nickname.toLowerCase().includes(q) || p.uid.toLowerCase().includes(q),
+    );
+    return [...rows].sort((a, b) => b.level - a.level || b.pal_count - a.pal_count);
+  }, [data, search]);
 
-  const onSort = (key: string) => {
-    if (key === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else setSortKey(key as SortKey);
-  };
+  useEffect(() => {
+    if (list.length && (!selectedUid || !list.some((p) => p.uid === selectedUid))) {
+      setSelectedUid(list[0].uid);
+    }
+  }, [list, selectedUid]);
 
-  const columns: Column<PlayerSummary>[] = [
-    {
-      key: "nickname",
-      header: "Character",
-      sortable: true,
-      render: (p) => (
-        <div className="ch-name">
-          <b>{p.nickname || "(unnamed)"}</b>
-          <small>{p.uid}</small>
-        </div>
-      ),
-    },
-    {
-      key: "level",
-      header: "Level",
-      align: "right",
-      sortable: true,
-      render: (p) => <span style={{ fontFamily: "var(--mono)" }}>{p.level}</span>,
-    },
-    {
-      key: "pal_count",
-      header: "Pals",
-      align: "right",
-      sortable: true,
-      render: (p) => <span style={{ fontFamily: "var(--mono)" }}>{p.pal_count}</span>,
-    },
-    {
-      key: "guild",
-      header: "Guild",
-      render: (p) => (
-        <span style={{ color: "var(--dim)" }}>
-          {(p.guild_id && guildName.get(p.guild_id)) || (p.guild_id ? "—" : "No guild")}
-        </span>
-      ),
-    },
-  ];
+  const selected = list.find((p) => p.uid === selectedUid) ?? null;
 
   return (
     <>
@@ -107,7 +59,7 @@ export function Characters() {
         onRefresh={() => players.refetch()}
         refreshing={players.isFetching}
       />
-      <div className="page">
+      <div className="page ch-page">
         {players.isError ? (
           <EmptyState
             icon={TriangleAlert}
@@ -117,159 +69,468 @@ export function Characters() {
           />
         ) : players.isLoading && !data ? (
           <div className="card card--pad col" style={{ gap: 12 }}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} height={44} radius="var(--r-md)" />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} height={48} radius="var(--r-md)" />
             ))}
           </div>
         ) : data && data.length === 0 ? (
-          <EmptyState
-            icon={Users}
-            title="No characters found"
-            detail="The bridge decoded the save but found no player characters."
-          />
+          <EmptyState icon={Users} title="No characters found" detail="The save has no player characters." />
         ) : (
-          <>
-            <div className="row wrap ch-toolbar">
+          <div className="ch">
+            <aside className="ch-list">
               <div className="ch-search">
-                <Input
+                <Search size={14} />
+                <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name or UID…"
+                  placeholder="Search characters…"
                 />
               </div>
-              <span className="chip chip--accent">
-                <span className="chip__dot" />
-                {data?.length ?? 0} characters
-              </span>
-            </div>
-            {rows.length === 0 ? (
-              <div className="ch-nomatch">No matches.</div>
-            ) : (
-              <DataTable<PlayerSummary>
-                columns={columns}
-                rows={rows}
-                rowKey={(p) => p.uid}
-                onRowClick={(p) => setSelected(p)}
-                sortKey={sortKey}
-                sortDir={sortDir}
-                onSort={onSort}
-              />
-            )}
-          </>
+              <div className="ch-players">
+                {list.map((p) => (
+                  <button
+                    key={p.uid}
+                    className={`ch-prow${p.uid === selectedUid ? " is-active" : ""}`}
+                    onClick={() => setSelectedUid(p.uid)}
+                  >
+                    <span className="ch-prow__name">{p.nickname || "(unnamed)"}</span>
+                    <span className="ch-prow__meta">
+                      Lv {p.level} · {p.pal_count} pals
+                    </span>
+                  </button>
+                ))}
+                {list.length === 0 && <div className="ch-nomatch">No matches.</div>}
+              </div>
+            </aside>
+
+            <main className="ch-detail">
+              {selected ? (
+                <PlayerPanel key={selected.uid} summary={selected} guildName={guildName} />
+              ) : (
+                <div className="ch-detail__empty">
+                  <PawPrint size={26} />
+                  <p>Select a character to view their Pals, stats, and inventory.</p>
+                </div>
+              )}
+            </main>
+          </div>
         )}
       </div>
-
-      <Drawer
-        open={!!selected}
-        onClose={() => setSelected(null)}
-        title={selected?.nickname || "(unnamed)"}
-        subtitle={selected?.uid}
-      >
-        {selected && <CharacterDetail uid={selected.uid} summary={selected} guildName={guildName} />}
-      </Drawer>
     </>
   );
 }
 
-function CharacterDetail({
-  uid,
+type Tab = "pals" | "character" | "inventory";
+
+function PlayerPanel({
   summary,
   guildName,
 }: {
-  uid: string;
   summary: PlayerSummary;
   guildName: Map<string, string>;
 }) {
-  const detail = useBridgePlayerDetail(uid);
+  const detail = useBridgePlayerDetail(summary.uid);
   const items = useBridgeReference("items");
-  const itemName = (staticId: string) => items.data?.[staticId] ?? humanize(staticId);
+  const active = useBridgeReference("active_skills");
+  const passive = useBridgeReference("passive_skills");
+  const [tab, setTab] = useState<Tab>("pals");
+  const [selectedPal, setSelectedPal] = useState<Pal | null>(null);
+
+  const d = detail.data;
+  const itemName = (id: string) => items.data?.[id] ?? humanize(id);
+  const skillName = (code: string) => active.data?.[code] ?? humanize(code);
+  const passiveName = (code: string) => passive.data?.[code] ?? humanize(code);
+  const guild = (summary.guild_id && guildName.get(summary.guild_id)) || "No guild";
+
+  const groups = useMemo(() => groupPals(d), [d]);
 
   return (
     <>
-      <div className="kv">
-        <span className="kv__k">Level</span>
-        <span className="kv__v">{summary.level}</span>
-        <span className="kv__k">Pals</span>
-        <span className="kv__v">{summary.pal_count}</span>
-        <span className="kv__k">Guild</span>
-        <span className="kv__v">
-          {(summary.guild_id && guildName.get(summary.guild_id)) || (summary.guild_id ? "—" : "None")}
-        </span>
-        <span className="kv__k">UID</span>
-        <span className="kv__v">{summary.uid}</span>
+      <header className="ch-head">
+        <h2>{summary.nickname || "(unnamed)"}</h2>
+        <div className="ch-head__meta">
+          <span className="ch-chip">Lv {summary.level}</span>
+          <span className="ch-chip">{summary.pal_count} pals</span>
+          <span className="ch-chip ch-chip--dim">{guild}</span>
+        </div>
+      </header>
+
+      <div className="ch-tabs">
+        <button className={tab === "pals" ? "is-on" : ""} onClick={() => setTab("pals")}>
+          <PawPrint size={13} /> Pals {d ? `(${d.pals.length})` : ""}
+        </button>
+        <button className={tab === "character" ? "is-on" : ""} onClick={() => setTab("character")}>
+          <Cpu size={13} /> Character
+        </button>
+        <button className={tab === "inventory" ? "is-on" : ""} onClick={() => setTab("inventory")}>
+          <PackageOpen size={13} /> Inventory
+        </button>
       </div>
 
       {detail.isLoading ? (
-        <div className="col" style={{ gap: 8, marginTop: 14 }}>
-          <Skeleton height={40} radius="var(--r-md)" />
-          <Skeleton height={40} radius="var(--r-md)" />
-          <Skeleton height={40} radius="var(--r-md)" />
+        <div className="ch-palgrid">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} height={150} radius="var(--r-md)" />
+          ))}
         </div>
       ) : detail.isError ? (
-        <p className="ch-detailerr">{(detail.error as Error)?.message ?? "Failed to load detail."}</p>
-      ) : detail.data ? (
+        <p className="ch-err">{(detail.error as Error)?.message ?? "Failed to load."}</p>
+      ) : d ? (
         <>
-          <section className="ch-section">
-            <h4>Pals · {detail.data.pals.length}</h4>
-            {detail.data.pals.length === 0 ? (
-              <p className="ch-empty">No pals in this character’s boxes.</p>
-            ) : (
-              <div className="ch-pals">
-                {detail.data.pals.map((p) => (
-                  <div key={p.instance_id} className="ch-pal">
-                    <div className="ch-pal__main">
-                      <b>{humanize(p.character_id) || "Pal"}</b>
-                      {p.nickname && p.nickname !== p.character_id && <small>“{p.nickname}”</small>}
-                    </div>
-                    <div className="ch-pal__meta">
-                      <span className="ch-pal__lv">Lv {p.level}</span>
-                      <span className="ch-pal__iv" title="IV: HP / Attack / Defense">
-                        IV {p.talent_hp}/{p.talent_shot}/{p.talent_defense}
-                      </span>
-                      {p.is_lucky && <span className="ch-badge ch-badge--lucky">Lucky</span>}
-                      {p.is_boss && <span className="ch-badge ch-badge--boss">Alpha</span>}
-                    </div>
+          {tab === "pals" &&
+            (d.pals.length ? (
+              groups.map((g) => (
+                <section key={g.label} className="ch-palsection">
+                  <div className="ch-palsection__head">
+                    {g.label} <span>{g.pals.length}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="ch-section">
-            <h4>Inventory</h4>
-            {detail.data.inventory.every((c) => c.slots.every((s) => !s.static_id)) ? (
-              <p className="ch-empty">Empty (or stored in a per-player save not on disk).</p>
-            ) : (
-              detail.data.inventory.map((c) => (
-                <InventoryContainer key={c.id} container={c} itemName={itemName} />
+                  <div className="ch-palgrid">
+                    {g.pals.map((pal) => (
+                      <PalCard key={pal.instance_id} pal={pal} onClick={() => setSelectedPal(pal)} />
+                    ))}
+                  </div>
+                </section>
               ))
-            )}
-          </section>
+            ) : (
+              <p className="ch-empty">No Pals in this character’s boxes.</p>
+            ))}
+
+          {tab === "character" && <CharacterTab detail={d} />}
+
+          {tab === "inventory" && <InventoryView inventory={d.inventory} itemName={itemName} />}
         </>
       ) : null}
+
+      {selectedPal && (
+        <PalDetailModal
+          pal={selectedPal}
+          onClose={() => setSelectedPal(null)}
+          skillName={skillName}
+          passiveName={passiveName}
+        />
+      )}
     </>
   );
 }
 
-function InventoryContainer({
-  container,
+interface PalGroup {
+  label: string;
+  pals: Pal[];
+}
+function groupPals(d: PlayerDetail | undefined): PalGroup[] {
+  if (!d) return [];
+  const party: Pal[] = [];
+  const box: Pal[] = [];
+  const base: Pal[] = [];
+  for (const p of d.pals) {
+    if (p.storage_id && p.storage_id === d.party_container) party.push(p);
+    else if (p.storage_id && p.storage_id === d.pal_box_container) box.push(p);
+    else base.push(p);
+  }
+  return [
+    { label: "Party", pals: party },
+    { label: "Pal Box", pals: box },
+    { label: "Base & Expeditions", pals: base },
+  ].filter((g) => g.pals.length > 0);
+}
+
+function PalCard({ pal, onClick }: { pal: Pal; onClick: () => void }) {
+  const info = palInfo(pal.character_id);
+  const rare = isRare(info.rarity);
+  const accent = info.elements.length ? elementColor(info.elements[0]) : "#5a6070";
+  const g = genderSymbol(pal.gender);
+
+  return (
+    <button className={`palcard${rare ? " palcard--rare" : ""}`} onClick={onClick}>
+      <div className="palcard__iconwrap" style={{ ["--accent" as string]: accent }}>
+        <PalIcon cell={info.cell} size={54} />
+        <div className="palcard__badges">
+          {pal.is_boss && <span className="pbadge pbadge--alpha">ALPHA</span>}
+          {pal.is_lucky && <span className="pbadge pbadge--lucky">LUCKY</span>}
+        </div>
+      </div>
+      <div className="palcard__name" title={info.name}>
+        {info.name}
+      </div>
+      {pal.nickname && pal.nickname !== info.name ? (
+        <div className="palcard__nick">“{pal.nickname}”</div>
+      ) : (
+        <div className="palcard__nick palcard__nick--ph" />
+      )}
+      <div className="palcard__meta">
+        <span className="palcard__lv">Lv {pal.level}</span>
+        {g && <span className="palcard__g">{g}</span>}
+        {pal.rank > 0 && <span className="palcard__rank">★{pal.rank}</span>}
+      </div>
+      <div className="palcard__elems">
+        {info.elements.map((el) => (
+          <span key={el} className="elem" style={{ color: elementColor(el), background: `${elementColor(el)}22` }}>
+            {el}
+          </span>
+        ))}
+      </div>
+      <div className="palcard__ivs">
+        <IvBar label="HP" v={pal.talent_hp} />
+        <IvBar label="ATK" v={pal.talent_shot} />
+        <IvBar label="DEF" v={pal.talent_defense} />
+      </div>
+    </button>
+  );
+}
+
+function IvBar({ label, v }: { label: string; v: number }) {
+  const pct = Math.min(100, Math.max(0, v));
+  return (
+    <div className="iv" title={`${label} IV: ${v}`}>
+      <span className="iv__l">{label}</span>
+      <span className="iv__bar">
+        <i style={{ width: `${pct}%`, background: ivColor(pct) }} />
+      </span>
+      <span className="iv__v">{v}</span>
+    </div>
+  );
+}
+
+function CharacterTab({ detail }: { detail: PlayerDetail }) {
+  const stats = { ...detail.status_points, ...detail.ext_status_points };
+  const techs = detail.technologies.map((code) => techInfo(code));
+  const boss = techs.filter((t) => t.boss).sort((a, b) => a.name.localeCompare(b.name));
+  const normal = techs.filter((t) => !t.boss);
+  const byLevel = new Map<number, string[]>();
+  for (const t of normal) {
+    const arr = byLevel.get(t.level) ?? [];
+    arr.push(t.name);
+    byLevel.set(t.level, arr);
+  }
+  const levels = [...byLevel.keys()].sort((a, b) => a - b);
+
+  return (
+    <div className="ch-char">
+      <div className="ch-statgrid">
+        <Stat label="Level" value={detail.level} />
+        <Stat label="EXP" value={detail.exp.toLocaleString()} />
+        <Stat label="Tech Points" value={detail.technology_points} />
+        <Stat label="Ancient Points" value={detail.boss_technology_points} />
+        {Object.entries(stats).map(([k, v]) => (
+          <Stat key={k} label={statusLabel(k)} value={`+${v}`} />
+        ))}
+      </div>
+
+      <section className="ch-section">
+        <h4>
+          Technologies <span className="ch-count">{techs.length}</span>
+        </h4>
+        {techs.length === 0 ? (
+          <p className="ch-empty">No technologies unlocked yet.</p>
+        ) : (
+          <div className="ch-techtree">
+            {levels.map((lv) => (
+              <div key={lv} className="ch-techlevel">
+                <div className="ch-techlevel__lv">{lv > 0 ? `Lv ${lv}` : "—"}</div>
+                <div className="ch-techs">
+                  {byLevel.get(lv)!.map((name) => (
+                    <span key={name} className="ch-tech">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {boss.length > 0 && (
+              <div className="ch-techlevel">
+                <div className="ch-techlevel__lv ch-techlevel__lv--boss">Ancient</div>
+                <div className="ch-techs">
+                  {boss.map((t) => (
+                    <span key={t.name} className="ch-tech ch-tech--boss">
+                      {t.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="ch-stat">
+      <span className="ch-stat__v">{value}</span>
+      <span className="ch-stat__l">{label}</span>
+    </div>
+  );
+}
+
+function PalDetailModal({
+  pal,
+  onClose,
+  skillName,
+  passiveName,
+}: {
+  pal: Pal;
+  onClose: () => void;
+  skillName: (c: string) => string;
+  passiveName: (c: string) => string;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const info = palInfo(pal.character_id);
+  const accent = info.elements.length ? elementColor(info.elements[0]) : "#5a6070";
+  const souls = [
+    ["HP", pal.rank_hp],
+    ["Attack", pal.rank_attack],
+    ["Defense", pal.rank_defense],
+    ["Craft", pal.rank_craftspeed],
+  ] as const;
+  const work = Object.entries(pal.work_suitability).filter(([, r]) => r > 0);
+
+  return (
+    <div className="ch-modal" onClick={onClose}>
+      <div className="ch-modalcard" onClick={(e) => e.stopPropagation()}>
+        <button className="ch-modalclose" onClick={onClose} aria-label="Close">
+          <X size={16} />
+        </button>
+        <div className="ch-modalhead">
+          <div className="palcard__iconwrap ch-modalicon" style={{ ["--accent" as string]: accent }}>
+            <PalIcon cell={info.cell} size={64} />
+          </div>
+          <div className="ch-modalhead__txt">
+            <h3>{info.name}</h3>
+            {pal.nickname && pal.nickname !== info.name && <div className="ch-modalnick">“{pal.nickname}”</div>}
+            <div className="ch-modalmeta">
+              <span>Lv {pal.level}</span>
+              {genderSymbol(pal.gender) && <span>{genderSymbol(pal.gender)}</span>}
+              {pal.rank > 0 && <span className="palcard__rank">★{pal.rank} Condenser</span>}
+              {pal.is_boss && <span className="pbadge pbadge--alpha">ALPHA</span>}
+              {pal.is_lucky && <span className="pbadge pbadge--lucky">LUCKY</span>}
+            </div>
+            <div className="palcard__elems">
+              {info.elements.map((el) => (
+                <span key={el} className="elem" style={{ color: elementColor(el), background: `${elementColor(el)}22` }}>
+                  {el}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="ch-modalgrid">
+          <ModalStat label="HP" value={`${pal.hp}${pal.max_hp ? ` / ${pal.max_hp}` : ""}`} />
+          <ModalStat label="Sanity" value={pal.sanity} />
+          <ModalStat label="Hunger" value={pal.stomach} />
+          <ModalStat label="Friendship" value={pal.friendship_point} />
+        </div>
+
+        <section className="ch-section">
+          <h4>IVs (Talents)</h4>
+          <div className="ch-ivrow">
+            <IvBar label="HP" v={pal.talent_hp} />
+            <IvBar label="ATK" v={pal.talent_shot} />
+            <IvBar label="DEF" v={pal.talent_defense} />
+          </div>
+        </section>
+
+        <section className="ch-section">
+          <h4>Souls</h4>
+          <div className="ch-souls">
+            {souls.map(([label, v]) => (
+              <div key={label} className="ch-soul">
+                <span className="ch-soul__l">{label}</span>
+                <span className="ch-soul__v">+{v}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {pal.active_skills.length > 0 && (
+          <ChipSection title="Active Skills" chips={pal.active_skills.map(skillName)} />
+        )}
+        {pal.passive_skills.length > 0 && (
+          <ChipSection title="Passive Skills" chips={pal.passive_skills.map(passiveName)} accent />
+        )}
+        {work.length > 0 && (
+          <section className="ch-section">
+            <h4>Work Suitability</h4>
+            <div className="ch-work">
+              {work.map(([code, rank]) => (
+                <div key={code} className="ch-workrow">
+                  <span>{workLabel(code)}</span>
+                  <span className="ch-worklv">Lv {rank}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ModalStat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="ch-mstat">
+      <span className="ch-mstat__v">{value}</span>
+      <span className="ch-mstat__l">{label}</span>
+    </div>
+  );
+}
+
+function ChipSection({ title, chips, accent }: { title: string; chips: string[]; accent?: boolean }) {
+  return (
+    <section className="ch-section">
+      <h4>{title}</h4>
+      <div className="ch-chips">
+        {chips.map((c, i) => (
+          <span key={`${c}-${i}`} className={`ch-skill${accent ? " ch-skill--passive" : ""}`}>
+            {c}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InventoryView({
+  inventory,
   itemName,
 }: {
-  container: ItemContainer;
-  itemName: (staticId: string) => string;
+  inventory: ItemContainer[];
+  itemName: (id: string) => string;
 }) {
-  const filled = container.slots.filter((s) => s.static_id);
-  if (filled.length === 0) return null;
+  const groups = inventory
+    .map((c) => ({ c, filled: c.slots.filter((s) => s.static_id) }))
+    .filter((g) => g.filled.length > 0);
+
+  if (groups.length === 0) {
+    return <p className="ch-empty">Empty — or stored in a per-player save that isn’t on disk.</p>;
+  }
+
   return (
-    <div className="ch-invgroup">
-      <div className="ch-invgroup__head">{humanize(container.container_type)}</div>
-      {filled.map((s) => (
-        <div key={s.slot_index} className="ch-item">
-          <span className="ch-item__name">
-            {itemName(s.static_id)}
-            {s.dynamic_item?.egg_params ? " (egg)" : ""}
-          </span>
-          <span className="ch-item__count">×{s.count}</span>
+    <div className="ch-inv">
+      {groups.map(({ c, filled }) => (
+        <div key={c.id} className="ch-invgroup">
+          <div className="ch-invhead">
+            {humanize(c.container_type)} <span>{filled.length}</span>
+          </div>
+          <div className="ch-slots">
+            {filled.map((s) => (
+              <div key={s.slot_index} className="ch-slot" title={itemName(s.static_id)}>
+                <ItemIcon staticId={s.static_id} size={30} />
+                <span className="ch-slot__name">
+                  {itemName(s.static_id)}
+                  {s.dynamic_item?.egg_params ? " 🥚" : ""}
+                </span>
+                <span className="ch-slot__count">×{s.count}</span>
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>
