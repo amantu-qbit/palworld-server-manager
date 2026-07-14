@@ -28,3 +28,19 @@ jobs:
           releaseName: "Palworld Server Manager ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
+
+  # Build the companion server bridge (bridge/psm-bridge) and attach the exe to
+  # the same draft release that tauri-action creates for the desktop app.
+  bridge:
+    needs: release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build psm-bridge server companion
+        working-directory: ./bridge
+        run: cargo build --release -p psm-bridge
+      - name: Attach psm-bridge.exe to the release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" "bridge/target/release/psm-bridge.exe" --clobber

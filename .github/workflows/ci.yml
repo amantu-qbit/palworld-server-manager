@@ -34,3 +34,18 @@ jobs:
       - name: cargo check
         working-directory: ./src-tauri
         run: cargo check
+
+  # The companion server bridge is a standalone Cargo workspace under bridge/.
+  bridge:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: cargo test
+        working-directory: ./bridge
+        run: cargo test --workspace
+      - name: cargo clippy
+        working-directory: ./bridge
+        run: cargo clippy --workspace --all-targets -- -D warnings
