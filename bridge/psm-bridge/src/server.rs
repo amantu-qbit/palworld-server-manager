@@ -15,7 +15,7 @@ use axum::extract::{Path, Request, State};
 use axum::http::{header, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Serialize;
 use uuid::Uuid;
@@ -26,6 +26,7 @@ use psm_save::save::reference::{load_reference, Reference};
 use psm_save::save::WorldBundle;
 
 use crate::state::{AppState, StateError};
+use crate::supervisor::{ServerStatus, Supervisor, SupervisorError};
 
 /// Combined router state: the decoded-save cache plus the configured auth
 /// token. Cheap to clone — both fields are `Arc`s.
@@ -33,6 +34,7 @@ use crate::state::{AppState, StateError};
 struct ServerState {
     app: Arc<AppState>,
     token: Arc<String>,
+    supervisor: Arc<Supervisor>,
 }
 
 /// SECURITY: EVERY endpoint route MUST be added inside this function.
@@ -51,6 +53,10 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/players/{id}/inventory", get(player_inventory))
         .route("/v1/guilds", get(list_guilds))
         .route("/v1/reference/{catalog}", get(reference_catalog))
+        .route("/v1/server/status", get(server_status))
+        .route("/v1/server/start", post(server_start))
+        .route("/v1/server/stop", post(server_stop))
+        .route("/v1/server/restart", post(server_restart))
 }
 
 /// Build the bridge HTTP router.
@@ -58,8 +64,12 @@ fn app_routes() -> Router<ServerState> {
 /// Currently exposes `GET /v1/health`. Every route registered in
 /// [`app_routes`] is wrapped in a Bearer-auth layer (see [`auth`]) that
 /// requires the `Authorization` header to equal `Bearer {token}`.
-pub fn router(state: Arc<AppState>, token: Arc<String>) -> Router {
-    let server_state = ServerState { app: state, token };
+pub fn router(state: Arc<AppState>, token: Arc<String>, supervisor: Arc<Supervisor>) -> Router {
+    let server_state = ServerState {
+        app: state,
+        token,
+        supervisor,
+    };
 
     app_routes()
         // SECURITY: this layer only wraps routes registered in `app_routes()`
@@ -318,6 +328,71 @@ async fn reference_catalog(Path(catalog): Path<String>) -> Response {
         _ => return not_found(),
     };
     Json(map).into_response()
+}
+
+// --- Server process control (supervisor) ------------------------------------
+//
+// These endpoints start / stop / restart the game server process. They write
+// no save files. Graceful shutdown (warn + save) is the desktop app's job via
+// Palworld's REST `/shutdown`; `stop`/`restart` here are force operations.
+
+/// `GET /v1/server/status` — whether the supervised server is running.
+async fn server_status(State(state): State<ServerState>) -> Response {
+    Json(state.supervisor.status()).into_response()
+}
+
+/// `POST /v1/server/start` — launch the configured server if not already running.
+async fn server_start(State(state): State<ServerState>) -> Response {
+    run_supervised(state.supervisor.clone(), Supervisor::start).await
+}
+
+/// `POST /v1/server/stop` — force-stop the server (kills its whole process tree).
+async fn server_stop(State(state): State<ServerState>) -> Response {
+    run_supervised(state.supervisor.clone(), Supervisor::stop).await
+}
+
+/// `POST /v1/server/restart` — force stop, then start.
+async fn server_restart(State(state): State<ServerState>) -> Response {
+    run_supervised(state.supervisor.clone(), Supervisor::restart).await
+}
+
+/// Run a (blocking) supervisor operation off the async executor and map its
+/// result to an HTTP response. `start`/`stop`/`restart` spawn a process or
+/// shell out to `taskkill`, so they must not run on a tokio worker thread.
+async fn run_supervised(
+    supervisor: Arc<Supervisor>,
+    op: impl FnOnce(&Supervisor) -> Result<ServerStatus, SupervisorError> + Send + 'static,
+) -> Response {
+    match tokio::task::spawn_blocking(move || op(&supervisor)).await {
+        Ok(result) => supervisor_result(result),
+        Err(_join_error) => internal_error("server control task failed"),
+    }
+}
+
+/// Map a supervisor result to a JSON response with an appropriate status code.
+fn supervisor_result(result: Result<ServerStatus, SupervisorError>) -> Response {
+    match result {
+        Ok(status) => Json(status).into_response(),
+        Err(err) => {
+            let code = match err {
+                SupervisorError::NotConfigured => StatusCode::BAD_REQUEST,
+                SupervisorError::AlreadyRunning(_) | SupervisorError::NotRunning => {
+                    StatusCode::CONFLICT
+                }
+                SupervisorError::Launch(_) | SupervisorError::Stop(_) => {
+                    StatusCode::INTERNAL_SERVER_ERROR
+                }
+            };
+            (
+                code,
+                Json(ErrorDetailResponse {
+                    error: "server control error",
+                    detail: err.to_string(),
+                }),
+            )
+                .into_response()
+        }
+    }
 }
 
 /// Bearer-auth middleware, applied to every route via [`router`].

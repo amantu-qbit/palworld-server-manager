@@ -15,6 +15,7 @@ use axum::http::{Request, StatusCode};
 use http_body_util::BodyExt;
 use psm_bridge::server::router;
 use psm_bridge::state::AppState;
+use psm_bridge::supervisor::Supervisor;
 use tower::ServiceExt;
 
 const WORLD1_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/fixtures/saves/world1");
@@ -23,7 +24,7 @@ const PLAYER_O_UID: &str = "8c2f1930-0000-0000-0000-000000000000";
 
 fn make_router() -> axum::Router {
     let state = Arc::new(AppState::new(PathBuf::from(WORLD1_DIR)));
-    router(state, Arc::new(TOKEN.to_string()))
+    router(state, Arc::new(TOKEN.to_string()), Arc::new(Supervisor::new(None)))
 }
 
 /// GET `path` with the correct Bearer token, returning (status, body-as-utf8).

@@ -51,3 +51,37 @@ pub async fn get(c: &BridgeCreds, path: &str) -> Result<Value, String> {
     }
     resp.json::<Value>().await.map_err(map_err)
 }
+
+/// POST a bridge endpoint (e.g. `/server/start`) with an optional JSON body
+/// and return the parsed JSON. On an error status, surfaces the bridge's own
+/// `detail` message when present (e.g. "the server is already running").
+pub async fn post(c: &BridgeCreds, path: &str, body: Option<Value>) -> Result<Value, String> {
+    if !path.starts_with('/') || path.contains("..") {
+        return Err("Invalid bridge path.".into());
+    }
+    let url = format!("{}{}", base(c), path);
+    let mut req = reqwest::Client::new()
+        .post(url)
+        .bearer_auth(&c.token)
+        .header("Accept", "application/json")
+        .timeout(std::time::Duration::from_secs(60));
+    if let Some(body) = body {
+        req = req.json(&body);
+    }
+    let resp = req.send().await.map_err(map_err)?;
+    if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
+        return Err("Bridge authentication failed. Check the bridge token.".into());
+    }
+    if !resp.status().is_success() {
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if let Some(detail) = serde_json::from_str::<Value>(&text)
+            .ok()
+            .and_then(|v| v.get("detail").and_then(|d| d.as_str()).map(str::to_string))
+        {
+            return Err(detail);
+        }
+        return Err(format!("Bridge returned {status}"));
+    }
+    resp.json::<Value>().await.map_err(map_err)
+}

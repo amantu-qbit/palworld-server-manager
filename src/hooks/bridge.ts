@@ -59,3 +59,14 @@ export function useBridgeReference(catalog: string) {
     staleTime: Infinity,
   });
 }
+
+/** Live process-supervisor status, polled while the Server Control screen is open. */
+export function useServerStatus(enabled: boolean) {
+  return useQuery({
+    queryKey: ["bridge", "server-status"],
+    queryFn: () => bridgeApi.serverStatus(),
+    enabled,
+    retry: 0,
+    refetchInterval: enabled ? 4000 : false,
+  });
+}

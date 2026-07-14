@@ -7,6 +7,7 @@ import type {
   PlayerDetail,
   PlayerSummary,
   ReferenceCatalog,
+  ServerStatus,
 } from "../types/bridge";
 
 /**
@@ -24,6 +25,10 @@ export interface BridgeApi {
   playerDetail(uid: string): Promise<PlayerDetail>;
   guilds(): Promise<Guild[]>;
   reference(catalog: string): Promise<ReferenceCatalog>;
+  serverStatus(): Promise<ServerStatus>;
+  serverStart(): Promise<ServerStatus>;
+  serverStop(): Promise<ServerStatus>;
+  serverRestart(): Promise<ServerStatus>;
 }
 
 const path = {
@@ -44,13 +49,18 @@ const tauriBridge: BridgeApi = {
   playerDetail: (uid) => invoke<PlayerDetail>("bridge_get", { path: path.playerDetail(uid) }),
   guilds: () => invoke<Guild[]>("bridge_get", { path: "/guilds" }),
   reference: (catalog) => invoke<ReferenceCatalog>("bridge_get", { path: path.reference(catalog) }),
+  serverStatus: () => invoke<ServerStatus>("bridge_get", { path: "/server/status" }),
+  serverStart: () => invoke<ServerStatus>("bridge_post", { path: "/server/start" }),
+  serverStop: () => invoke<ServerStatus>("bridge_post", { path: "/server/stop" }),
+  serverRestart: () => invoke<ServerStatus>("bridge_post", { path: "/server/restart" }),
 };
 
 let conn: Connection | null = null;
 
-async function call<T>(p: string): Promise<T> {
+async function call<T>(p: string, method = "GET"): Promise<T> {
   if (!conn?.bridgePort || !conn?.bridgeToken) throw new Error("Bridge not configured.");
   const res = await fetch(`/__bridge__${p}`, {
+    method,
     headers: {
       "x-bridge-host": conn.host,
       "x-bridge-port": String(conn.bridgePort),
@@ -64,8 +74,16 @@ async function call<T>(p: string): Promise<T> {
   if (res.status === 502 || res.status === 504) {
     throw new Error("Could not reach the bridge. Is psm-bridge.exe running on the server?");
   }
-  if (!res.ok) throw new Error(`Bridge returned ${res.status}`);
   const text = await res.text();
+  if (!res.ok) {
+    let detail = "";
+    try {
+      detail = (JSON.parse(text) as { detail?: string })?.detail ?? "";
+    } catch {
+      /* body wasn't JSON */
+    }
+    throw new Error(detail || `Bridge returned ${res.status}`);
+  }
   return (text ? JSON.parse(text) : {}) as T;
 }
 
@@ -78,6 +96,10 @@ const httpBridge: BridgeApi = {
   playerDetail: (uid) => call<PlayerDetail>(path.playerDetail(uid)),
   guilds: () => call<Guild[]>("/guilds"),
   reference: (catalog) => call<ReferenceCatalog>(path.reference(catalog)),
+  serverStatus: () => call<ServerStatus>("/server/status"),
+  serverStart: () => call<ServerStatus>("/server/start", "POST"),
+  serverStop: () => call<ServerStatus>("/server/stop", "POST"),
+  serverRestart: () => call<ServerStatus>("/server/restart", "POST"),
 };
 
 export const bridgeApi: BridgeApi = isTauri() ? tauriBridge : httpBridge;

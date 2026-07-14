@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::Arc;
 
-use psm_bridge::{config, server, state};
+use psm_bridge::{config, server, state, supervisor};
 
 #[tokio::main]
 async fn main() {
@@ -16,7 +16,8 @@ async fn main() {
         .expect("configured bind address and port must form a valid socket address");
 
     let app_state = Arc::new(state::AppState::new(config.save_dir.clone()));
-    let router = server::router(app_state, Arc::new(config.token));
+    let supervisor = Arc::new(supervisor::Supervisor::new(config.server_process.clone()));
+    let router = server::router(app_state, Arc::new(config.token), supervisor);
 
     let listener = tokio::net::TcpListener::bind(addr)
         .await
