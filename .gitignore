@@ -25,3 +25,6 @@ Thumbs.db
 
 # Internal design/process docs (not for public repo)
 docs/superpowers/
+
+# Save file examples has sensative info
+SavFileExample

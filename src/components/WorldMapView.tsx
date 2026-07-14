@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Layers, Locate, Maximize2, Minimize2, Minus, Plus, Search, TriangleAlert, X } from "lucide-react";
 import type { Actor } from "../types/api";
-import { worldToGameCoords } from "../lib/mapProject";
+import { DEFAULT_MAP_AREA, MAP_AREAS, MAP_AREA_ORDER, worldToGameCoords } from "../lib/mapProject";
+import type { MapArea } from "../lib/mapProject";
 import {
   actorToMarker,
-  CONTENT,
+  CONTENT_BY_AREA,
   guildColor,
   KIND_META,
   LANDMARK_MARKERS,
@@ -19,7 +20,6 @@ const ATLAS_COLS: number = palAtlas.cols;
 const ATLAS_CELL: number = palAtlas.cell;
 const ATLAS_INDEX = new Map((palAtlas.keys as string[]).map((k, i) => [k, i] as const));
 
-const mapUrl = "/palworld-map.webp";
 const MAP_PX = 8192;
 const MAX_SCALE = 4;
 const WHEEL_K = 0.0016;
@@ -34,7 +34,7 @@ const CLUSTERABLE = new Set<MarkerKind>(["basepal", "wildpal", "otomopal", "npc"
 const cellKeyFor = (x: number, y: number) => `${Math.floor(x / CLUSTER_CELL)},${Math.floor(y / CLUSTER_CELL)}`;
 
 const Z: Record<MarkerKind, number> = {
-  effigy: 0,
+  relic: 0,
   fasttravel: 1,
   dungeon: 1,
   npc: 2,
@@ -206,7 +206,7 @@ function drawMarker(
   }
   const img = meta.icon ? icons[m.kind] : undefined;
   if (img && img.complete && img.naturalWidth) {
-    const sz = m.kind === "effigy" ? 16 : m.kind === "boss" ? 22 : 20;
+    const sz = m.kind === "relic" ? 16 : m.kind === "boss" ? 22 : 20;
     ctx.beginPath();
     ctx.arc(x, y, sz * 0.6, 0, TAU);
     ctx.fillStyle = "rgba(6,6,9,0.5)";
@@ -299,6 +299,15 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   const atlasRef = useRef<HTMLImageElement | null>(null);
 
   const [loaded, setLoaded] = useState(false);
+  const [area, setArea] = useState<MapArea>(() => {
+    try {
+      const raw = localStorage.getItem("psm.map.area");
+      if (raw === "MainMap" || raw === "Tree") return raw;
+    } catch {
+      /* ignore */
+    }
+    return DEFAULT_MAP_AREA;
+  });
   const [expanded, setExpanded] = useState(false);
   const [panelOpen, setPanelOpen] = useState(() => {
     try {
@@ -360,6 +369,9 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     return merged;
   }, [actors, onlineKeys]);
 
+  // Only the currently-shown map area's markers render / cluster / count / search.
+  const areaMarkers = useMemo(() => allMarkers.filter((m) => m.area === area), [allMarkers, area]);
+
   // A pinned marker (clicked). Resolved from the live list by id so its detail
   // stays fresh across the ~3s game-data refetch. hover previews take priority.
   const selected = useMemo(
@@ -371,7 +383,7 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   // proximity (the API has no base boundary), then a blob per camp of 3+ Pals.
   const baseAreas = useMemo(() => {
     const byGuild = new Map<string, MapMarker[]>();
-    for (const m of allMarkers) {
+    for (const m of areaMarkers) {
       if (m.kind !== "basepal" || !m.actor?.GuildName) continue;
       const arr = byGuild.get(m.actor.GuildName);
       if (arr) arr.push(m);
@@ -414,14 +426,15 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
       }
     }
     return areas;
-  }, [allMarkers]);
+  }, [areaMarkers]);
 
-  // Search matches (players, Pals by species, landmarks by name), best kinds first.
+  // Search matches within the current area (players, Pals by species, landmarks
+  // by name), best kinds first.
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
     const out: MapMarker[] = [];
-    for (const m of allMarkers) {
+    for (const m of areaMarkers) {
       if (m.name && m.name.toLowerCase().includes(q)) {
         out.push(m);
         if (out.length >= 60) break;
@@ -429,17 +442,17 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     }
     out.sort((a, b) => Z[b.kind] - Z[a.kind]);
     return out.slice(0, 8);
-  }, [query, allMarkers]);
+  }, [query, areaMarkers]);
 
   const counts = useMemo(() => {
     const c = {} as Record<MarkerKind, number>;
     for (const k of MARKER_ORDER) c[k] = 0;
-    for (const m of allMarkers) {
+    for (const m of areaMarkers) {
       if (m.kind === "player" && !showOffline && m.online === false) continue;
       c[m.kind]++;
     }
     return c;
-  }, [allMarkers, showOffline]);
+  }, [areaMarkers, showOffline]);
 
   const draw = useCallback(() => {
     const cv = canvasElRef.current;
@@ -636,15 +649,16 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     stopGlide();
     const { w, h } = size.current;
     if (w === 0 || h === 0) return;
-    const cw = (CONTENT.uMax - CONTENT.uMin) * MAP_PX;
-    const ch = (CONTENT.vMax - CONTENT.vMin) * MAP_PX;
+    const C = CONTENT_BY_AREA[area];
+    const cw = (C.uMax - C.uMin) * MAP_PX;
+    const ch = (C.vMax - C.vMin) * MAP_PX;
     const s = Math.min(MAX_SCALE, Math.max(fit.current, Math.min(w / cw, h / ch)));
-    const cu = (CONTENT.uMin + CONTENT.uMax) / 2;
-    const cv = (CONTENT.vMin + CONTENT.vMax) / 2;
+    const cu = (C.uMin + C.uMax) / 2;
+    const cv = (C.vMin + C.vMax) / 2;
     tf.current = { s, tx: w / 2 - cu * MAP_PX * s, ty: h / 2 - cv * MAP_PX * s };
     clamp();
     apply();
-  }, [clamp, apply]);
+  }, [clamp, apply, area]);
 
   // Fly to a marker (from search), reveal its layer, and pin its detail card.
   const focusMarker = (m: MapMarker) => {
@@ -718,9 +732,19 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
   }, [draw]);
 
   useEffect(() => {
-    markersRef.current = allMarkers;
+    markersRef.current = areaMarkers;
     draw();
-  }, [allMarkers, draw]);
+  }, [areaMarkers, draw]);
+  // Switching map area swaps the texture; show the skeleton until it loads, and
+  // remember the choice.
+  useEffect(() => {
+    setLoaded(false);
+    try {
+      localStorage.setItem("psm.map.area", area);
+    } catch {
+      /* ignore */
+    }
+  }, [area]);
   useEffect(() => {
     visibleRef.current = visible;
     showOfflineRef.current = showOffline;
@@ -1034,11 +1058,30 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
         onKeyDown={onKeyDown}
       >
         <div className="wm-stage" ref={stageRef} style={{ width: MAP_PX, height: MAP_PX }}>
-          <img className="wm-map" src={mapUrl} alt="Palworld world map" draggable={false} onLoad={() => setLoaded(true)} />
+          <img
+            className="wm-map"
+            src={MAP_AREAS[area].texture}
+            alt="Palworld world map"
+            draggable={false}
+            onLoad={() => setLoaded(true)}
+          />
         </div>
         <canvas className="wm-markers" ref={canvasElRef} />
 
         {!loaded && <div className="wm-loading skeleton" />}
+
+        <div className="wm-areas wm-nozoom" onPointerDown={stop} onDoubleClick={stop}>
+          {MAP_AREA_ORDER.map((a) => (
+            <button
+              key={a}
+              className={`wm-area${a === area ? " is-on" : ""}`}
+              onClick={() => setArea(a)}
+              aria-pressed={a === area}
+            >
+              {a === "MainMap" ? "Palpagos" : "World Tree"}
+            </button>
+          ))}
+        </div>
 
         <div className="wm-search wm-nozoom" onPointerDown={stop} onDoubleClick={stop}>
           <div className="wm-search__box">
