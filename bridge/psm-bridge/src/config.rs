@@ -7,7 +7,7 @@
 
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 /// Resolved bridge server configuration.
@@ -48,6 +48,8 @@ pub enum ConfigError {
         #[source]
         source: Box<toml::de::Error>,
     },
+    #[error("failed to serialize config: {0}")]
+    Serialize(#[from] toml::ser::Error),
 }
 
 const DEFAULT_BIND: &str = "127.0.0.1";
@@ -176,6 +178,89 @@ fn generate_token() -> String {
     let a = uuid::Uuid::new_v4().simple().to_string();
     let b = uuid::Uuid::new_v4().simple().to_string();
     format!("{a}{b}")
+}
+
+/// Public helper for the GUI's "Generate token" button.
+pub fn new_token() -> String {
+    generate_token()
+}
+
+// --- Writing bridge.toml ----------------------------------------------------
+
+/// Serializable mirror of the TOML file. Paths are normalized to forward
+/// slashes so the written file is always valid TOML on Windows (a raw `\`
+/// would otherwise be read as an escape on the next load).
+#[derive(Serialize)]
+struct WritableConfig {
+    server: WritableServer,
+    auth: WritableAuth,
+    paths: WritablePaths,
+    safety: WritableSafety,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    server_process: Option<WritableServerProcess>,
+}
+
+#[derive(Serialize)]
+struct WritableServer {
+    bind: String,
+    port: u16,
+}
+
+#[derive(Serialize)]
+struct WritableAuth {
+    token: String,
+}
+
+#[derive(Serialize)]
+struct WritablePaths {
+    save_dir: String,
+}
+
+#[derive(Serialize)]
+struct WritableSafety {
+    allow_writes: bool,
+}
+
+#[derive(Serialize)]
+struct WritableServerProcess {
+    exe: String,
+    args: Vec<String>,
+}
+
+/// Normalize a path to forward slashes (valid + clean in TOML on any OS).
+fn norm_path(p: &Path) -> String {
+    p.to_string_lossy().replace('\\', "/")
+}
+
+/// Write `config` to `path` as TOML. Backslashes in paths are normalized to
+/// forward slashes, so a file produced here never triggers the "invalid
+/// escape" parse error that a hand-typed Windows path can.
+pub fn write(config: &Config, path: &Path) -> Result<(), ConfigError> {
+    let raw = WritableConfig {
+        server: WritableServer {
+            bind: config.bind.clone(),
+            port: config.port,
+        },
+        auth: WritableAuth {
+            token: config.token.clone(),
+        },
+        paths: WritablePaths {
+            save_dir: norm_path(&config.save_dir),
+        },
+        safety: WritableSafety {
+            allow_writes: config.allow_writes,
+        },
+        server_process: config.server_process.as_ref().map(|sp| WritableServerProcess {
+            exe: norm_path(&sp.exe),
+            args: sp.args.clone(),
+        }),
+    };
+    let text = toml::to_string_pretty(&raw)?;
+    std::fs::write(path, text).map_err(|source| ConfigError::Io {
+        path: path.to_path_buf(),
+        source,
+    })?;
+    Ok(())
 }
 
 #[cfg(test)]
