@@ -30,8 +30,9 @@ pub struct Pal {
     pub storage_slot: i32,
     /// Current level.
     pub level: i32,
-    /// Experience points.
-    pub exp: i32,
+    /// Experience points. `i64`: a high-level player's total EXP exceeds
+    /// `i32::MAX`, which would otherwise wrap negative.
+    pub exp: i64,
     /// Condenser rank (1–5).
     pub rank: i32,
     /// Rank HP soul count.
@@ -84,8 +85,9 @@ pub struct Player {
     pub guild_id: String,
     /// Character level.
     pub level: i32,
-    /// Experience points.
-    pub exp: i32,
+    /// Experience points. `i64`: a high-level player's total EXP exceeds
+    /// `i32::MAX`, which would otherwise wrap negative.
+    pub exp: i64,
     /// Current HP.
     pub hp: i32,
     /// Current stomach fullness.
