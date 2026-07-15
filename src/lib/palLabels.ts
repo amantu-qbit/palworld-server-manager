@@ -43,8 +43,14 @@ export function workLabel(code: string): string {
   return WORK_LABELS[key] ?? humanize(code);
 }
 
-/** Pretty label for a player/pal status-point name. */
+/**
+ * Pretty label for a player/pal status-point name. Palworld stores these as the
+ * *localized display string* in the server's language (not an enum), so the same
+ * stat reads e.g. "最大HP" on a Japanese server. Map the known enum + localized
+ * forms to a canonical English label; unknown strings fall back to themselves.
+ */
 const STATUS_LABELS: Record<string, string> = {
+  // Enum / internal forms.
   MaxHP: "Health",
   MaxSP: "Stamina",
   Attack: "Attack",
@@ -53,8 +59,21 @@ const STATUS_LABELS: Record<string, string> = {
   CaptureRate: "Capture Power",
   WorkSpeed: "Work Speed",
   Support: "Support",
+  // Japanese display forms (the language most servers surfaced in these saves).
+  最大HP: "Health",
+  最大SP: "Stamina",
+  攻撃力: "Attack",
+  所持重量: "Weight",
+  捕獲率: "Capture Power",
+  作業速度: "Work Speed",
+  滑空速度: "Glide Speed",
+  移動速度アップ: "Movement Speed",
+  泳ぎ速度: "Swim Speed",
+  ジャンプ力: "Jump Power",
+  空腹率低減: "Hunger Resistance",
+  パルスフィアホーミング: "Pal Sphere Aim",
 };
 export function statusLabel(code: string): string {
   const key = code.replace(/^EPalStatusName::/, "");
-  return STATUS_LABELS[key] ?? humanize(code);
+  return STATUS_LABELS[code] ?? STATUS_LABELS[key] ?? humanize(code);
 }

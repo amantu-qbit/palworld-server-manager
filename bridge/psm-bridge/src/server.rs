@@ -225,7 +225,7 @@ async fn player_detail(State(state): State<ServerState>, Path(id): Path<String>)
 struct PlayerDetail {
     summary: PlayerSummary,
     level: i32,
-    exp: i32,
+    exp: i64,
     /// Stat-point allocations, e.g. `{ "MaxHP": 3, "MaxSP": 2, ... }`.
     status_points: BTreeMap<String, i32>,
     ext_status_points: BTreeMap<String, i32>,

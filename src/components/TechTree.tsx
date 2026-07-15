@@ -202,7 +202,7 @@ function Tile({
       onBlur={onLeave}
     >
       {kind && <span className="tt-tile__kind">{kind}</span>}
-      <TechIcon cell={cell} size={50} />
+      <TechIcon cell={cell} />
       {!on && m.cost > 0 && <span className="tt-tile__cost">{m.cost}</span>}
       <span className="tt-tile__name">{m.name}</span>
     </button>

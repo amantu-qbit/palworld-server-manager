@@ -135,7 +135,7 @@ fn build_player(sp: &BTreeMap<String, Property>, uid: Uuid, instance_id: Uuid) -
         instance_id: guid_string(instance_id),
         nickname: get_str(sp, "NickName"),
         level: get_byte(sp, "Level", 1),
-        exp: get_int(sp, "Exp", 0),
+        exp: get_int64(sp, "Exp", 0),
         hp: get_fixed_point64(sp, "Hp"),
         stomach: get_float(sp, "FullStomach", 150.0) as i32,
         sanity: get_float(sp, "SanityValue", 100.0) as i32,
@@ -188,7 +188,7 @@ fn build_pal(
         storage_id,
         storage_slot,
         level: get_byte(sp, "Level", 1),
-        exp: get_int(sp, "Exp", 0),
+        exp: get_int64(sp, "Exp", 0),
         rank: get_byte(sp, "Rank", 0),
         rank_hp: get_byte(sp, "Rank_HP", 0),
         rank_attack: get_byte(sp, "Rank_Attack", 0),
@@ -254,6 +254,12 @@ fn get_str(m: &BTreeMap<String, Property>, k: &str) -> String {
 /// `IntProperty`-family value as `i32` (`get_value`), or `default`.
 fn get_int(m: &BTreeMap<String, Property>, k: &str, default: i32) -> i32 {
     m.get(k).and_then(as_int).map(|v| v as i32).unwrap_or(default)
+}
+
+/// Like [`get_int`] but keeps full `i64` range — used for `Exp`, which exceeds
+/// `i32::MAX` for high-level players.
+fn get_int64(m: &BTreeMap<String, Property>, k: &str, default: i64) -> i64 {
+    m.get(k).and_then(as_int).unwrap_or(default)
 }
 
 /// A "None"-typed `ByteProperty` value as `i32` (`get_byte_property`), or

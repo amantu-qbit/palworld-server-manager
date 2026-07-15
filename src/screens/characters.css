@@ -476,9 +476,12 @@
   --anc-panel: rgba(150, 80, 200, 0.16);
   --anc-panel-line: rgba(185, 100, 225, 0.34);
   --anc-head: #d8a2f0;
-  --tt-tile: 84px;
-  --tt-rail: 48px;
-  --tt-anccol: 104px;
+  /* Tiles + icons scale with viewport width so the tree fills wide monitors
+     instead of sitting small and centred; clamped so it never gets silly. */
+  --tt-tile: clamp(84px, 6.2vw, 116px);
+  --tt-isz: clamp(50px, 3.8vw, 74px);
+  --tt-rail: 52px;
+  --tt-anccol: clamp(102px, 7.2vw, 138px);
   --tt-gap: 6px;
   display: flex;
   flex-direction: column;
@@ -822,6 +825,7 @@
   z-index: 5;
 }
 .tt-tile .techicon {
+  --isz: var(--tt-isz);
   transition:
     opacity 0.14s ease,
     filter 0.14s ease;
@@ -832,7 +836,7 @@
   left: 0;
   right: 0;
   padding: 2px 3px;
-  font-size: 8.5px;
+  font-size: clamp(8px, 0.62vw, 10px);
   font-weight: 600;
   text-align: center;
   text-transform: uppercase;
@@ -846,7 +850,7 @@
   left: 0;
   right: 0;
   padding: 3px 4px 4px;
-  font-size: 10px;
+  font-size: clamp(9px, 0.72vw, 12px);
   line-height: 1.12;
   text-align: center;
   color: var(--text);
@@ -865,7 +869,7 @@
   display: grid;
   place-items: center;
   font-family: var(--mono);
-  font-size: 26px;
+  font-size: clamp(20px, 1.7vw, 30px);
   font-weight: 700;
   color: #eaf6ff;
   text-shadow: 0 1px 5px rgba(0, 0, 0, 0.95);
@@ -978,11 +982,22 @@
   letter-spacing: 0;
 }
 
+/* Tech atlas icon: fully CSS-sized from --isz (set by the tile) and the cell
+   vars (--tcol/--trow/--tcols) set by the TechIcon component, so it scales. */
 .techicon {
+  --isz: 44px;
   flex: none;
+  width: var(--isz);
+  height: var(--isz);
+  background-image: url(/mapicons/tech-atlas.webp);
   background-repeat: no-repeat;
+  background-size: calc(var(--tcols) * var(--isz)) calc(var(--tcols) * var(--isz));
+  background-position: calc(var(--tcol) * var(--isz) * -1) calc(var(--trow) * var(--isz) * -1);
 }
 .techicon--empty {
+  --isz: 44px;
+  width: var(--isz);
+  height: var(--isz);
   border-radius: 6px;
   background: var(--surface-3);
 }

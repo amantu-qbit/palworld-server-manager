@@ -95,6 +95,28 @@ fn dump_sav_structure_from_env() {
     }
 }
 
+/// Local-only: `PSM_WORLD=<dir with Level.sav> cargo test -p psm-save --test debug_dump dump_status_names_from_env -- --ignored --nocapture`
+/// Prints each player's raw status-point names, to see whether the save stores
+/// enum codes or localized display strings.
+#[test]
+#[ignore]
+fn dump_status_names_from_env() {
+    let dir = std::env::var("PSM_WORLD").expect("set PSM_WORLD=<save dir>");
+    let bundle = psm_save::save::load_world_with_containers(Path::new(&dir)).expect("load world");
+    for p in &bundle.players {
+        if p.status_point_list.is_empty() && p.ext_status_point_list.is_empty() {
+            continue;
+        }
+        println!("=== {} (lv{}) exp={} ===", p.nickname, p.level, p.exp);
+        for (k, v) in &p.status_point_list {
+            println!("  status  {k:?} = {v}");
+        }
+        for (k, v) in &p.ext_status_point_list {
+            println!("  ext     {k:?} = {v}");
+        }
+    }
+}
+
 fn short_kind(v: &serde_json::Value) -> String {
     match v {
         serde_json::Value::Null => "null",
