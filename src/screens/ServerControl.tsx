@@ -154,7 +154,9 @@ export function ServerControl() {
                 <b>{running ? "Running" : "Stopped"}</b>
                 <small>
                   {running
-                    ? `PID ${data.pid ?? "?"} · up ${fmtUptime(data.uptime_secs ?? 0)}`
+                    ? data.uptime_secs != null
+                      ? `PID ${data.pid ?? "?"} · up ${fmtUptime(data.uptime_secs)}`
+                      : `PID ${data.pid ?? "?"} · detected (started outside PSM)`
                     : "The server process is not running."}
                 </small>
               </div>

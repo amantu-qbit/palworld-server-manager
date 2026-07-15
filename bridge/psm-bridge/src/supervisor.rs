@@ -108,14 +108,30 @@ impl Supervisor {
     }
 
     /// Current status (reaps a dead child as a side effect).
+    ///
+    /// `PalServer.exe` is a thin launcher that spawns the real server
+    /// (`PalServer-Win64-Shipping.exe`) and exits, so our tracked child dies
+    /// almost immediately — and after a bridge restart/update there's no handle
+    /// at all. So when the tracked child isn't alive, fall back to detecting the
+    /// real server process by name; this also picks up a server started outside
+    /// PSM. `uptime` is only known for a server we launched ourselves.
     pub fn status(&self) -> ServerStatus {
         let configured = self.is_configured();
         let mut slot = self.running.lock().unwrap_or_else(|p| p.into_inner());
-        let pid = Self::live_pid(&mut slot);
-        let uptime_secs = pid.and(slot.as_ref().map(|r| r.started.elapsed().as_secs()));
+        let tracked = Self::live_pid(&mut slot);
+        let tracked_uptime = tracked.and(slot.as_ref().map(|r| r.started.elapsed().as_secs()));
+        drop(slot);
+
+        let (running, pid, uptime_secs) = match tracked {
+            Some(p) => (true, Some(p), tracked_uptime),
+            None => {
+                let detected = find_server_pids().into_iter().next();
+                (detected.is_some(), detected, None)
+            }
+        };
         ServerStatus {
             configured,
-            running: pid.is_some(),
+            running,
             pid,
             uptime_secs,
         }
@@ -126,6 +142,12 @@ impl Supervisor {
         let cfg = self.cfg()?;
         let mut slot = self.running.lock().unwrap_or_else(|p| p.into_inner());
         if let Some(pid) = Self::live_pid(&mut slot) {
+            return Err(SupervisorError::AlreadyRunning(pid));
+        }
+        // Also refuse if a server is already running that we didn't launch (e.g.
+        // started manually, or still alive from before a bridge restart) — a
+        // second launch would fight over the game port.
+        if let Some(pid) = find_server_pids().into_iter().next() {
             return Err(SupervisorError::AlreadyRunning(pid));
         }
 
@@ -163,14 +185,27 @@ impl Supervisor {
             return Err(SupervisorError::NotConfigured);
         }
         let mut slot = self.running.lock().unwrap_or_else(|p| p.into_inner());
-        let pid = Self::live_pid(&mut slot).ok_or(SupervisorError::NotRunning)?;
-        kill_tree(pid).map_err(SupervisorError::Stop)?;
-        // Reap our handle so the slot is clean and no zombie remains.
-        if let Some(mut run) = slot.take() {
-            let _ = run.child.kill();
-            let _ = run.child.wait();
+        if let Some(pid) = Self::live_pid(&mut slot) {
+            kill_tree(pid).map_err(SupervisorError::Stop)?;
+            // Reap our handle so the slot is clean and no zombie remains.
+            if let Some(mut run) = slot.take() {
+                let _ = run.child.kill();
+                let _ = run.child.wait();
+            }
+            drop(slot);
+            return Ok(self.status());
         }
         drop(slot);
+
+        // No tracked child: stop a detected/adopted server (the launcher already
+        // exited, or the server was started outside PSM / before a restart).
+        let pids = find_server_pids();
+        if pids.is_empty() {
+            return Err(SupervisorError::NotRunning);
+        }
+        for pid in pids {
+            kill_tree(pid).map_err(SupervisorError::Stop)?;
+        }
         Ok(self.status())
     }
 
@@ -182,6 +217,53 @@ impl Supervisor {
         }
         self.start()
     }
+}
+
+/// Palworld's long-lived server process image names. `PalServer.exe` is only a
+/// launcher that spawns `PalServer-Win64-Shipping.exe` and exits, so the
+/// shipping exe is the real process to detect; the launcher is included for
+/// setups where it stays resident.
+#[cfg(windows)]
+const SERVER_IMAGE_NAMES: &[&str] = &["PalServer-Win64-Shipping.exe", "PalServer.exe"];
+
+/// PIDs of any running Palworld server process, by image name (Windows:
+/// `tasklist`). This is what lets status/start/stop work for a server the
+/// bridge didn't launch itself, or that outlived a bridge restart/update.
+#[cfg(windows)]
+fn find_server_pids() -> Vec<u32> {
+    let mut pids = Vec::new();
+    for name in SERVER_IMAGE_NAMES {
+        if let Ok(out) = Command::new("tasklist")
+            .args(["/FI", &format!("IMAGENAME eq {name}"), "/FO", "CSV", "/NH"])
+            .output()
+        {
+            pids.extend(parse_tasklist_pids(&String::from_utf8_lossy(&out.stdout)));
+        }
+    }
+    pids.sort_unstable();
+    pids.dedup();
+    pids
+}
+
+/// Parse PIDs from `tasklist /FO CSV /NH` output. Each data row is
+/// `"Image","PID","Session","Session#","Mem"`; the "no tasks" info line has no
+/// CSV PID field and is skipped.
+#[cfg(windows)]
+fn parse_tasklist_pids(csv: &str) -> Vec<u32> {
+    csv.lines()
+        .filter_map(|line| {
+            let mut fields = line.split("\",\"");
+            let _image = fields.next()?;
+            fields.next()?.trim_matches('"').trim().parse::<u32>().ok()
+        })
+        .collect()
+}
+
+/// Non-Windows dev builds can't enumerate the server; detection is Windows-only
+/// (the real deployment target).
+#[cfg(not(windows))]
+fn find_server_pids() -> Vec<u32> {
+    Vec::new()
 }
 
 /// Kill a process and all of its descendants.
@@ -212,4 +294,22 @@ fn kill_tree(pid: u32) -> Result<(), String> {
         .output()
         .map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    use super::parse_tasklist_pids;
+
+    #[test]
+    fn parses_pids_from_tasklist_csv() {
+        let csv = "\"PalServer-Win64-Shipping.exe\",\"12345\",\"Services\",\"0\",\"1,234,567 K\"\n\
+                   \"PalServer-Win64-Shipping.exe\",\"6789\",\"Console\",\"1\",\"900,000 K\"";
+        assert_eq!(parse_tasklist_pids(csv), vec![12345, 6789]);
+    }
+
+    #[test]
+    fn ignores_no_match_info_line() {
+        let csv = "INFO: No tasks are running which match the specified criteria.";
+        assert!(parse_tasklist_pids(csv).is_empty());
+    }
 }
