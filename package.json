@@ -1,7 +1,7 @@
 {
   "name": "palworld-server-manager",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "A modern, open-source desktop control panel for your Palworld dedicated server.",
   "license": "MIT",
