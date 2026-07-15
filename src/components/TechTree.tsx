@@ -136,15 +136,17 @@ export function TechTree({
         <p className="ch-empty">No technologies match this filter.</p>
       ) : (
         <div className="tt-board">
-          <div className="tt-colhead">
-            <span className="tt-colhead__tech">Technology</span>
-            <span className="tt-colhead__anc">Ancient Technology</span>
-          </div>
-          {rows.map((row) => {
-            const slots: (TechMeta | null)[] = [...row.regular];
-            while (slots.length < 8) slots.push(null);
-            return (
-              <div key={row.level} className="tt-row">
+          <div className="tt-boardinner">
+            <div className="tt-colhead">
+              <span className="tt-colhead__tech">Technology</span>
+              <span className="tt-colhead__spacer" />
+              <span className="tt-colhead__anc">Ancient Technology</span>
+            </div>
+            {rows.map((row) => {
+              const slots: (TechMeta | null)[] = [...row.regular];
+              while (slots.length < 8) slots.push(null);
+              return (
+                <div key={row.level} className="tt-row">
                 <div className="tt-lvl">
                   <span className="tt-lvl__n">
                     <i>{row.level}</i>
@@ -166,9 +168,10 @@ export function TechTree({
                   )}
                 </div>
               </div>
-            );
-          })}
-        </div>
+              );
+              })}
+            </div>
+          </div>
       )}
 
       {tip && <Tooltip tip={tip} />}
@@ -199,7 +202,7 @@ function Tile({
       onBlur={onLeave}
     >
       {kind && <span className="tt-tile__kind">{kind}</span>}
-      <TechIcon cell={cell} size={36} />
+      <TechIcon cell={cell} size={50} />
       {!on && m.cost > 0 && <span className="tt-tile__cost">{m.cost}</span>}
       <span className="tt-tile__name">{m.name}</span>
     </button>
