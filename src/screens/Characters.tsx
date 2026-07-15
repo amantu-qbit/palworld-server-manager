@@ -12,8 +12,9 @@ import {
   useBridgePlayers,
   useBridgeReference,
 } from "../hooks/bridge";
+import { TechTree } from "../components/TechTree";
 import { elementColor, isRare, palInfo } from "../lib/palDex";
-import { humanize, statusLabel, techInfo, workLabel } from "../lib/palLabels";
+import { humanize, statusLabel, workLabel } from "../lib/palLabels";
 import type { ItemContainer, Pal, PlayerDetail, PlayerSummary } from "../types/bridge";
 
 const genderSymbol = (g: string) => {
@@ -293,64 +294,22 @@ function IvBar({ label, v }: { label: string; v: number }) {
 
 function CharacterTab({ detail }: { detail: PlayerDetail }) {
   const stats = { ...detail.status_points, ...detail.ext_status_points };
-  const techs = detail.technologies.map((code) => techInfo(code));
-  const boss = techs.filter((t) => t.boss).sort((a, b) => a.name.localeCompare(b.name));
-  const normal = techs.filter((t) => !t.boss);
-  const byLevel = new Map<number, string[]>();
-  for (const t of normal) {
-    const arr = byLevel.get(t.level) ?? [];
-    arr.push(t.name);
-    byLevel.set(t.level, arr);
-  }
-  const levels = [...byLevel.keys()].sort((a, b) => a - b);
 
   return (
     <div className="ch-char">
       <div className="ch-statgrid">
         <Stat label="Level" value={detail.level} />
         <Stat label="EXP" value={detail.exp.toLocaleString()} />
-        <Stat label="Tech Points" value={detail.technology_points} />
-        <Stat label="Ancient Points" value={detail.boss_technology_points} />
         {Object.entries(stats).map(([k, v]) => (
           <Stat key={k} label={statusLabel(k)} value={`+${v}`} />
         ))}
       </div>
 
-      <section className="ch-section">
-        <h4>
-          Technologies <span className="ch-count">{techs.length}</span>
-        </h4>
-        {techs.length === 0 ? (
-          <p className="ch-empty">No technologies unlocked yet.</p>
-        ) : (
-          <div className="ch-techtree">
-            {levels.map((lv) => (
-              <div key={lv} className="ch-techlevel">
-                <div className="ch-techlevel__lv">{lv > 0 ? `Lv ${lv}` : "—"}</div>
-                <div className="ch-techs">
-                  {byLevel.get(lv)!.map((name) => (
-                    <span key={name} className="ch-tech">
-                      {name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-            {boss.length > 0 && (
-              <div className="ch-techlevel">
-                <div className="ch-techlevel__lv ch-techlevel__lv--boss">Ancient</div>
-                <div className="ch-techs">
-                  {boss.map((t) => (
-                    <span key={t.name} className="ch-tech ch-tech--boss">
-                      {t.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </section>
+      <TechTree
+        unlocked={detail.technologies}
+        techPoints={detail.technology_points}
+        ancientPoints={detail.boss_technology_points}
+      />
     </div>
   );
 }

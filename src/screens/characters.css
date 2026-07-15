@@ -468,43 +468,523 @@
   color: var(--dim);
 }
 
-.ch-techtree {
+/* ---- In-game technology tree ---- */
+.tt {
+  --anc: #c77fe0;
+  --anc-soft: rgba(199, 127, 224, 0.15);
+  --anc-line: rgba(199, 127, 224, 0.42);
+  --anc-panel: rgba(150, 80, 200, 0.16);
+  --anc-panel-line: rgba(185, 100, 225, 0.34);
+  --anc-head: #d8a2f0;
+  --tt-tile: 84px;
+  --tt-rail: 48px;
+  --tt-anccol: 104px;
+  --tt-gap: 6px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
-.ch-techlevel {
-  display: grid;
-  grid-template-columns: 52px 1fr;
-  gap: 10px;
-  align-items: baseline;
-}
-.ch-techlevel__lv {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--accent);
-  text-align: right;
-  padding-top: 3px;
-}
-.ch-techlevel__lv--boss {
-  color: #f5c85a;
-}
-.ch-techs {
+
+.tt-head {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  align-items: stretch;
+  gap: 10px;
 }
-.ch-tech {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: var(--r-xs);
-  background: var(--surface-2, rgba(255, 255, 255, 0.04));
+.tt-pt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 11px;
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
   box-shadow: inset 0 0 0 1px var(--line);
+}
+.tt-pt img {
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+}
+.tt-pt__txt {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.tt-pt__txt b {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+}
+.tt-pt__txt span {
+  font-size: 10px;
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tt-pt--tech {
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.tt-pt--tech b {
+  color: var(--accent);
+}
+.tt-pt--anc {
+  box-shadow: inset 0 0 0 1px var(--anc-line);
+}
+.tt-pt--anc b {
+  color: var(--anc);
+}
+.tt-prog {
+  flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.tt-prog__n {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.tt-prog__n b {
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--text);
+}
+.tt-prog__n span {
+  font-size: 11px;
+  color: var(--faint);
+}
+.tt-prog__bar {
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.tt-prog__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+}
+.tt-prog__anc {
+  font-size: 10px;
+  color: var(--anc);
+  letter-spacing: 0.03em;
+}
+
+/* Filter bar: show/hide locked & unlocked, and search by name. */
+.tt-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.tt-seg {
+  display: flex;
+  padding: 3px;
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.tt-seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--dim);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.14s ease,
+    color 0.14s ease;
+}
+.tt-seg button span {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+}
+.tt-seg button:hover {
+  color: var(--text);
+}
+.tt-seg button.is-on {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.tt-seg button.is-on span {
+  color: var(--accent);
+}
+.tt-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1 1 180px;
+  max-width: 300px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--faint);
+}
+.tt-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  outline: none;
+}
+.tt-search input::placeholder {
+  color: var(--faint);
+}
+.tt-search__clear {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  color: var(--dim);
+  cursor: pointer;
+}
+.tt-search__clear:hover {
+  color: var(--text);
+}
+
+.tt-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: min(70vh, 720px);
+  overflow: auto;
+  padding: 0 0 10px;
+  scrollbar-width: thin;
+}
+/* Centered wrapper: keeps the tree centred on wide panes; when it is wider than
+   the pane the auto margins collapse to 0, so it left-aligns and scrolls. */
+.tt-boardinner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: fit-content;
+  margin: 0 auto;
+}
+/* Vertical spine linking the level diamonds. */
+.tt-boardinner::before {
+  content: "";
+  position: absolute;
+  top: 52px;
+  bottom: 4px;
+  left: calc(var(--tt-rail) / 2 - 1px);
+  width: 2px;
+  background: linear-gradient(var(--accent-line), var(--line));
+  z-index: 0;
+}
+
+.tt-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tt-gap);
+  position: relative;
+}
+
+/* Two column headers: "Technology" (left) and "Ancient Technology" (right). */
+.tt-colhead {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  align-items: stretch;
+  gap: var(--tt-gap);
+  padding: 2px 0 6px;
+  background: var(--bg);
+}
+.tt-colhead__tech {
+  flex: 1 1 auto;
+  padding: 7px 16px;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: linear-gradient(var(--accent-soft), transparent);
+  box-shadow: inset 0 -2px 0 var(--accent-line);
+}
+.tt-colhead__spacer {
+  flex: 0 0 16px;
+}
+.tt-colhead__anc {
+  flex: 0 0 var(--tt-anccol);
+  display: grid;
+  place-items: center;
+  padding: 6px 8px;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--anc-head);
+  background: linear-gradient(var(--anc-panel), rgba(150, 80, 200, 0.05));
+  box-shadow: inset 0 -2px 0 var(--anc-panel-line);
+}
+
+/* Level diamond marker — sticky-left so it stays visible during scroll. */
+.tt-lvl {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  flex: 0 0 var(--tt-rail);
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(90deg, var(--bg) 62%, transparent);
+}
+.tt-lvl__n {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  transform: rotate(45deg);
+  border-radius: 7px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1.5px var(--accent-line);
+}
+.tt-lvl__n i {
+  transform: rotate(-45deg);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  font-style: normal;
+  color: var(--accent);
+}
+
+/* Empty regular slot keeps the eight-wide grid aligned. */
+.tt-slot {
+  flex: 0 0 var(--tt-tile);
+  height: var(--tt-tile);
+}
+/* Divider between the regular grid and the Ancient panel. */
+.tt-div {
+  flex: 0 0 16px;
+}
+
+/* Ancient column: a separate purple panel beside the grid. */
+.tt-anc {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 var(--tt-anccol);
+  display: grid;
+  place-items: center;
+  background: #15091d;
+  box-shadow:
+    0 -3px 0 #15091d,
+    0 3px 0 #15091d,
+    inset 1px 0 0 var(--anc-panel-line);
+}
+.tt-anc__empty {
+  width: var(--tt-tile);
+  height: var(--tt-tile);
+  border-radius: 9px;
+  box-shadow: inset 0 0 0 1px rgba(185, 100, 225, 0.1);
+}
+
+.tt-tile {
+  position: relative;
+  flex: 0 0 var(--tt-tile);
+  width: var(--tt-tile);
+  height: var(--tt-tile);
+  border-radius: 9px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition:
+    box-shadow 0.14s ease,
+    transform 0.14s ease;
+}
+.tt-tile:hover {
+  transform: translateY(-1px);
+  z-index: 5;
+}
+.tt-tile .techicon {
+  transition:
+    opacity 0.14s ease,
+    filter 0.14s ease;
+}
+.tt-tile__kind {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 2px 3px;
+  font-size: 8.5px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  background: rgba(3, 12, 22, 0.8);
+}
+.tt-tile__name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 3px 4px 4px;
+  font-size: 10px;
+  line-height: 1.12;
+  text-align: center;
+  color: var(--text);
+  background: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.82) 45%);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tt-tile__cost {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  bottom: 20px;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: #eaf6ff;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.95);
+}
+
+/* Unlocked (lit) vs locked (dimmed). */
+.tt-tile.is-on.tt-tile--tech {
+  background: linear-gradient(150deg, var(--accent-soft), transparent 78%);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.tt-tile.is-on.tt-tile--anc {
+  background: linear-gradient(150deg, var(--anc-soft), transparent 78%);
+  box-shadow: inset 0 0 0 1px var(--anc-line);
+}
+.tt-tile.is-off {
+  background: var(--surface-0);
+}
+.tt-tile.is-off .techicon {
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+.tt-tile.is-off .tt-tile__name {
   color: var(--dim);
 }
-.ch-tech--boss {
-  color: #f5c85a;
-  box-shadow: inset 0 0 0 1px rgba(245, 200, 90, 0.35);
+.tt-tile--anc .tt-tile__kind {
+  color: var(--anc-head);
+}
+.tt-tile.is-on.tt-tile--tech:hover {
+  box-shadow:
+    inset 0 0 0 1px var(--accent),
+    0 6px 16px -8px var(--accent-glow);
+}
+.tt-tile.is-on.tt-tile--anc:hover {
+  box-shadow:
+    inset 0 0 0 1px var(--anc),
+    0 6px 16px -8px rgba(199, 127, 224, 0.4);
+}
+.tt-tile.is-off:hover {
+  box-shadow: inset 0 0 0 1px var(--line-3);
+}
+.tt-tile.is-off:hover .techicon {
+  opacity: 0.62;
+  filter: grayscale(0.15);
+}
+
+/* Hover tooltip (rendered fixed, outside the scroll container). */
+.tt-pop {
+  position: fixed;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  box-shadow:
+    inset 0 0 0 1px var(--accent-line),
+    0 14px 32px -12px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+.tt-pop--anc {
+  box-shadow:
+    inset 0 0 0 1px var(--anc-line),
+    0 14px 32px -12px rgba(0, 0, 0, 0.8);
+}
+.tt-pop__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tt-pop__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tt-pop__cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--dim);
+}
+.tt-pop__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.tt-pop__state {
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  color: var(--dim);
+}
+.tt-pop__state.is-on {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.tt-pop__desc {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--dim);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.techicon {
+  flex: none;
+  background-repeat: no-repeat;
+}
+.techicon--empty {
+  border-radius: 6px;
+  background: var(--surface-3);
 }
 
 /* ---- Pal detail modal ---- */
