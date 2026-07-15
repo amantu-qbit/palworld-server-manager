@@ -9,9 +9,10 @@
 //! before adding a new route.
 
 use std::collections::{BTreeMap, HashMap};
+use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 
-use axum::extract::{Path, Request, State};
+use axum::extract::{Path, Query, Request, State};
 use axum::http::{header, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
@@ -21,7 +22,9 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use psm_save::save::containers::PlayerContainerIds;
-use psm_save::save::decompress::SaveError;
+use psm_save::save::debug::{node_to_json, resolve, DumpOpts};
+use psm_save::save::decompress::{decompress_sav, SaveError};
+use psm_save::save::gvas::{default_skip_set, parse_gvas};
 use psm_save::save::model::{ItemContainer, Pal, Player, PlayerSummary};
 use psm_save::save::reference::{load_reference, Reference};
 use psm_save::save::WorldBundle;
@@ -58,6 +61,8 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/server/start", post(server_start))
         .route("/v1/server/stop", post(server_stop))
         .route("/v1/server/restart", post(server_restart))
+        .route("/v1/debug/savfiles", get(debug_savfiles))
+        .route("/v1/debug/savtree", get(debug_savtree))
 }
 
 /// Build the bridge HTTP router.
@@ -407,6 +412,177 @@ fn supervisor_result(result: Result<ServerStatus, SupervisorError>) -> Response 
                 .into_response()
         }
     }
+}
+
+// ---- Debug: raw GVAS tree viewer (read-only) ----
+
+#[derive(Serialize)]
+struct SavFileInfo {
+    /// File name, e.g. `Level.sav`.
+    name: String,
+    /// Path relative to `save_dir`, forward-slashed, e.g. `Players/ABC….sav`.
+    rel_path: String,
+    size_bytes: u64,
+}
+
+/// `GET /v1/debug/savfiles` — every `.sav` under `save_dir` (recursive, bounded),
+/// so the viewer can populate its picker without guessing names.
+async fn debug_savfiles(State(state): State<ServerState>) -> Response {
+    let dir = state.app.save_dir();
+    let mut out = Vec::new();
+    collect_sav_files(dir, dir, 0, &mut out);
+    out.sort_by(|a, b| a.rel_path.cmp(&b.rel_path));
+    Json(out).into_response()
+}
+
+/// Recursively collect `.sav` files under `root`, capped in depth and count so a
+/// deep backup tree can't make the listing unbounded.
+fn collect_sav_files(
+    root: &std::path::Path,
+    dir: &std::path::Path,
+    depth: usize,
+    out: &mut Vec<SavFileInfo>,
+) {
+    if depth > 4 || out.len() >= 1000 {
+        return;
+    }
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_sav_files(root, &path, depth + 1, out);
+        } else if path
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|e| e.eq_ignore_ascii_case("sav"))
+        {
+            let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+            let rel = path.strip_prefix(root).unwrap_or(&path);
+            out.push(SavFileInfo {
+                name: path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or_default()
+                    .to_string(),
+                rel_path: rel.to_string_lossy().replace('\\', "/"),
+                size_bytes: size,
+            });
+        }
+        if out.len() >= 1000 {
+            return;
+        }
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct SavTreeParams {
+    /// A name/relative path under `save_dir`, or an absolute path to a `.sav`.
+    file: String,
+    /// Dotted subtree path; empty = root.
+    #[serde(default)]
+    path: String,
+    page: Option<usize>,
+    depth: Option<usize>,
+}
+
+/// `GET /v1/debug/savtree?file=&path=&page=&depth=` — one bounded subtree of a
+/// `.sav`'s decoded generic GVAS tree. Read-only; byte blobs are summarized.
+async fn debug_savtree(State(state): State<ServerState>, Query(p): Query<SavTreeParams>) -> Response {
+    let path = match resolve_sav_path(state.app.save_dir(), &p.file) {
+        Ok(path) => path,
+        Err(detail) => return bad_request(detail),
+    };
+    let bytes = match std::fs::read(&path) {
+        Ok(b) => b,
+        Err(e) => return internal_error(e),
+    };
+    let raw = match decompress_sav(&bytes) {
+        Ok(r) => r,
+        Err(e) => return unprocessable(e),
+    };
+    let gvas = match parse_gvas(&raw, &default_skip_set()) {
+        Ok(g) => g,
+        Err(e) => return unprocessable(e),
+    };
+    let node = match resolve(&gvas.root, &p.path) {
+        Some(n) => n,
+        None => return not_found(),
+    };
+    let opts = DumpOpts {
+        page: Some(p.page.unwrap_or(200).clamp(1, 2000)),
+        depth: p.depth.unwrap_or(2).min(12),
+    };
+    let node_json = node_to_json(&node, &opts);
+    Json(serde_json::json!({
+        "file": p.file,
+        "path": p.path,
+        "node": node_json,
+        "meta": { "size_bytes": bytes.len() },
+    }))
+    .into_response()
+}
+
+/// Validate + resolve the `file` param to a readable `.sav` path. A relative
+/// `file` is joined under `save_dir` and must canonicalize to within it (no
+/// `..` traversal); an absolute path is allowed (the bridge is owner-run) but
+/// must still be a real, readable `.sav`.
+fn resolve_sav_path(save_dir: &std::path::Path, file: &str) -> Result<PathBuf, String> {
+    if file.trim().is_empty() {
+        return Err("missing file".into());
+    }
+    let requested = std::path::Path::new(file);
+    let is_absolute = requested.is_absolute();
+    let candidate = if is_absolute {
+        requested.to_path_buf()
+    } else {
+        save_dir.join(requested)
+    };
+    let canonical = candidate
+        .canonicalize()
+        .map_err(|_| format!("no such .sav file: {file}"))?;
+    if !canonical.is_file() {
+        return Err(format!("not a file: {file}"));
+    }
+    let is_sav = canonical
+        .extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|e| e.eq_ignore_ascii_case("sav"));
+    if !is_sav {
+        return Err("only .sav files can be inspected".into());
+    }
+    if !is_absolute {
+        let root = save_dir.canonicalize().map_err(|e| e.to_string())?;
+        if !canonical.starts_with(&root) {
+            return Err("path escapes the save directory".into());
+        }
+    }
+    Ok(canonical)
+}
+
+fn bad_request(detail: impl std::fmt::Display) -> Response {
+    (
+        StatusCode::BAD_REQUEST,
+        Json(ErrorDetailResponse {
+            error: "bad request",
+            detail: detail.to_string(),
+        }),
+    )
+        .into_response()
+}
+
+/// `422` for a file that exists but could not be decompressed or GVAS-parsed —
+/// distinct from a `500` (unexpected IO) or `400` (bad request).
+fn unprocessable(err: impl std::fmt::Display) -> Response {
+    (
+        StatusCode::UNPROCESSABLE_ENTITY,
+        Json(ErrorDetailResponse {
+            error: "unprocessable save",
+            detail: err.to_string(),
+        }),
+    )
+        .into_response()
 }
 
 /// Bearer-auth middleware, applied to every route via [`router`].

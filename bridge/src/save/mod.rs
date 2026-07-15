@@ -1,6 +1,7 @@
 //! Save-directory decoding (read-only).
 pub mod character;
 pub mod containers;
+pub mod debug;
 pub mod decompress;
 pub mod guild;
 pub mod gvas;
