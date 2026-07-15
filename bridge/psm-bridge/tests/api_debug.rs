@@ -80,6 +80,20 @@ async fn savtree_bad_path_is_not_found() {
 }
 
 #[tokio::test]
+async fn savtree_garbage_sav_is_unprocessable_not_a_crash() {
+    // A `.sav` that isn't a valid PlZ/PlM container: decode must fail cleanly as
+    // 422, and the request must return (not unwind the task / hang the server).
+    let mut p = std::env::temp_dir();
+    p.push(format!("psm_debug_garbage_{}.sav", std::process::id()));
+    std::fs::write(&p, b"not a real palworld save file at all").expect("write temp .sav");
+    // Encode the absolute path for the query (colon on Windows drive letters).
+    let file = p.to_str().unwrap().replace('\\', "/").replace(':', "%3A");
+    let (status, _) = get(&format!("/v1/debug/savtree?file={file}")).await;
+    let _ = std::fs::remove_file(&p);
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+}
+
+#[tokio::test]
 async fn debug_routes_require_auth() {
     let app = make_router();
     let request = Request::builder()

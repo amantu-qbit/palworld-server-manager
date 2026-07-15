@@ -9,6 +9,7 @@
 //! before adding a new route.
 
 use std::collections::{BTreeMap, HashMap};
+use std::panic::AssertUnwindSafe;
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 
@@ -487,6 +488,30 @@ struct SavTreeParams {
     depth: Option<usize>,
 }
 
+/// Failure modes of [`build_savtree`], mapped to HTTP status by the handler.
+enum SavTreeError {
+    /// Filesystem read failed → 500.
+    Io(std::io::Error),
+    /// Decompress or GVAS parse failed on a well-formed request → 422.
+    Decode(SaveError),
+    /// The requested subtree path doesn't exist → 404.
+    NoPath,
+}
+
+/// Read + decompress + GVAS-parse + project one subtree to JSON, returning the
+/// node and the file's byte size. Runs entirely inside the blocking-pool +
+/// `catch_unwind` boundary in [`debug_savtree`], because the GVAS reader
+/// `assert!`s on malformed input (see `psm_save::save::reader`) — the same
+/// quarantine every other decode path uses (`AppState::decode_off_thread`).
+fn build_savtree(path: &std::path::Path, sub: &str, opts: DumpOpts) -> Result<(serde_json::Value, usize), SavTreeError> {
+    let bytes = std::fs::read(path).map_err(SavTreeError::Io)?;
+    let size = bytes.len();
+    let raw = decompress_sav(&bytes).map_err(SavTreeError::Decode)?;
+    let gvas = parse_gvas(&raw, &default_skip_set()).map_err(SavTreeError::Decode)?;
+    let node = resolve(&gvas.root, sub).ok_or(SavTreeError::NoPath)?;
+    Ok((node_to_json(&node, &opts), size))
+}
+
 /// `GET /v1/debug/savtree?file=&path=&page=&depth=` — one bounded subtree of a
 /// `.sav`'s decoded generic GVAS tree. Read-only; byte blobs are summarized.
 async fn debug_savtree(State(state): State<ServerState>, Query(p): Query<SavTreeParams>) -> Response {
@@ -494,32 +519,33 @@ async fn debug_savtree(State(state): State<ServerState>, Query(p): Query<SavTree
         Ok(path) => path,
         Err(detail) => return bad_request(detail),
     };
-    let bytes = match std::fs::read(&path) {
-        Ok(b) => b,
-        Err(e) => return internal_error(e),
-    };
-    let raw = match decompress_sav(&bytes) {
-        Ok(r) => r,
-        Err(e) => return unprocessable(e),
-    };
-    let gvas = match parse_gvas(&raw, &default_skip_set()) {
-        Ok(g) => g,
-        Err(e) => return unprocessable(e),
-    };
-    let node = match resolve(&gvas.root, &p.path) {
-        Some(n) => n,
-        None => return not_found(),
-    };
+    let sub = p.path.clone();
     let opts = DumpOpts {
         page: Some(p.page.unwrap_or(200).clamp(1, 2000)),
         depth: p.depth.unwrap_or(2).min(12),
     };
-    let node_json = node_to_json(&node, &opts);
+
+    // Decode off the async runtime, catching any decoder panic on a crafted or
+    // corrupt save so it becomes a 422 instead of unwinding the request task.
+    let outcome = tokio::task::spawn_blocking(move || {
+        std::panic::catch_unwind(AssertUnwindSafe(move || build_savtree(&path, &sub, opts)))
+    })
+    .await;
+
+    let (node, size) = match outcome {
+        Ok(Ok(Ok(v))) => v,
+        Ok(Ok(Err(SavTreeError::Io(e)))) => return internal_error(e),
+        Ok(Ok(Err(SavTreeError::Decode(e)))) => return unprocessable(e),
+        Ok(Ok(Err(SavTreeError::NoPath))) => return not_found(),
+        // Decoder panicked (caught) or the blocking task failed to join.
+        Ok(Err(_panic)) => return unprocessable("this .sav could not be decoded"),
+        Err(_join) => return internal_error("decode task failed"),
+    };
     Json(serde_json::json!({
         "file": p.file,
         "path": p.path,
-        "node": node_json,
-        "meta": { "size_bytes": bytes.len() },
+        "node": node,
+        "meta": { "size_bytes": size },
     }))
     .into_response()
 }
