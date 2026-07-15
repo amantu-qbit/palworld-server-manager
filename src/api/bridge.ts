@@ -7,6 +7,8 @@ import type {
   PlayerDetail,
   PlayerSummary,
   ReferenceCatalog,
+  SavFileInfo,
+  SavTreeResponse,
   ServerStatus,
 } from "../types/bridge";
 
@@ -29,11 +31,22 @@ export interface BridgeApi {
   serverStart(): Promise<ServerStatus>;
   serverStop(): Promise<ServerStatus>;
   serverRestart(): Promise<ServerStatus>;
+  /** Raw Save debug: list `.sav` files under the bridge save dir. */
+  savFiles(): Promise<SavFileInfo[]>;
+  /** Raw Save debug: one bounded subtree of a `.sav`'s decoded GVAS tree. */
+  savTree(file: string, path?: string, page?: number, depth?: number): Promise<SavTreeResponse>;
 }
 
 const path = {
   playerDetail: (uid: string) => `/players/${encodeURIComponent(uid)}`,
   reference: (catalog: string) => `/reference/${encodeURIComponent(catalog)}`,
+  savTree: (file: string, sub = "", page?: number, depth?: number) => {
+    const q = new URLSearchParams({ file });
+    if (sub) q.set("path", sub);
+    if (page != null) q.set("page", String(page));
+    if (depth != null) q.set("depth", String(depth));
+    return `/debug/savtree?${q.toString()}`;
+  },
 };
 
 const tauriBridge: BridgeApi = {
@@ -53,6 +66,9 @@ const tauriBridge: BridgeApi = {
   serverStart: () => invoke<ServerStatus>("bridge_post", { path: "/server/start" }),
   serverStop: () => invoke<ServerStatus>("bridge_post", { path: "/server/stop" }),
   serverRestart: () => invoke<ServerStatus>("bridge_post", { path: "/server/restart" }),
+  savFiles: () => invoke<SavFileInfo[]>("bridge_get", { path: "/debug/savfiles" }),
+  savTree: (file, sub, page, depth) =>
+    invoke<SavTreeResponse>("bridge_get", { path: path.savTree(file, sub, page, depth) }),
 };
 
 let conn: Connection | null = null;
@@ -100,6 +116,8 @@ const httpBridge: BridgeApi = {
   serverStart: () => call<ServerStatus>("/server/start", "POST"),
   serverStop: () => call<ServerStatus>("/server/stop", "POST"),
   serverRestart: () => call<ServerStatus>("/server/restart", "POST"),
+  savFiles: () => call<SavFileInfo[]>("/debug/savfiles"),
+  savTree: (file, sub, page, depth) => call<SavTreeResponse>(path.savTree(file, sub, page, depth)),
 };
 
 export const bridgeApi: BridgeApi = isTauri() ? tauriBridge : httpBridge;

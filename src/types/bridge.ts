@@ -130,3 +130,25 @@ export interface Guild {
 
 /** id → display-name map from `GET /v1/reference/{catalog}`. */
 export type ReferenceCatalog = Record<string, string>;
+
+/** One `.sav` file discovered under the bridge's save dir. */
+export interface SavFileInfo {
+  name: string;
+  rel_path: string;
+  size_bytes: number;
+}
+
+/**
+ * A node in the generic GVAS tree projection (bridge `save::debug`). Objects
+ * carry a `_type`; containers carry `_count` and either `items`/fields or
+ * `_collapsed`; byte blobs are `{ _bytes: number }`.
+ */
+export type SavNode = string | number | boolean | null | SavNode[] | { [k: string]: SavNode };
+
+/** `GET /v1/debug/savtree` — one bounded subtree of a decoded `.sav`. */
+export interface SavTreeResponse {
+  file: string;
+  path: string;
+  node: SavNode;
+  meta: { size_bytes: number };
+}

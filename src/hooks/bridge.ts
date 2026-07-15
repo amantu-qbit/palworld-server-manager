@@ -60,6 +60,26 @@ export function useBridgeReference(catalog: string) {
   });
 }
 
+/** Raw Save debug: the `.sav` files the bridge can see under its save dir. */
+export function useBridgeSavFiles() {
+  return useQuery({
+    queryKey: ["bridge", "savfiles"],
+    queryFn: () => bridgeApi.savFiles(),
+    staleTime: 30_000,
+  });
+}
+
+/** Raw Save debug: one subtree of a `.sav` (lazily fetched as nodes expand). */
+export function useBridgeSavTree(file: string | null, path: string, page?: number, depth?: number) {
+  return useQuery({
+    queryKey: ["bridge", "savtree", file, path, page, depth],
+    queryFn: () => bridgeApi.savTree(file as string, path, page, depth),
+    enabled: !!file,
+    staleTime: 10_000,
+    retry: 0,
+  });
+}
+
 /** Live process-supervisor status, polled while the Server Control screen is open. */
 export function useServerStatus(enabled: boolean) {
   return useQuery({
