@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ComponentType } from "react";
 import {
+  Braces,
   Heart,
   LayoutDashboard,
   Loader2,
@@ -26,6 +27,7 @@ import { Settings } from "./screens/Settings";
 import { BanManager } from "./screens/BanManager";
 import { Characters } from "./screens/Characters";
 import { ServerControl } from "./screens/ServerControl";
+import { RawSave } from "./screens/RawSave";
 import { Support } from "./screens/Support";
 import { UpdateBanner } from "./components/UpdateBanner";
 
@@ -48,6 +50,7 @@ const SCREENS: Record<string, ComponentType> = {
   bans: BanManager,
   characters: Characters,
   servercontrol: ServerControl,
+  rawsave: RawSave,
   support: Support,
 };
 
@@ -55,6 +58,7 @@ const SCREENS: Record<string, ComponentType> = {
 const BRIDGE_NAV: NavItem[] = [
   { id: "servercontrol", label: "Server Control", icon: Power, group: "Server+" },
   { id: "characters", label: "Characters", icon: PawPrint, group: "Server+" },
+  { id: "rawsave", label: "Raw Save", icon: Braces, group: "Server+" },
 ];
 
 export function App() {
