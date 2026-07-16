@@ -481,6 +481,7 @@ fn is_egg_body(body: &[u8]) -> bool {
     if body.len() < 4 {
         return false;
     }
+    let _probe = SpeculativeProbeGuard::enter();
     let outcome = std::panic::catch_unwind(|| -> bool {
         let mut r = Reader::new(body);
         r.skip(4); // leading_bytes
@@ -496,6 +497,36 @@ fn is_egg_body(body: &[u8]) -> bool {
         r.eof()
     });
     outcome.unwrap_or(false)
+}
+
+thread_local! {
+    /// Depth of speculative parse probes on this thread (see
+    /// [`speculative_probe_active`]).
+    static PROBE_DEPTH: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+}
+
+/// True while this thread is inside a deliberate parse-and-catch probe (the
+/// egg-body classifier). Panic hooks can consult this to suppress the probe's
+/// expected `Reader underrun` messages without hiding genuine decode-failure
+/// diagnostics from anywhere else.
+pub fn speculative_probe_active() -> bool {
+    PROBE_DEPTH.with(|d| d.get() > 0)
+}
+
+/// RAII marker for a speculative probe's extent.
+struct SpeculativeProbeGuard;
+
+impl SpeculativeProbeGuard {
+    fn enter() -> Self {
+        PROBE_DEPTH.with(|d| d.set(d.get() + 1));
+        SpeculativeProbeGuard
+    }
+}
+
+impl Drop for SpeculativeProbeGuard {
+    fn drop(&mut self) {
+        PROBE_DEPTH.with(|d| d.set(d.get().saturating_sub(1)));
+    }
 }
 
 /// Read an fstring only if its declared length fits within `buf`; otherwise

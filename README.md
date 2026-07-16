@@ -51,6 +51,9 @@ It's a tiny native app (a few MB, powered by [Tauri](https://tauri.app) — not 
 - **🖥️ Command console** — broadcast **announcements**, trigger a **save**, schedule a **shutdown** with a countdown, or **force‑stop** — each with a live activity log and confirmations for destructive actions.
 - **⚙️ Settings inspector** — browse all ~60 server settings, grouped and searchable, with one‑click copy and **JSON export** for backups.
 - **🛡️ Ban manager** — issue and lift bans by user ID, with a local record of everything you've banned through the app.
+- **🧬 Characters** *(via PSM Bridge)* — browse every player's stats, status points, level & EXP progress, unlocked technology tree, party / Pal‑box / base Pals with IVs, souls, and skills — decoded straight from the save files, no mods required.
+- **📦 Storage** *(via PSM Bridge)* — every player inventory bag and **guild chest** as a game‑style slot grid. With save edits enabled: **resize any container** (grow your guild chest without recreating the guild), set / clear item slots, and edit stacks.
+- **✏️ Save editing** *(opt‑in, via PSM Bridge)* — edit player level/EXP/status points, unlock or relock technologies, and edit Pals (level, nickname, passive & active skills, souls, talents, condenser rank). Every write happens only while the server is **stopped**, takes a **timestamped backup first**, is applied as a **surgical byte splice** (untouched data is preserved verbatim), and is re‑verified by a strict re‑parse before the file is replaced.
 - **🌑 Sleek OLED UI** — a high‑contrast, control‑room aesthetic that's easy on the eyes during long admin sessions.
 - **🔒 Local & private** — your credentials are stored on your machine and sent only to your server; nothing is phoned home.
 
@@ -186,6 +189,9 @@ It shows the base Palpagos world (where nearly all live server activity happens)
 **Is my admin password safe?**
 It's stored locally and sent only to the server you configure — never to any third party.
 
+**Is save editing safe?**
+It's opt‑in (off by default in the bridge config), refuses to run while the server process is alive, and every write takes a timestamped backup into `psm-backups/` next to your save first (the last 20 are kept per file). Edits are applied as surgical byte splices — everything you didn't touch is preserved byte‑for‑byte — and the result is re‑parsed and verified before the original file is replaced.
+
 ## 🗺️ Roadmap
 
 - [x] Automatic in-app updates
@@ -212,7 +218,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) to get
 
 ## 🎨 Credits & attribution
 
-This is an **unofficial fan tool** and is not affiliated with or endorsed by Pocketpair, Inc. Palworld and the map artwork are © Pocketpair, Inc. The bundled `public/palworld-map.webp` (the in‑game map texture) is used only to plot live positions, and the world→map coordinate conversion is ported from the community [palworld‑save‑pal](https://github.com/oMaN-Rod/palworld-save-pal) project.
+This is an **unofficial fan tool** and is not affiliated with or endorsed by Pocketpair, Inc. Palworld and the map artwork are © Pocketpair, Inc. The bundled `public/palworld-map.webp` (the in‑game map texture) is used only to plot live positions, and the world→map coordinate conversion is ported from the community [palworld‑save‑pal](https://github.com/oMaN-Rod/palworld-save-pal) project. The bundled game‑data catalogs (items, Pals, technologies, skills, exp curve — Palworld 1.0) are derived from palworld‑save‑pal's data files, which in turn build on [palworld‑save‑tools](https://github.com/cheahjs/palworld-save-tools); the save‑file format knowledge behind the bridge's reader and writer comes from both projects. Container‑resize semantics follow palworld‑save‑pal PR [#299](https://github.com/oMaN-Rod/palworld-save-pal/pull/299), and the 1.0 data refresh follows PR [#297](https://github.com/oMaN-Rod/palworld-save-pal/pull/297).
 
 ## 📄 License
 

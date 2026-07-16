@@ -20,3 +20,6 @@ copied from either project.
 
 Files are vendored as-is (unmodified) at the time of writing. If Palworld
 adds new items/skills, these catalogs may need to be refreshed from upstream.
+
+Last refresh: Palworld 1.0 game data, taken from palworld-save-pal
+PR #297 (branch `feat/palworld-1.0-game-data`).

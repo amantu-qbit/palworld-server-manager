@@ -3,7 +3,7 @@
 //
 // Why this exists: the Palworld /v1/api/game-data endpoint reports each Pal's
 // species in `Actor.Class` as its *localized display name* ("Petallia",
-// "Blazehowl"), whereas the bundled icons in public/mapicons/pals are named by
+// "Blazehowl"), whereas the bundled icons in assets/pal-icons are named by
 // the game's internal code names ("flowerdoll", "manticore"). This script builds
 // the bridge between them.
 //
@@ -47,7 +47,7 @@ const underscores = (s) => (s.match(/_/g) || []).length;
 
 const pals = JSON.parse(readFileSync(srcPath, "utf8"));
 const icons = new Set(
-  readdirSync(resolve(root, "public/mapicons/pals"))
+  readdirSync(resolve(root, "assets/pal-icons"))
     .filter((f) => f.endsWith(".webp"))
     .map((f) => f.slice(0, -5)),
 );

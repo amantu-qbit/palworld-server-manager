@@ -75,11 +75,16 @@ pub async fn post(c: &BridgeCreds, path: &str, body: Option<Value>) -> Result<Va
     if !resp.status().is_success() {
         let status = resp.status();
         let text = resp.text().await.unwrap_or_default();
-        if let Some(detail) = serde_json::from_str::<Value>(&text)
-            .ok()
-            .and_then(|v| v.get("detail").and_then(|d| d.as_str()).map(str::to_string))
-        {
-            return Err(detail);
+        // Prefer the human-readable `detail`; fall back to the machine `error`
+        // code (e.g. 403 `writes_disabled` / 409 `server_running` carry no
+        // detail) before the bare status line.
+        if let Some(msg) = serde_json::from_str::<Value>(&text).ok().and_then(|v| {
+            v.get("detail")
+                .and_then(|d| d.as_str())
+                .or_else(|| v.get("error").and_then(|e| e.as_str()))
+                .map(str::to_string)
+        }) {
+            return Err(msg);
         }
         return Err(format!("Bridge returned {status}"));
     }

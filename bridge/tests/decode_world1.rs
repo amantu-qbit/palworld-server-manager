@@ -205,7 +205,24 @@ fn load_world_with_containers_matches_load_world_and_has_item_containers() {
 
     assert_eq!(bundle.world.players.len(), 2, "world1 has exactly 2 players");
     assert_eq!(bundle.world.pal_count(), 11, "world1 has exactly 11 pals");
-    assert_eq!(bundle.world, world1(), "bundle.world matches load_world's result");
+    // `load_world_with_containers` additionally resolves each guild's chest
+    // from `GuildExtraSaveDataMap` (which the plain `load_world` cannot — it
+    // decodes no containers), so compare with chests stripped, then assert
+    // the chest back-fill separately.
+    let mut world_sans_chests = bundle.world.clone();
+    for g in &mut world_sans_chests.guilds {
+        g.guild_chest = None;
+    }
+    assert_eq!(
+        world_sans_chests,
+        world1(),
+        "bundle.world (minus guild chests) matches load_world's result"
+    );
+    assert!(
+        bundle.world.guilds.iter().any(|g| g.guild_chest.is_some()),
+        "world1's guild has a resolvable guild chest"
+    );
+    assert!(!bundle.guild_chests.is_empty(), "guild_chests index populated");
 
     assert!(
         !bundle.item_containers.is_empty(),

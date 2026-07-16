@@ -348,3 +348,48 @@ fn skip_role_permissions_checked(r: &mut Reader) -> Option<()> {
     }
     Some(())
 }
+
+/// Decode `GuildExtraSaveDataMap` into a guild-id → guild-chest container-id
+/// index.
+///
+/// Ports the `oMaN-Rod/palworld-save-tools` fork's
+/// `rawdata/guild_item_storage.py`: each map entry's key is the guild id (a
+/// bare `Guid`), and its value's `GuildItemStorage.RawData` blob is simply a
+/// 16-byte container guid (plus optional trailing bytes, ignored on read).
+/// Entries without a chest (or with a nil id) are skipped, matching the
+/// reference's `Optional[UUID]` behavior.
+pub fn decode_guild_chests(
+    map: &Property,
+) -> Result<std::collections::HashMap<Uuid, Uuid>, SaveError> {
+    let entries = match map {
+        Property::Map { entries, .. } => entries,
+        _ => {
+            return Err(SaveError::GroupData(
+                "GuildExtraSaveDataMap is not a MapProperty".to_string(),
+            ))
+        }
+    };
+
+    let mut out = std::collections::HashMap::new();
+    for entry in entries {
+        let Some(guild_id) = struct_guid(&entry.key) else {
+            continue;
+        };
+        let Some(raw) = entry
+            .value
+            .get_child("GuildItemStorage")
+            .and_then(|s| s.get_child("RawData"))
+            .and_then(Property::as_bytes)
+        else {
+            continue;
+        };
+        if raw.len() < 16 {
+            continue;
+        }
+        let container_id = Reader::new(raw).guid();
+        if container_id != Uuid::nil() {
+            out.insert(guild_id, container_id);
+        }
+    }
+    Ok(out)
+}

@@ -25,10 +25,16 @@ export function TechTree({
   unlocked,
   techPoints,
   ancientPoints,
+  editable,
+  onToggle,
 }: {
   unlocked: string[];
   techPoints: number;
   ancientPoints: number;
+  /** When true, tiles become clickable and call `onToggle`. */
+  editable?: boolean;
+  /** Invoked with the tech and whether it is currently unlocked. */
+  onToggle?: (m: TechMeta, unlocked: boolean) => void;
 }) {
   const tree = techTree();
   const unlockedSet = useMemo(() => new Set(unlocked.map((c) => c.toLowerCase())), [unlocked]);
@@ -75,6 +81,7 @@ export function TechTree({
   const [tip, setTip] = useState<{ m: TechMeta; on: boolean; rect: DOMRect } | null>(null);
   const hover = (m: TechMeta, el: HTMLElement) => setTip({ m, on: isOn(m), rect: el.getBoundingClientRect() });
   const clear = () => setTip(null);
+  const click = editable && onToggle ? (m: TechMeta) => onToggle(m, isOn(m)) : undefined;
 
   return (
     <div className="tt">
@@ -132,6 +139,13 @@ export function TechTree({
         </div>
       </div>
 
+      {editable && (
+        <p className="tt-legend">
+          Editing enabled — click a locked technology to unlock it, an unlocked one to relock.
+          Every change writes a backup first.
+        </p>
+      )}
+
       {rows.length === 0 ? (
         <p className="ch-empty">No technologies match this filter.</p>
       ) : (
@@ -154,7 +168,7 @@ export function TechTree({
                 </div>
                 {slots.map((m, i) =>
                   m ? (
-                    <Tile key={m.code} m={m} on={isOn(m)} onHover={hover} onLeave={clear} />
+                    <Tile key={m.code} m={m} on={isOn(m)} onHover={hover} onLeave={clear} onClick={click} />
                   ) : (
                     <span key={`e${i}`} className="tt-slot" />
                   ),
@@ -162,7 +176,7 @@ export function TechTree({
                 <span className="tt-div" />
                 <div className="tt-anc">
                   {row.ancient ? (
-                    <Tile m={row.ancient} on={isOn(row.ancient)} onHover={hover} onLeave={clear} />
+                    <Tile m={row.ancient} on={isOn(row.ancient)} onHover={hover} onLeave={clear} onClick={click} />
                   ) : (
                     <span className="tt-anc__empty" />
                   )}
@@ -184,22 +198,25 @@ function Tile({
   on,
   onHover,
   onLeave,
+  onClick,
 }: {
   m: TechMeta;
   on: boolean;
   onHover: (m: TechMeta, el: HTMLElement) => void;
   onLeave: () => void;
+  onClick?: (m: TechMeta) => void;
 }) {
   const cell = techCell(m.code);
   const kind = KIND_LABEL[m.kind];
   return (
     <button
       type="button"
-      className={`tt-tile tt-tile--${m.boss ? "anc" : "tech"} ${on ? "is-on" : "is-off"}`}
+      className={`tt-tile tt-tile--${m.boss ? "anc" : "tech"} ${on ? "is-on" : "is-off"}${onClick ? " tt-tile--edit" : ""}`}
       onMouseEnter={(e) => onHover(m, e.currentTarget)}
       onMouseLeave={onLeave}
       onFocus={(e) => onHover(m, e.currentTarget)}
       onBlur={onLeave}
+      onClick={onClick ? () => onClick(m) : undefined}
     >
       {kind && <span className="tt-tile__kind">{kind}</span>}
       <TechIcon cell={cell} />

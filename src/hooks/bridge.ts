@@ -1,11 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { bridgeApi } from "../api/bridge";
+import { queryClient } from "./queries";
 import { useConnection } from "../store/connection";
+import type {
+  EditPalBody,
+  EditPlayerBody,
+  EditPlayerTechnologiesBody,
+} from "../types/bridge";
 
 /**
  * Tier-2 feature-detection. When the connection carries a bridge port + token,
  * probes `GET /v1/health`; the "Server+" nav group and Characters screen appear
  * only when that probe succeeds. No bridge configured ⇒ Tier 1, everything off.
+ *
+ * `writesEnabled` / `serverRunning` gate the save editors: edits need
+ * `[safety] allow_writes` on the bridge AND a stopped game server.
  */
 export function useBridge() {
   const { connection } = useConnection();
@@ -23,6 +32,8 @@ export function useBridge() {
     available: configured && health.isSuccess,
     checking: configured && health.isLoading,
     health: health.data,
+    writesEnabled: health.data?.writes_enabled === true,
+    serverRunning: health.data?.server_running === true,
     error: health.isError ? health.error : null,
   };
 }
@@ -88,5 +99,66 @@ export function useServerStatus(enabled: boolean) {
     enabled,
     retry: 0,
     refetchInterval: enabled ? 4000 : false,
+  });
+}
+
+/** Every labeled item container (player bags + guild chests). */
+export function useBridgeContainers() {
+  return useQuery({
+    queryKey: ["bridge", "containers"],
+    queryFn: () => bridgeApi.containers(),
+    staleTime: 5_000,
+  });
+}
+
+/**
+ * After a save write, refetch everything read from the save. Reference
+ * catalogs are static id→name maps, so they're the one `["bridge", …]`
+ * family we leave alone.
+ */
+export function invalidateBridgeData() {
+  return queryClient.invalidateQueries({
+    queryKey: ["bridge"],
+    predicate: (q) => q.queryKey[1] !== "reference",
+  });
+}
+
+export function useResizeContainer() {
+  return useMutation({
+    mutationFn: ({ cid, slotNum }: { cid: string; slotNum: number }) =>
+      bridgeApi.resizeContainer(cid, slotNum),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useSetContainerSlot() {
+  return useMutation({
+    mutationFn: (v: { cid: string; slotIndex: number; staticId: string; count: number }) =>
+      bridgeApi.setContainerSlot(v.cid, v.slotIndex, v.staticId, v.count),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useEditPlayer() {
+  return useMutation({
+    mutationFn: ({ uid, body }: { uid: string; body: EditPlayerBody }) =>
+      bridgeApi.editPlayer(uid, body),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useEditPlayerTechnologies() {
+  return useMutation({
+    mutationFn: ({ uid, body }: { uid: string; body: EditPlayerTechnologiesBody }) =>
+      bridgeApi.editPlayerTechnologies(uid, body),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useEditPal() {
+  return useMutation({
+    mutationFn: ({ instanceId, body }: { instanceId: string; body: EditPalBody }) =>
+      bridgeApi.editPal(instanceId, body),
+    onSuccess: () => invalidateBridgeData(),
   });
 }

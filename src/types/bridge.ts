@@ -1,7 +1,7 @@
 /**
  * Types for the PSM Bridge Tier-2 REST API (`http://<host>:<port>/v1`, Bearer auth).
  * Field names are snake_case to match the bridge's serde model exactly
- * (bridge/src/save/model.rs). Phase 1 is read-only.
+ * (bridge/src/save/model.rs). Phase 2 adds labeled containers + save writes.
  */
 
 export interface BridgeHealth {
@@ -9,6 +9,9 @@ export interface BridgeHealth {
   capabilities: string[];
   save_detected: boolean;
   writes_enabled: boolean;
+  /** True when the game server process is detected (writes are blocked).
+   *  Absent on pre-Phase-2 bridges — treat missing as false. */
+  server_running?: boolean;
 }
 
 /** `GET /v1/server/status` — process-supervisor state. */
@@ -126,6 +129,81 @@ export interface Guild {
   bases: Base[];
   players: string[];
   admin_player_uid: string;
+}
+
+/** Labeled item-container kinds surfaced by `GET /v1/containers`. */
+export type ContainerKind =
+  | "common"
+  | "essential"
+  | "weapon_loadout"
+  | "player_equip_armor"
+  | "food_equip"
+  | "guild_chest";
+
+/** One labeled container (player bag or guild chest) from `GET /v1/containers`. */
+export interface ContainerInfo {
+  id: string;
+  kind: ContainerKind;
+  label: string;
+  owner_uid: string | null;
+  owner_name: string | null;
+  guild_id: string | null;
+  guild_name: string | null;
+  slot_num: number;
+  used: number;
+  slots: ItemContainerSlot[];
+}
+
+export interface ContainersResponse {
+  containers: ContainerInfo[];
+}
+
+/** Minimum success payload of every save write; `backup` is the snapshot path (absent for a no-op). */
+export interface WriteResult {
+  ok: boolean;
+  backup?: string;
+}
+
+/** Container writes echo the updated container back. */
+export interface ContainerWriteResult extends WriteResult {
+  container: ContainerInfo;
+}
+
+/** `POST /v1/players/{uid}/edit` body — all fields optional.
+ *  `status_points` / `ext_status_points` keys must be the exact on-disk names
+ *  previously returned by `GET /v1/players/{uid}` (often Japanese). */
+export interface EditPlayerBody {
+  level?: number;
+  exp?: number;
+  status_points?: Record<string, number>;
+  ext_status_points?: Record<string, number>;
+}
+
+/** `POST /v1/players/{uid}/technologies` body — all fields optional. */
+export interface EditPlayerTechnologiesBody {
+  unlock?: string[];
+  relock?: string[];
+  technology_point?: number;
+  boss_technology_point?: number;
+}
+
+/** `POST /v1/pals/{instance_id}/edit` body — all fields optional; list fields
+ *  replace wholesale. `active_skills` are `EPalWazaID::…` codes. */
+export interface EditPalBody {
+  level?: number;
+  exp?: number;
+  nickname?: string;
+  passive_skills?: string[];
+  active_skills?: string[];
+  learned_skills?: string[];
+  rank?: number;
+  rank_hp?: number;
+  rank_attack?: number;
+  rank_defense?: number;
+  rank_craftspeed?: number;
+  talent_hp?: number;
+  talent_shot?: number;
+  talent_defense?: number;
 }
 
 /** id → display-name map from `GET /v1/reference/{catalog}`. */

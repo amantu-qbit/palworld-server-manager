@@ -1,0 +1,471 @@
+/* ------------------------------------------------------------------ *
+ *  Storage (Tier-2 bridge) — labeled containers: player bags + guild
+ *  chests as a game-style slot grid, with resize / slot editing.
+ * ------------------------------------------------------------------ */
+
+.st-page {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.st {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---- Left rail: containers grouped by owner ---- */
+.st-list {
+  width: 252px;
+  flex: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 2px;
+}
+.st-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.st-group__head {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 0 10px 4px;
+}
+.st-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  text-align: left;
+  color: var(--dim);
+  border-left: 2px solid transparent;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.st-row:hover {
+  background: var(--surface-2, rgba(255, 255, 255, 0.03));
+  color: var(--text);
+}
+.st-row.is-active {
+  background: rgba(52, 211, 234, 0.1);
+  border-left-color: var(--accent);
+}
+.st-row__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.st-row__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-row__fill {
+  flex: none;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--faint);
+}
+.st-row__bar {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+.st-row__bar i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.65;
+}
+
+/* ---- Main pane ---- */
+.st-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.st-main__empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--faint);
+  font-size: 13px;
+}
+
+.st-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.st-head__txt h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  color: var(--text);
+}
+.st-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.st-chip {
+  padding: 3px 9px;
+  border-radius: var(--r-full, 999px);
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--text);
+  background: var(--surface-2, rgba(255, 255, 255, 0.04));
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.st-chip--dim {
+  color: var(--dim);
+}
+.st-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding-top: 2px;
+}
+.st-dangerghost {
+  color: var(--bad, #ec6a6a);
+}
+.st-dangerghost:hover {
+  color: var(--bad, #ec6a6a);
+  background: var(--bad-soft, rgba(236, 106, 106, 0.11));
+}
+.st-clearing {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--warn, #e6b450);
+}
+
+.st-note {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 12px;
+}
+.st-note--warn {
+  color: var(--warn, #e6b450);
+}
+
+/* ---- Slot grid ---- */
+.st-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 56px);
+  gap: 6px;
+  padding-bottom: 14px;
+}
+.st-grid--busy {
+  pointer-events: none;
+  opacity: 0.6;
+}
+.st-cell {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-xs);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 1px var(--line);
+  background: transparent;
+  content-visibility: auto;
+  contain-intrinsic-size: 56px 56px;
+  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.st-cell.is-filled {
+  background: var(--surface-1, rgba(255, 255, 255, 0.022));
+}
+.st-cell:not(:disabled) {
+  cursor: pointer;
+}
+.st-cell:not(:disabled):hover {
+  box-shadow: inset 0 0 0 1px var(--line-3);
+  transform: translateY(-1px);
+}
+.st-cell:not(:disabled):active {
+  transform: translateY(0);
+}
+.st-cell__n {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+.st-cell__dyn {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: grid;
+  place-items: center;
+  color: var(--dim);
+}
+
+/* ---- Slot editor (drawer body) ---- */
+.st-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.st-editor__empty {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--faint);
+}
+.st-cur {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-1, rgba(255, 255, 255, 0.022));
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.st-cur__txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.st-cur__txt b {
+  font-size: 13px;
+  color: var(--text);
+}
+.st-cur__txt span {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-dyn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-0, #090909);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.st-dyn__rows {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 4px 10px;
+  font-size: 11.5px;
+}
+.st-dyn__rows span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--faint);
+  align-self: center;
+}
+.st-dyn__rows b {
+  font-weight: 500;
+  color: var(--text);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.st-dyn__warn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--warn, #e6b450);
+}
+
+.st-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.st-pick__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface-0, #090909);
+  box-shadow: var(--inset);
+  color: var(--faint);
+}
+.st-pick__search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--text);
+  font-size: 12.5px;
+}
+.st-pick__list {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px var(--line);
+  scrollbar-width: thin;
+}
+.st-pick__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: var(--r-xs);
+  text-align: left;
+  color: var(--dim);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.st-pick__row:hover {
+  background: var(--surface-2, rgba(255, 255, 255, 0.03));
+  color: var(--text);
+}
+.st-pick__row.is-active {
+  background: rgba(52, 211, 234, 0.1);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+.st-pick__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-pick__id {
+  flex: none;
+  max-width: 130px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-pick__more {
+  padding: 8px;
+  font-size: 11.5px;
+  color: var(--faint);
+  text-align: center;
+}
+.st-editor__actions {
+  display: flex;
+  gap: 10px;
+}
+.st-editor__actions .btn {
+  flex: 1;
+}
+
+/* ---- Resize dialog ---- */
+.st-resize {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.st-resize .modal__title {
+  margin-bottom: 0;
+}
+.st-resize .modal__actions {
+  margin-top: 4px;
+}
+.st-resize__sub {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--dim);
+}
+.st-resize__sub b {
+  color: var(--text);
+  font-family: var(--mono);
+  font-weight: 500;
+}
+.st-doomed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--bad-soft, rgba(236, 106, 106, 0.08));
+  box-shadow: inset 0 0 0 1px rgba(236, 106, 106, 0.24);
+}
+.st-doomed__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--bad, #ec6a6a);
+}
+.st-doomed__list {
+  max-height: 160px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  scrollbar-width: thin;
+}
+.st-doomed__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+.st-doomed__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-doomed__count {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+}
+.st-ack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.st-ack input {
+  accent-color: var(--bad, #ec6a6a);
+}

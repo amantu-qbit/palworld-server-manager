@@ -79,9 +79,28 @@ pub enum SaveError {
     /// expected layout. Carries a description.
     #[error("malformed group data: {0}")]
     GroupData(String),
+    /// A save-edit operation failed: the target could not be located, the
+    /// requested edit was invalid, or post-edit validation did not observe the
+    /// expected change. Carries a description.
+    #[error("edit error: {0}")]
+    Edit(String),
 }
 
 pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {
+    decompress_sav_with_type(bytes).map(|(data, _)| data)
+}
+
+/// Like [`decompress_sav`], but also returns the container's save-type byte,
+/// which a writer must preserve when re-packing the edited GVAS bytes (see
+/// [`super::edit::write::pack_sav`]).
+///
+/// `compressed_len` semantics follow `palsav.py::decompress_sav_to_gvas`
+/// exactly: for `0x31` it is the on-disk body length; for `0x32` (double
+/// zlib) it is the length of the *intermediate* single-compressed stream —
+/// not the on-disk body — so the body is decompressed whole and the field is
+/// validated against the intermediate result instead of being used as a
+/// slice bound.
+pub fn decompress_sav_with_type(bytes: &[u8]) -> Result<(Vec<u8>, u8), SaveError> {
     if bytes.len() < HEADER_LEN {
         return Err(SaveError::Truncated);
     }
@@ -96,15 +115,24 @@ pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {
     let decompressed = if magic == MAGIC_OODLE {
         oodle_decompress(body, compressed_len, uncompressed_len)?
     } else if magic == MAGIC_ZLIB {
-        if body.len() < compressed_len {
-            return Err(SaveError::Truncated);
-        }
-        let compressed = &body[..compressed_len];
         match save_type {
-            0x30 => compressed.to_vec(),
-            0x31 => zlib_decompress(compressed)?,
+            0x30 => {
+                if body.len() < compressed_len {
+                    return Err(SaveError::Truncated);
+                }
+                body[..compressed_len].to_vec()
+            }
+            0x31 => {
+                if body.len() < compressed_len {
+                    return Err(SaveError::Truncated);
+                }
+                zlib_decompress(&body[..compressed_len])?
+            }
             0x32 => {
-                let once = zlib_decompress(compressed)?;
+                let once = zlib_decompress(body)?;
+                if once.len() != compressed_len {
+                    return Err(SaveError::Truncated);
+                }
                 zlib_decompress(&once)?
             }
             _ => return Err(SaveError::UnknownSaveType(save_type)),
@@ -117,7 +145,7 @@ pub fn decompress_sav(bytes: &[u8]) -> Result<Vec<u8>, SaveError> {
         return Err(SaveError::Truncated);
     }
 
-    Ok(decompressed)
+    Ok((decompressed, save_type))
 }
 
 fn oodle_decompress(
