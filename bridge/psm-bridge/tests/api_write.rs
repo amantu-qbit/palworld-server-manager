@@ -173,6 +173,64 @@ async fn resize_end_to_end() {
     std::fs::remove_dir_all(&dir).ok();
 }
 
+/// PR #299 (palworld-save-pal) generalizes container resize to the guild chest.
+/// Our resize path is container-agnostic — a guild chest is just an
+/// `ItemContainerSaveData` entry — so this proves the guild-chest case
+/// specifically: list containers, find the `guild_chest`, resize it, and
+/// confirm a fresh GET reflects the new slot count. Also emits a diagnostic of
+/// the fixture's container kinds + guilds so a fixture without a guild chest is
+/// visible rather than silently passing.
+#[tokio::test]
+async fn guild_chest_resize_end_to_end() {
+    let dir = temp_world("guildchest");
+    let app = make_router_at(&dir, true);
+
+    let (status, json) = request(&app, "GET", "/v1/containers", None).await;
+    assert_eq!(status, StatusCode::OK);
+    let containers = json["containers"].as_array().unwrap().clone();
+    let kinds: Vec<&str> = containers.iter().map(|c| c["kind"].as_str().unwrap()).collect();
+    let (_, guilds) = request(&app, "GET", "/v1/guilds", None).await;
+    eprintln!("[guild_chest_resize] container kinds = {kinds:?}");
+    eprintln!("[guild_chest_resize] guilds = {guilds}");
+
+    let Some(chest) = containers.iter().find(|c| c["kind"] == "guild_chest") else {
+        // Surface the gap loudly: the write path is proven container-agnostic by
+        // resize_end_to_end; if world1 has no guild chest we can't exercise it here.
+        panic!(
+            "world1 fixture exposes no guild_chest container (kinds: {kinds:?}) — \
+             cannot prove guild-chest resize end-to-end against this fixture"
+        );
+    };
+    let cid = chest["id"].as_str().unwrap().to_string();
+    let orig = chest["slot_num"].as_i64().unwrap();
+    let target = if orig == 40 { 55 } else { 40 };
+
+    let (status, json) = request(
+        &app,
+        "POST",
+        &format!("/v1/containers/{cid}/resize"),
+        Some(serde_json::json!({ "slot_num": target })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    assert_eq!(json["ok"], true);
+    assert_eq!(json["container"]["slot_num"], target);
+
+    // Fresh GET reflects the guild-chest resize.
+    let (_, json) = request(&app, "GET", "/v1/containers", None).await;
+    let c = json["containers"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["id"] == cid.as_str())
+        .expect("resized guild chest still listed")
+        .clone();
+    assert_eq!(c["slot_num"], target);
+    assert_eq!(c["kind"], "guild_chest");
+
+    std::fs::remove_dir_all(&dir).ok();
+}
+
 #[tokio::test]
 async fn slot_set_and_clear_end_to_end() {
     let dir = temp_world("slot");
