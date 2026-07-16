@@ -1,6 +1,7 @@
 // Regenerates the Pal-icon sprite atlas shipped with the app:
 //   public/mapicons/pals-atlas.webp  — all icons packed into one image
 //   src/data/palAtlas.json           — { cols, cell, keys[] } grid metadata
+//   src/data/palIconKeys.json        — the same keys[] as a standalone list
 //
 // Every Pal icon lives in this single sheet so the map loads them in one request
 // instead of one-per-species. Source icons (64px, from palworld-save-pal) live in
@@ -33,4 +34,5 @@ const buf = await sharp({
 
 writeFileSync(resolve(root, "public/mapicons/pals-atlas.webp"), buf);
 writeFileSync(resolve(root, "src/data/palAtlas.json"), JSON.stringify({ cols: COLS, cell: CELL, keys }));
+writeFileSync(resolve(root, "src/data/palIconKeys.json"), JSON.stringify(keys));
 console.log(`atlas: ${COLS * CELL}x${ROWS * CELL}, ${keys.length} icons, ${(buf.length / 1024).toFixed(0)} KB`);
