@@ -44,6 +44,7 @@ import { useToast } from "../hooks/useToast";
 import { TechTree } from "../components/TechTree";
 import { elementColor, isRare, palInfo, wazaElement } from "../lib/palDex";
 import { humanize, statusLabel, workLabel } from "../lib/palLabels";
+import { itemWeight } from "../lib/itemMeta";
 import { EXP_TABLE, LEVEL_CAP, MAX_LEVEL, levelProgress } from "../lib/expTable";
 import { DISABLED_PASSIVES, passiveRank, passiveRankColor } from "../lib/skillMeta";
 import type { TechMeta } from "../lib/techDex";
@@ -271,7 +272,7 @@ function PlayerPanel({
 
           {tab === "character" && <CharacterTab detail={d} canEdit={canEdit} serverRunning={bridge.serverRunning} />}
 
-          {tab === "inventory" && <InventoryView inventory={d.inventory} itemName={itemName} />}
+          {tab === "inventory" && <InventoryView detail={d} itemName={itemName} />}
         </>
       ) : null}
 
@@ -1273,27 +1274,24 @@ function ChipSection({ title, chips, accent }: { title: string; chips: string[];
   );
 }
 
-/** Human labels + display order for the five inventory containers. */
-const BAG_LABELS: Record<string, string> = {
-  Common: "Inventory",
-  Essential: "Key Items",
-  WeaponLoadOut: "Weapons",
-  PlayerEquipArmor: "Equipment",
-  FoodEquip: "Food",
-};
-
 /** Glyph marking a slot that carries a dynamic payload (weapon/armor/egg). */
 function InvDynGlyph({ dyn }: { dyn: DynamicItem }) {
   const t = dyn.item_type.toLowerCase();
   const Icon = dyn.egg_params ? Egg : t.includes("armor") || t.includes("shield") ? Shield : Sword;
   return (
-    <span className="invslot__dyn" title={humanize(dyn.item_type)}>
+    <span className="ivs__dyn" title={humanize(dyn.item_type)}>
       <Icon size={11} />
     </span>
   );
 }
 
-/** One occupied/empty inventory slot, styled like the in-game item cell. */
+const occupiedSlots = (c?: ItemContainer) =>
+  c ? c.slots.filter((s) => s.static_id && s.static_id !== "None") : [];
+
+/**
+ * One in-game-style item cell: framed square, per-unit weight in the top-left
+ * and the stack count in the bottom-right, exactly like Palworld's inventory.
+ */
 function InvSlot({
   slot,
   itemName,
@@ -1301,110 +1299,155 @@ function InvSlot({
   slot: ItemContainerSlot | null;
   itemName: (id: string) => string;
 }) {
-  if (!slot) return <div className="invslot" aria-hidden />;
+  if (!slot) return <div className="ivs" aria-hidden />;
   const name = itemName(slot.static_id);
+  const w = itemWeight(slot.static_id);
+  const title = `${name} ×${slot.count}${w ? ` · ${round1(w * slot.count)} wt` : ""}`;
   return (
-    <div className="invslot is-filled" title={`${name} ×${slot.count}`}>
-      <ItemIcon staticId={slot.static_id} size={40} />
-      {slot.count > 1 && <span className="invslot__n">{slot.count}</span>}
+    <div className="ivs is-filled" title={title}>
+      {w > 0 && <span className="ivs__w">{round1(w)}</span>}
+      <ItemIcon staticId={slot.static_id} size={38} />
+      {slot.count > 1 && <span className="ivs__n">{slot.count}</span>}
       {slot.dynamic_item && <InvDynGlyph dyn={slot.dynamic_item} />}
     </div>
   );
 }
 
-/**
- * A container rendered as a game-style slot grid. `mode: "grid"` shows every
- * slot up to `slot_num` (empties included, like the game's main bag);
- * `mode: "packed"` shows only occupied slots (for the 200-slot Key Items bag,
- * where a wall of empty cells would be noise).
- */
-function BagGrid({
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/** Build the (slot | empty)[] cells for a bag. `full` pads to the container's
+ *  size with trailing empties (the main bag's grid); otherwise packs to the
+ *  occupied slots plus a short empty tail (equipment / key items). */
+function bagCells(c: ItemContainer | undefined, full: boolean): (ItemContainerSlot | null)[] {
+  if (!c) return [];
+  const occ = occupiedSlots(c);
+  const byIndex = new Map(occ.map((s) => [s.slot_index, s]));
+  const lastFilled = occ.reduce((m, s) => Math.max(m, s.slot_index), -1);
+  const len = full
+    ? Math.min(c.slot_num, Math.max(lastFilled + 1, c.slot_num))
+    : Math.max(lastFilled + 1, occ.length);
+  return Array.from({ length: len }, (_, i) => byIndex.get(i) ?? null);
+}
+
+/** A labeled equipment group in the loadout column (Weapons / Equipment / Food). */
+function LoadoutGroup({
+  label,
   container,
-  mode,
   itemName,
 }: {
-  container: ItemContainer;
-  mode: "grid" | "packed";
+  label: string;
+  container?: ItemContainer;
   itemName: (id: string) => string;
 }) {
-  const occupied = container.slots.filter((s) => s.static_id && s.static_id !== "None");
-  const label = BAG_LABELS[container.container_type] ?? humanize(container.container_type);
-
-  let cells: (ItemContainerSlot | null)[];
-  if (mode === "packed") {
-    cells = occupied;
-  } else {
-    // The game shows a bag as a full grid; render every slot up to the last
-    // occupied one, padded out to a couple of trailing empty rows, capped at
-    // the container's real size (so a hugely-expanded bag doesn't wall off).
-    const byIndex = new Map(occupied.map((s) => [s.slot_index, s]));
-    const lastFilled = occupied.reduce((m, s) => Math.max(m, s.slot_index), -1);
-    const count = Math.min(container.slot_num, Math.max(lastFilled + 7, 12));
-    cells = Array.from({ length: count }, (_, i) => byIndex.get(i) ?? null);
-  }
-
+  const occ = occupiedSlots(container);
+  if (occ.length === 0) return null;
   return (
-    <section className="invbag">
-      <header className="invbag__head">
-        <span className="invbag__label">{label}</span>
-        <span className="invbag__count">
-          {occupied.length}
-          {mode === "grid" ? ` / ${container.slot_num}` : ""}
+    <section className="iv-lgroup">
+      <header className="iv-lhead">
+        <span>{label}</span>
+        <span className="iv-lhead__n">
+          {occ.length}
+          {container ? ` / ${container.slot_num}` : ""}
         </span>
       </header>
-      <div className="invbag__grid">
-        {cells.map((s, i) => (
-          <InvSlot key={s ? `s${s.slot_index}` : `e${i}`} slot={s} itemName={itemName} />
+      <div className="iv-lgrid">
+        {occ.map((s) => (
+          <InvSlot key={s.slot_index} slot={s} itemName={itemName} />
         ))}
       </div>
     </section>
   );
 }
 
+/**
+ * The player's inventory, laid out like Palworld's own inventory screen: a
+ * compact main bag grid (Inventory / Key Items sub-tabs) on the left, the
+ * equipment loadout in the middle, and a stats column on the right — the three
+ * zones that fill the game's inventory panel.
+ */
 function InventoryView({
-  inventory,
+  detail,
   itemName,
 }: {
-  inventory: ItemContainer[];
+  detail: PlayerDetail;
   itemName: (id: string) => string;
 }) {
+  const inventory = detail.inventory;
   const byType = (t: string) => inventory.find((c) => c.container_type === t);
-  const hasItems = (c?: ItemContainer) =>
-    !!c && c.slots.some((s) => s.static_id && s.static_id !== "None");
-
   const main = byType("Common");
+  const keys = byType("Essential");
   const weapons = byType("WeaponLoadOut");
   const equip = byType("PlayerEquipArmor");
   const food = byType("FoodEquip");
-  const keys = byType("Essential");
 
-  if (!inventory.some(hasItems)) {
+  const [tab, setTab] = useState<"inv" | "keys">("inv");
+  const bag = tab === "inv" ? main : keys;
+  const cells = bagCells(bag, tab === "inv");
+
+  const mainCount = occupiedSlots(main).length;
+  const keyCount = occupiedSlots(keys).length;
+  const carried = bag
+    ? round1(occupiedSlots(bag).reduce((t, s) => t + itemWeight(s.static_id) * s.count, 0))
+    : 0;
+
+  if (!inventory.some((c) => occupiedSlots(c).length > 0)) {
     return (
       <p className="ch-empty">Empty — or stored in a per-player save that isn’t on disk.</p>
     );
   }
 
+  const stats = { ...detail.status_points, ...detail.ext_status_points };
+  const prog = levelProgress(detail.exp, detail.level, false);
+
   return (
-    <div className="inv">
-      <div className="inv-top">
-        <div className="inv-main">
-          {main ? (
-            <BagGrid container={main} mode="grid" itemName={itemName} />
-          ) : (
-            <p className="ch-empty">No main inventory on disk.</p>
-          )}
+    <div className="iv">
+      {/* Left: the main bag, with in-game Inventory / Key Items sub-tabs. */}
+      <section className="iv-bag">
+        <div className="iv-subtabs">
+          <button className={tab === "inv" ? "is-on" : ""} onClick={() => setTab("inv")}>
+            Inventory <span>{mainCount}</span>
+          </button>
+          <button className={tab === "keys" ? "is-on" : ""} onClick={() => setTab("keys")}>
+            Key Items <span>{keyCount}</span>
+          </button>
+          {carried > 0 && <span className="iv-weight">{carried} wt</span>}
         </div>
-        <div className="inv-rail">
-          {hasItems(weapons) && <BagGrid container={weapons!} mode="grid" itemName={itemName} />}
-          {hasItems(equip) && <BagGrid container={equip!} mode="grid" itemName={itemName} />}
-          {hasItems(food) && <BagGrid container={food!} mode="grid" itemName={itemName} />}
+        <div className="iv-grid">
+          {cells.map((s, i) => (
+            <InvSlot key={s ? `s${s.slot_index}` : `e${i}`} slot={s} itemName={itemName} />
+          ))}
         </div>
-      </div>
-      {hasItems(keys) && (
-        <div className="inv-keys">
-          <BagGrid container={keys!} mode="packed" itemName={itemName} />
+      </section>
+
+      {/* Middle: the equipment loadout. */}
+      <section className="iv-load">
+        <LoadoutGroup label="Weapons" container={weapons} itemName={itemName} />
+        <LoadoutGroup label="Equipment" container={equip} itemName={itemName} />
+        <LoadoutGroup label="Food" container={food} itemName={itemName} />
+      </section>
+
+      {/* Right: the stats readout, mirroring the game's inventory stat panel. */}
+      <section className="iv-stats">
+        <div className="iv-lvl">
+          <b>{detail.level}</b>
+          <span>Level</span>
+          <div className="iv-lvlbar" title={progressTitle(prog)}>
+            <i style={{ width: `${prog.pct}%` }} />
+          </div>
         </div>
-      )}
+        <dl className="iv-statlist">
+          <div>
+            <dt>EXP</dt>
+            <dd>{detail.exp.toLocaleString()}</dd>
+          </div>
+          {Object.entries(stats).map(([k, v]) => (
+            <div key={k}>
+              <dt>{statusLabel(k)}</dt>
+              <dd>+{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
     </div>
   );
 }

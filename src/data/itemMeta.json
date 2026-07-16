@@ -1,0 +1,9670 @@
+{
+  "AIcore": {
+    "weight": 10,
+    "stack": 9999
+  },
+  "Accessory_AT_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AT_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AT_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AirDash1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AirDash2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AirDash3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AirDash4": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AquaResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AquaResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_AquaResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Avoid_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_ColdIce_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_CoolResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_CoolResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_CoolResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_DFHP_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_DarkResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_DarkResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_DarkResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_DragonResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_DragonResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_DragonResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_EarthResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_EarthResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_EarthResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_ExplosionResist": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_FireResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_FireResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_FireResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HCHP_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HCMW_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HP_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HP_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HP_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HeatColdResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HeatColdResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HeatColdResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HeatFire_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HeatResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HeatResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_HeatResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_IceResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_IceResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_IceResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_JumpAir_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_JumpAir_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_JumpCount_Increase1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_JumpCount_Increase2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_JumpCount_Increase3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_JumpPower_Increase": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_LeafResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_LeafResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_LeafResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_MaxWeightUp_01": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_MaxWeightUp_02": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_MaxWeightUp_03": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_NonkChecker_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Nonkilling": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_NormalResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_NormalResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_NormalResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Dargon_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Dark_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Earth_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Electricity_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Fire_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Fire_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Ice_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Leaf_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_Otomo_Water_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_PPAT_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_PPDF_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_SuperJumpAir_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_SuperJumpAir_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_TalentChecker": {
+    "weight": 1,
+    "stack": 1
+  },
+  "Accessory_ThunderResist_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_ThunderResist_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_ThunderResist_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_WKMC_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_WorkSpeed_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_WorkSpeed_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_WorkSpeed_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_defense_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_defense_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Accessory_defense_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "AdditionalInventory_001": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AdditionalInventory_002": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AdditionalInventory_003": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AdditionalInventory_004": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AffectionFruit_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "AffectionFruit_02": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "AirGrapplingGun": {
+    "weight": 1,
+    "stack": 1
+  },
+  "AncientArmor": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorCold": {
+    "weight": 35,
+    "stack": 1
+  },
+  "AncientArmorCold_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorCold_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorCold_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorCold_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorHeat": {
+    "weight": 35,
+    "stack": 1
+  },
+  "AncientArmorHeat_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorHeat_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorHeat_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorHeat_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorWeight": {
+    "weight": 35,
+    "stack": 1
+  },
+  "AncientArmorWeight_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorWeight_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorWeight_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmorWeight_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmor_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmor_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmor_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientArmor_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "AncientHelmet": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AncientHelmet_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AncientHelmet_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AncientHelmet_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AncientHelmet_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AncientParts2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "AncientParts3": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "AncientTechnologyBook_G1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AnimalSkin": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "AnimalSkin2": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Antibiotic_Good": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Antibiotic_Normal": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Antibiotic_Super": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Arrow": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "Arrow_Fire": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "Arrow_Poison": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "AssaultRifleBullet": {
+    "weight": 0.01,
+    "stack": 9999
+  },
+  "AssaultRifle_Default1": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AssaultRifle_Default2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AssaultRifle_Default3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AssaultRifle_Default4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AssaultRifle_Default5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "AutoMealPouch_Tier1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AutoMealPouch_Tier2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AutoMealPouch_Tier3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AutoMealPouch_Tier4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "AutoMealPouch_Tier5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Axe_Steal": {
+    "weight": 25,
+    "stack": 1
+  },
+  "Axe_Tier_00": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Axe_Tier_01": {
+    "weight": 15,
+    "stack": 1
+  },
+  "Axe_Tier_02": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Axe_Tier_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "BLT": {
+    "weight": 0.3,
+    "stack": 9999
+  },
+  "BaconEggs": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "BakedMeat_BerryGoat": {
+    "weight": 2.5,
+    "stack": 9999
+  },
+  "BakedMeat_Boar": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "BakedMeat_ChickenPal": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "BakedMeat_CowPal": {
+    "weight": 2.5,
+    "stack": 9999
+  },
+  "BakedMeat_Deer": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "BakedMeat_Eagle": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "BakedMeat_GrassMammoth": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "BakedMeat_IceCrocodile": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "BakedMeat_IceDeer": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "BakedMeat_Kelpie": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "BakedMeat_LazyCatfish": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "BakedMeat_SakuraSaurus": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "BakedMeat_SheepBall": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "BakedMushroom": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Baked_Berries": {
+    "weight": 0.15,
+    "stack": 9999
+  },
+  "Baked_Potato": {
+    "weight": 1.5,
+    "stack": 9999
+  },
+  "Bat": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Bat2": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Bat3": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Bat3_2": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Bat3_3": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Bat3_4": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Bat3_5": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Bat_NPC": {
+    "weight": 99999,
+    "stack": 1
+  },
+  "BattleTicket": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BeamLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "BeamLauncherBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "BeamLauncher_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "BeamLauncher_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "BeamLauncher_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "BeamLauncher_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "BeamSword": {
+    "weight": 10,
+    "stack": 1
+  },
+  "BeamSword_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "BeamSword_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "BeamSword_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "BeamSword_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "BeastBone_Ancient": {
+    "weight": 8,
+    "stack": 9999
+  },
+  "Beer": {
+    "weight": 1.5,
+    "stack": 9999
+  },
+  "Berries": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Berries2": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "BerrySeeds": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "Bio_Battery": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Bio_Coolant": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_AT_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_AquaResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Avoid_1": {
+    "weight": 0,
+    "stack": 1
+  },
+  "Blueprint_Accessory_Avoid_1_fix": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_ColdIce_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_CoolResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_DFHP_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_DarkResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_DragonResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_EarthResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_FireResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_HCHP_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_HCMW_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_HP_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_HeatColdResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_HeatFire_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_HeatResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_IceResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_JumpAir_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_JumpAir_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_LeafResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_MaxWeightUp_01_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_NonkChecker_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_NormalResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Dargon_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Dark_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Earth_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Electricity_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Fire_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Fire_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Ice_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Leaf_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_Otomo_Water_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_PPAT_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_PPDF_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_SuperJumpAir_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_SuperJumpAir_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_ThunderResist_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_WKMC_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_WorkSpeed_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Accessory_defense_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorCold_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorCold_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorCold_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorCold_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorHeat_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorHeat_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorHeat_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorHeat_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorWeight_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorWeight_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorWeight_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmorWeight_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmor_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmor_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmor_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientArmor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientHelmet_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientHelmet_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientHelmet_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AncientHelmet_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AssaultRifle_Default2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AssaultRifle_Default3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AssaultRifle_Default4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_AssaultRifle_Default5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Bat3_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Bat3_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Bat3_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Bat3_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BeamLauncher_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BeamLauncher_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BeamLauncher_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BeamLauncher_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BeamSword_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BeamSword_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BeamSword_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BeamSword_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_Fire_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_Fire_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_Fire_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_Fire_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_Poison_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_Poison_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_Poison_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_BowGun_Poison_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CandleStand": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ChargeLaserRifle_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ChargeLaserRifle_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ChargeLaserRifle_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ChargeLaserRifle_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmorCold_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmorCold_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmorCold_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmorCold_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmorHeat_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmorHeat_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmorHeat_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmorHeat_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmor_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmor_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmor_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ClothArmor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CompoundBow_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CompoundBow_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CompoundBow_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CompoundBow_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ConservationGroupBannerA": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ConservationGroupBannerB": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmorCold_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmorCold_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmorCold_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmorCold_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmorHeat_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmorHeat_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmorHeat_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmorHeat_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmor_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmor_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmor_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperArmor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperHelmet_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperHelmet_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperHelmet_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_CopperHelmet_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_DoubleBarrelShotgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_DoubleBarrelShotgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_DoubleBarrelShotgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_DoubleBarrelShotgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_DroneLauncher_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_DroneLauncher_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_DroneLauncher_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_DroneLauncher_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ElectricArcAssaultRifle_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ElectricArcAssaultRifle_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ElectricArcAssaultRifle_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_ElectricArcAssaultRifle_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_EnergyRocketLauncher_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_EnergyRocketLauncher_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_EnergyRocketLauncher_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_EnergyRocketLauncher_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_EnergyShotgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_EnergyShotgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_EnergyShotgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_EnergyShotgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FireStand": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FishingRod_01_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FishingRod_02_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FishingRod_03_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FlameThrower_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FlameThrower_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FlameThrower_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FlameThrower_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmorCold_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmorCold_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmorCold_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmorCold_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmorHeat_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmorHeat_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmorHeat_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmorHeat_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmor_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmor_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmor_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurArmor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurHelmet_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurHelmet_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurHelmet_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_FurHelmet_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GatlingGun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GatlingGun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GatlingGun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GatlingGun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GrenadeLauncher_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GrenadeLauncher_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GrenadeLauncher_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GrenadeLauncher_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GuardianDogStatue": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GuidedMissileLauncher_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GuidedMissileLauncher_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GuidedMissileLauncher_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_GuidedMissileLauncher_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HandGun_Default_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HandGun_Default_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HandGun_Default_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HandGun_Default_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head001_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head001_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head001_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head001_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head001_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head002_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head002_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head002_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head002_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head002_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head003_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head003_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head003_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head003_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head003_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head004_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head004_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head004_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head004_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head004_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head005_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head005_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head005_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head005_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head005_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head006_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head006_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head006_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head006_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head006_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head007_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head007_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head007_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head007_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head007_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head008_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head008_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head008_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head008_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head008_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head009_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head009_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head009_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head009_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head009_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head010_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head010_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head010_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head010_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head010_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head011_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head011_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head011_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head011_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head011_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head012_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head012_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head012_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head012_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head012_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head013_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head013_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head013_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head013_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head013_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head014_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head014_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head014_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head014_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head014_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head015_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head015_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head015_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head015_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head015_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head016_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head016_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head016_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head016_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head016_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head017_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head017_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head017_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head017_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Head017_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip025_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip025_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip025_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip025_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip025_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip026_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip026_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip026_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip026_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip026_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip028_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip028_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip028_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip028_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip028_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip031_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip031_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip031_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip031_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip031_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip032_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip032_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip032_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip032_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_HeadEquip032_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Hunter_GangFlag": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmorCold_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmorCold_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmorCold_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmorCold_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmorHeat_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmorHeat_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmorHeat_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmorHeat_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmor_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmor_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmor_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronArmor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronHelmet_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronHelmet_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronHelmet_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_IronHelmet_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Katana_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Katana_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Katana_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Katana_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LanternTop": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LaserGatlingGun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LaserGatlingGun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LaserGatlingGun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LaserGatlingGun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LaserRifle_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LaserRifle_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LaserRifle_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LaserRifle_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Launcher_Default_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Launcher_Default_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Launcher_Default_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Launcher_Default_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Launcher_Meteor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_LilyQueenStatue": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftAssaultRifle_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftAssaultRifle_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftAssaultRifle_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftAssaultRifle_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftHandgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftHandgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftHandgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftHandgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftShotgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftShotgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftShotgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftShotgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftSubmachineGun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftSubmachineGun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftSubmachineGun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MakeshiftSubmachineGun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MultiGuidedMissileLauncher": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MultiGuidedMissileLauncher_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MultiGuidedMissileLauncher_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MultiGuidedMissileLauncher_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_MultiGuidedMissileLauncher_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Musket_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Musket_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Musket_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Musket_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Octavia001_Armor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Octavia002_Armor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OctaviaRevolver_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OctaviaRevolver_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OctaviaRevolver_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OctaviaRevolver_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OctaviaShotgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OctaviaShotgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OctaviaShotgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OctaviaShotgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OldRevolver_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OldRevolver_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OldRevolver_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OldRevolver_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATDark_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATDragon_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATEarth_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATElectricity_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATFire_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATIce_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATLeaf_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATNormal_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ATWater_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_Attack_up1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFDark_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFDragon_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFEarth_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFElectricity_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFFire_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFIce_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFLeaf_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFNormal_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_DFWater_ElementBoost_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_Defense_up1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Dark_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Dragon_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Earth_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Electricity_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Fire_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Ice_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Leaf_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Normal_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_ElementBoost_Water_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_PalConfidence_Increase_1": {
+    "weight": 0,
+    "stack": 1
+  },
+  "Blueprint_Otomo_PalConfidence_Increase_1_fix": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Otomo_PalExp_Increase_1_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OverheatRifle_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OverheatRifle_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OverheatRifle_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_OverheatRifle_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PalSummon_YakushimaBoss002": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorCold_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorCold_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorCold_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorCold_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorHeat_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorHeat_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorHeat_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorHeat_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorWeight_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorWeight_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorWeight_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmorWeight_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmor_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmor_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmor_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticArmor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticHelmet_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticHelmet_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticHelmet_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PlasticHelmet_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PumpActionShotgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PumpActionShotgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PumpActionShotgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_PumpActionShotgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorCold_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorCold_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorCold_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorCold_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorHeat_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorHeat_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorHeat_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorHeat_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorWeight_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorWeight_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorWeight_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmorWeight_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmor_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmor_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmor_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFArmor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFBow_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFBow_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFBow_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFBow_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFHelmet_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFHelmet_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFHelmet_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SFHelmet_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SF_Chair": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SF_Desk": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Salvage_FishingBait_1_A": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Salvage_FishingBait_1_B": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Salvage_FishingBait_2_A": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Salvage_FishingBait_2_B": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Salvage_FishingBait_3_B": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Salvage_TreasureBoxKey01": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SemiAutoRifle_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SemiAutoRifle_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SemiAutoRifle_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SemiAutoRifle_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SemiAutoShotgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SemiAutoShotgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SemiAutoShotgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SemiAutoShotgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Shrine_Lantern": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SingleShotRifle_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SingleShotRifle_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SingleShotRifle_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SingleShotRifle_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyAssaultRifle_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyAssaultRifle_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyAssaultRifle_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyAssaultRifle_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyBeamSword_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyBeamSword_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyBeamSword_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyBeamSword_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyBow_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyBow_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyBow_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyBow_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyGrenadeLauncher_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyGrenadeLauncher_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyGrenadeLauncher_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyGrenadeLauncher_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyShotgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyShotgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyShotgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkyShotgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkySubmachineGun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkySubmachineGun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkySubmachineGun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SkySubmachineGun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Spear_ForestBoss2_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Spear_ForestBoss_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmorCold_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmorCold_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmorCold_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmorCold_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmorHeat_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmorHeat_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmorHeat_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmorHeat_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmor_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmor_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmor_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealArmor_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealHelmet_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealHelmet_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealHelmet_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_StealHelmet_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SubmachineGun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SubmachineGun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SubmachineGun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_SubmachineGun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Sword_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Sword_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Sword_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Sword_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WallTorch02": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WeakerBow_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WeakerBow_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WeakerBow_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WeakerBow_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WhaleWhistle": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WidePenetrateShotgun_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WidePenetrateShotgun_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WidePenetrateShotgun_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WidePenetrateShotgun_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Wire_Fence": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_WoodenBarricade": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaArmor001": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaArmor001_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaArmor001_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaArmor001_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaArmor001_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade002": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade002_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade002_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade002_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade002_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade003": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade003_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade003_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade003_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade003_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade004": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade004_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade004_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade004_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBlade004_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaBoss002_Relic": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaGun001": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaGun001_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaGun001_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaGun001_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaGun001_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip001": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip001_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip001_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip001_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip001_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip002": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip002_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip002_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip002_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip002_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip003": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip003_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip003_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip003_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip003_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip004": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip004_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip004_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip004_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaHeadEquip004_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaLantern001": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaLantern001_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaLantern001_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaLantern001_4": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_YakushimaLantern001_5": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Blueprint_Zoe_Halloweenskin_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Bone": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "BossDefeatReward_AmaterasuWolf_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Anubis": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_BadCatgirl": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_BerryGoat_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_BlackMetalDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_BlackPuppy": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_BlueDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_BlueThunderHorse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_BlueberryFairy": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_BossRush": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_CactusDoll": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_CaptainPenguin": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_CatMage": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_CatVampire": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_CubeTurtle": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_CubeTurtle_Neutral": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_DarkScorpion": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_DarkScorpion_Ground": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_DomeArmorDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_ElecLizard": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_ElecPanda": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_ElecSnail": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FairyDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FengyunDeeper": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FengyunDeeper_Electric": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FireKirin": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FlameBuffalo": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FlowerDinosaur_Electric": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FlowerDoll": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FlowerPrince": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FoxExorcist": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_FoxMage": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GhostDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GhostRabbit": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GoldenHorse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GrassGolem": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GrassGolem_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GrassMammoth": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GrassPanda_Electric": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GrassRabbitMan": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_GrimGirl": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_HawkBird": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_HerculesBeetle": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_HerculesBeetle_Ground": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Horus_Water": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_IceFox": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_IceHorse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_IceHorse_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_IceNarwhal": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_IceNarwhal_Fire": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_JetDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_KabukiMan": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_KingAlpaca": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_KingAlpaca_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_KingBahamut": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Kirin": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Kitsunebi_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_LazyCatfish": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_LazyDragon_Electric": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_LilyQueen": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_LilyQueen_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_LotusDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Manticore": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_MoonChild": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_MopKing": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Mothman": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_MushroomLady": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Mutant": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_MysteryMask": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_NaughtyCat": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_NightBlueHorse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_PinkRabbit_Grass": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_PlantSlime": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_PoseidonOrca": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_PurpleSpider": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_QueenBee": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_RaijinDaughter_Water": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_RockBeast": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_RockBeast_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Ronin": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_SaintCentaur": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_SakuraSaurus": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_SakuraSaurus_Water": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_ScorpionMan_Electric": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_SkyDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Suzaku": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_ThunderBird": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_ThunderFluffyBird": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Umihebi": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_VioletFairy": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_VolcanicMonster": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_VolcanoDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_VolcanoDragon_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_WeaselDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Werewolf_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_WhiteDeer": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_WhiteDeer_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_WhiteMoth": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_WhiteShieldDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_WhiteTiger_Ground": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_WingGolem": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BossDefeatReward_Yeti_Grass": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BountyProof_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "BowGun": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_2": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_3": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_4": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_5": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Fire": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Fire_2": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Fire_3": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Fire_4": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Fire_5": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Poison": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Poison_2": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Poison_3": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Poison_4": {
+    "weight": 13,
+    "stack": 1
+  },
+  "BowGun_Poison_5": {
+    "weight": 13,
+    "stack": 1
+  },
+  "Bow_Fifth": {
+    "weight": 8,
+    "stack": 1
+  },
+  "Bow_Fire": {
+    "weight": 6,
+    "stack": 1
+  },
+  "Bow_Poison": {
+    "weight": 6,
+    "stack": 1
+  },
+  "Bow_Triple": {
+    "weight": 8,
+    "stack": 1
+  },
+  "BronzeSword": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Cake": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Cake02": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Cake03": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Cake04": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Cake05": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "CaptureRope": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "CarbonFiber": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Carbonara": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Carrot": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "CarrotSeeds": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "CashFang": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "CashScales": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "CaveMushroom": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Cement": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Charcoal": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "ChargeLaserRifle": {
+    "weight": 20,
+    "stack": 1
+  },
+  "ChargeLaserRifleBullet": {
+    "weight": 0.01,
+    "stack": 9999
+  },
+  "ChargeLaserRifle_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "ChargeLaserRifle_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "ChargeLaserRifle_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "ChargeLaserRifle_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "CheeseBurger": {
+    "weight": 0.3,
+    "stack": 9999
+  },
+  "Cheeseburger_2": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "ChickenSaute": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Chowder": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Chromium": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Claws": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Claws2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "ClawsPendant": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Cloth": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Cloth2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "ClothArmor": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorCold": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorCold_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorCold_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorCold_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorCold_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorHeat": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorHeat_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorHeat_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorHeat_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmorHeat_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmor_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmor_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmor_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothArmor_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "ClothHat": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Coal": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "CompoundBow": {
+    "weight": 17,
+    "stack": 1
+  },
+  "CompoundBow_2": {
+    "weight": 17,
+    "stack": 1
+  },
+  "CompoundBow_3": {
+    "weight": 17,
+    "stack": 1
+  },
+  "CompoundBow_4": {
+    "weight": 17,
+    "stack": 1
+  },
+  "CompoundBow_5": {
+    "weight": 17,
+    "stack": 1
+  },
+  "Computer": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "CopperArmor": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorCold": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorCold_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorCold_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorCold_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorCold_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorHeat": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorHeat_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorHeat_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorHeat_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmorHeat_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmor_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmor_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmor_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperArmor_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "CopperHelmet": {
+    "weight": 10,
+    "stack": 1
+  },
+  "CopperHelmet_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "CopperHelmet_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "CopperHelmet_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "CopperHelmet_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "CopperIngot": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "CopperOre": {
+    "weight": 8,
+    "stack": 9999
+  },
+  "Corn": {
+    "weight": 1.5,
+    "stack": 9999
+  },
+  "CornSoup": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Corrosive_Solvent": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "CrudeOil": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Curry": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Curry_old": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "DecalGun_1": {
+    "weight": 8,
+    "stack": 1
+  },
+  "DecalGun_2": {
+    "weight": 8,
+    "stack": 1
+  },
+  "DecalGun_3": {
+    "weight": 8,
+    "stack": 1
+  },
+  "DecalGun_4": {
+    "weight": 8,
+    "stack": 1
+  },
+  "DecalGun_5": {
+    "weight": 8,
+    "stack": 1
+  },
+  "DeerLocoMoco": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "DeerStew": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Diamond": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "DogCoin": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "DoubleBarrelShotgun": {
+    "weight": 24,
+    "stack": 1
+  },
+  "DoubleBarrelShotgun_2": {
+    "weight": 24,
+    "stack": 1
+  },
+  "DoubleBarrelShotgun_3": {
+    "weight": 24,
+    "stack": 1
+  },
+  "DoubleBarrelShotgun_4": {
+    "weight": 24,
+    "stack": 1
+  },
+  "DoubleBarrelShotgun_5": {
+    "weight": 24,
+    "stack": 1
+  },
+  "DroneLauncher": {
+    "weight": 5,
+    "stack": 1
+  },
+  "DroneLauncher_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "DroneLauncher_3": {
+    "weight": 5,
+    "stack": 1
+  },
+  "DroneLauncher_4": {
+    "weight": 5,
+    "stack": 1
+  },
+  "DroneLauncher_5": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Eaglestew": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Eemerald": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Egg": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "ElecBaton": {
+    "weight": 10,
+    "stack": 1
+  },
+  "ElectricArcAssaultRifle": {
+    "weight": 5,
+    "stack": 1
+  },
+  "ElectricArcAssaultRifleBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "ElectricArcAssaultRifle_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "ElectricArcAssaultRifle_3": {
+    "weight": 5,
+    "stack": 1
+  },
+  "ElectricArcAssaultRifle_4": {
+    "weight": 5,
+    "stack": 1
+  },
+  "ElectricArcAssaultRifle_5": {
+    "weight": 5,
+    "stack": 1
+  },
+  "ElectricOrgan": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "ElectronicCircuit": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Elixir_attack_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_attack_02": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_hp_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_hp_02": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_hp_Yakushima": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_stamina_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_stamina_02": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_weight_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_weight_02": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_workspeed_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Elixir_workspeed_02": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "EnergyDrink": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "EnergyLauncherBullet": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "EnergyRocketLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "EnergyRocketLauncher_2": {
+    "weight": 50,
+    "stack": 1
+  },
+  "EnergyRocketLauncher_3": {
+    "weight": 50,
+    "stack": 1
+  },
+  "EnergyRocketLauncher_4": {
+    "weight": 50,
+    "stack": 1
+  },
+  "EnergyRocketLauncher_5": {
+    "weight": 50,
+    "stack": 1
+  },
+  "EnergyShotgun": {
+    "weight": 20,
+    "stack": 1
+  },
+  "EnergyShotgunBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "EnergyShotgun_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "EnergyShotgun_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "EnergyShotgun_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "EnergyShotgun_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "ExpBoost_01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "ExpBoost_02": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "ExpBoost_03": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "ExpBoost_04": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "ExplosiveBullet": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Fang": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Fang2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "FangNecklace": {
+    "weight": 2,
+    "stack": 1
+  },
+  "FarmCrop_Tmp": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Fiber": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "FireOrgan": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "FishMeat": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "FishMeat2": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "FishingBait_1": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingBait_1_A": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingBait_1_B": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingBait_2": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingBait_2_A": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingBait_2_B": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingBait_3": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingBait_3_A": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingBait_3_B": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "FishingRod_01_1": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FishingRod_01_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FishingRod_02_1": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FishingRod_02_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FishingRod_03_1": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FishingRod_03_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FishingRod_Good": {
+    "weight": 15,
+    "stack": 1
+  },
+  "FishingRod_Legendary": {
+    "weight": 15,
+    "stack": 1
+  },
+  "FishingRod_Old": {
+    "weight": 15,
+    "stack": 1
+  },
+  "FishingRod_Super": {
+    "weight": 15,
+    "stack": 1
+  },
+  "FlameThrower": {
+    "weight": 45,
+    "stack": 1
+  },
+  "FlameThrower_2": {
+    "weight": 45,
+    "stack": 1
+  },
+  "FlameThrower_3": {
+    "weight": 45,
+    "stack": 1
+  },
+  "FlameThrower_4": {
+    "weight": 45,
+    "stack": 1
+  },
+  "FlameThrower_5": {
+    "weight": 45,
+    "stack": 1
+  },
+  "FlamethrowerBullet": {
+    "weight": 0.01,
+    "stack": 9999
+  },
+  "Flint": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Flour": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Dark": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Dragon": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Elec": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Fire": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Ground": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Ice": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Leaf": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Super": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FragGrenade_Water": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "FriedChicken": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "FriedEggs": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "FriedKelpie": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "FriedVegetables": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Fruit__defense_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Fruit_attack_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Fruit_hp_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "FurArmor": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorCold": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorCold_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorCold_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorCold_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorCold_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorHeat": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorHeat_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorHeat_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorHeat_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmorHeat_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmor_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmor_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmor_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurArmor_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "FurHelmet": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FurHelmet_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FurHelmet_3": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FurHelmet_4": {
+    "weight": 5,
+    "stack": 1
+  },
+  "FurHelmet_5": {
+    "weight": 5,
+    "stack": 1
+  },
+  "GYM_Head_Desert": {
+    "weight": 7,
+    "stack": 1
+  },
+  "GYM_Head_Electric": {
+    "weight": 7,
+    "stack": 1
+  },
+  "GYM_Head_Forest": {
+    "weight": 7,
+    "stack": 1
+  },
+  "GYM_Head_Grass": {
+    "weight": 7,
+    "stack": 1
+  },
+  "GYM_Head_Sakurajima": {
+    "weight": 7,
+    "stack": 1
+  },
+  "GYM_Head_Snow": {
+    "weight": 7,
+    "stack": 1
+  },
+  "GYM_Head_Viking": {
+    "weight": 7,
+    "stack": 1
+  },
+  "GasMask": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Gasoline": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "GatlingBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "GatlingGun": {
+    "weight": 50,
+    "stack": 1
+  },
+  "GatlingGun_2": {
+    "weight": 50,
+    "stack": 1
+  },
+  "GatlingGun_3": {
+    "weight": 50,
+    "stack": 1
+  },
+  "GatlingGun_4": {
+    "weight": 50,
+    "stack": 1
+  },
+  "GatlingGun_5": {
+    "weight": 50,
+    "stack": 1
+  },
+  "GenghisKhan": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Glider_Good": {
+    "weight": 15,
+    "stack": 1
+  },
+  "Glider_Legendary": {
+    "weight": 25,
+    "stack": 1
+  },
+  "Glider_Old": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Glider_Super": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Glider_Tera": {
+    "weight": 25,
+    "stack": 1
+  },
+  "Grape": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "GrapplingGun": {
+    "weight": 1,
+    "stack": 1
+  },
+  "GrapplingGun2": {
+    "weight": 1,
+    "stack": 1
+  },
+  "GrapplingGun3": {
+    "weight": 1,
+    "stack": 1
+  },
+  "GrapplingGun4": {
+    "weight": 1,
+    "stack": 1
+  },
+  "GrapplingGun5": {
+    "weight": 1,
+    "stack": 1
+  },
+  "Gratin": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "GrenadeBullet": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "GrenadeLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GrenadeLauncher_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GrenadeLauncher_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GrenadeLauncher_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GrenadeLauncher_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GrilledFish": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "GrilledMeat": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "GrilledSheepHerbs": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "GrilledSwordCutlassFish": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "GuidedMissileLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GuidedMissileLauncher_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GuidedMissileLauncher_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GuidedMissileLauncher_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "GuidedMissileLauncher_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Gunpowder": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Gunpowder2": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Gyoza": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Hamburger": {
+    "weight": 0.3,
+    "stack": 9999
+  },
+  "Hamburger_2": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "HandGun_Default": {
+    "weight": 8,
+    "stack": 1
+  },
+  "HandGun_Default_2": {
+    "weight": 8,
+    "stack": 1
+  },
+  "HandGun_Default_3": {
+    "weight": 8,
+    "stack": 1
+  },
+  "HandGun_Default_4": {
+    "weight": 8,
+    "stack": 1
+  },
+  "HandGun_Default_5": {
+    "weight": 8,
+    "stack": 1
+  },
+  "HandgunBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "HandgunShield": {
+    "weight": 8,
+    "stack": 1
+  },
+  "Head001": {
+    "weight": 7,
+    "stack": 1
+  },
+  "Head001_2": {
+    "weight": 7,
+    "stack": 1
+  },
+  "Head001_3": {
+    "weight": 7,
+    "stack": 1
+  },
+  "Head001_4": {
+    "weight": 7,
+    "stack": 1
+  },
+  "Head001_5": {
+    "weight": 7,
+    "stack": 1
+  },
+  "Head002": {
+    "weight": 6,
+    "stack": 1
+  },
+  "Head002_2": {
+    "weight": 6,
+    "stack": 1
+  },
+  "Head002_3": {
+    "weight": 6,
+    "stack": 1
+  },
+  "Head002_4": {
+    "weight": 6,
+    "stack": 1
+  },
+  "Head002_5": {
+    "weight": 6,
+    "stack": 1
+  },
+  "Head003": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Head003_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Head003_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Head003_4": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Head003_5": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Head004": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head004_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head004_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head004_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head004_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head005": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head005_2": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head005_3": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head005_4": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head005_5": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head006": {
+    "weight": 8,
+    "stack": 1
+  },
+  "Head006_2": {
+    "weight": 8,
+    "stack": 1
+  },
+  "Head006_3": {
+    "weight": 8,
+    "stack": 1
+  },
+  "Head006_4": {
+    "weight": 8,
+    "stack": 1
+  },
+  "Head006_5": {
+    "weight": 8,
+    "stack": 1
+  },
+  "Head007": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head007_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head007_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head007_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head007_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head008": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head008_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head008_3": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head008_4": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head008_5": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head009": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head009_2": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head009_3": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head009_4": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head009_5": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head010": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head010_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head010_3": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head010_4": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head010_5": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Head011": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head011_2": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head011_3": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head011_4": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head011_5": {
+    "weight": 3,
+    "stack": 1
+  },
+  "Head012": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head012_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head012_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head012_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head012_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head013": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head013_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head013_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head013_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head013_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head014": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head014_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head014_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head014_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head014_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head015": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head015_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head015_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head015_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head015_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head016": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head016_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head016_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head016_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head016_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head017": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head017_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head017_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head017_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Head017_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip001_purple": {
+    "weight": 7,
+    "stack": 1
+  },
+  "HeadEquip023": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip024": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip025": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip025_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip025_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip025_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip025_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip026": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip026_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip026_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip026_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip026_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip027": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip028": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip028_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip028_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip028_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip028_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip029": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip030": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip031": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip031_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip031_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip031_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip031_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip032": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip032_2": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip032_3": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip032_4": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip032_5": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip033": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip041": {
+    "weight": 7,
+    "stack": 1
+  },
+  "HeadEquip044": {
+    "weight": 7,
+    "stack": 1
+  },
+  "HeadEquip045": {
+    "weight": 10,
+    "stack": 1
+  },
+  "HeadEquip046": {
+    "weight": 7,
+    "stack": 1
+  },
+  "HeadEquip048": {
+    "weight": 7,
+    "stack": 1
+  },
+  "HeadEquip049": {
+    "weight": 7,
+    "stack": 1
+  },
+  "HeadEquip050": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip051": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip052": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip053": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip054": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip055": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip056": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip057": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip058": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip059": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip060": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip061": {
+    "weight": 4,
+    "stack": 1
+  },
+  "HeadEquip062": {
+    "weight": 4,
+    "stack": 1
+  },
+  "Herbs": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "HighGrade_Processed_Wood": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Homeward": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "HomingSphereLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Honey": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Hop": {
+    "weight": 1.5,
+    "stack": 9999
+  },
+  "Horn": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "HotDog": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "HotDog_2": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "HotMilk": {
+    "weight": 1.5,
+    "stack": 9999
+  },
+  "IceOrgan": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "InkBullet": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "IronArmor": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorCold": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorCold_2": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorCold_3": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorCold_4": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorCold_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorHeat": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorHeat_2": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorHeat_3": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorHeat_4": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmorHeat_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmor_2": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmor_3": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmor_4": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronArmor_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "IronHelmet": {
+    "weight": 12,
+    "stack": 1
+  },
+  "IronHelmet_2": {
+    "weight": 12,
+    "stack": 1
+  },
+  "IronHelmet_3": {
+    "weight": 12,
+    "stack": 1
+  },
+  "IronHelmet_4": {
+    "weight": 12,
+    "stack": 1
+  },
+  "IronHelmet_5": {
+    "weight": 12,
+    "stack": 1
+  },
+  "IronIngot": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "IronOre": {
+    "weight": 10,
+    "stack": 9999
+  },
+  "JamBun": {
+    "weight": 0.3,
+    "stack": 9999
+  },
+  "JellyfishFairy_jelly": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "JellyfishGhost_jelly": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Katana": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Katana_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Katana_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Katana_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Katana_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "KeySphere_01": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "KeySphere_02": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "KeySphere_03": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "KeySphere_04": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "KeySphere_05": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "KeySphere_06": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "KeySphere_07": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "KeySphere_08": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "Kitsunebi_Fire": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Lantern": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Lantern_High": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "LargeBullet": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "LaserBullet": {
+    "weight": 0.01,
+    "stack": 9999
+  },
+  "LaserGatlingBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "LaserGatlingGun": {
+    "weight": 50,
+    "stack": 1
+  },
+  "LaserGatlingGun_2": {
+    "weight": 50,
+    "stack": 1
+  },
+  "LaserGatlingGun_3": {
+    "weight": 50,
+    "stack": 1
+  },
+  "LaserGatlingGun_4": {
+    "weight": 50,
+    "stack": 1
+  },
+  "LaserGatlingGun_5": {
+    "weight": 50,
+    "stack": 1
+  },
+  "LaserMiningTool": {
+    "weight": 50,
+    "stack": 1
+  },
+  "LaserRifle": {
+    "weight": 18,
+    "stack": 1
+  },
+  "LaserRifle_2": {
+    "weight": 18,
+    "stack": 1
+  },
+  "LaserRifle_3": {
+    "weight": 18,
+    "stack": 1
+  },
+  "LaserRifle_4": {
+    "weight": 18,
+    "stack": 1
+  },
+  "LaserRifle_5": {
+    "weight": 18,
+    "stack": 1
+  },
+  "Launcher_Default": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Launcher_Default_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Launcher_Default_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Launcher_Default_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Launcher_Default_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Launcher_Meat": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Launcher_Meteor": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Launcher_Meteor_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Lava_Ancient": {
+    "weight": 8,
+    "stack": 9999
+  },
+  "Leather": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Leather2": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Lettuce": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "LettuceSeeds": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "LightzHelmet": {
+    "weight": 7,
+    "stack": 1
+  },
+  "Lotus_attack_01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_attack_02": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_hp_01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_hp_02": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_stamina_01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_stamina_02": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_weight_01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_weight_02": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_workspeed_01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Lotus_workspeed_02": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "LuxuryMedicines": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "LuxuryOmelette": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "LvUP_01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "MachineParts": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "MachineParts2": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "MachingunBullet": {
+    "weight": 0.01,
+    "stack": 9999
+  },
+  "MagnumBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "MakeshiftAssaultRifle": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftAssaultRifle_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftAssaultRifle_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftAssaultRifle_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftAssaultRifle_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftHandgun": {
+    "weight": 10,
+    "stack": 1
+  },
+  "MakeshiftHandgun_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "MakeshiftHandgun_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "MakeshiftHandgun_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "MakeshiftHandgun_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "MakeshiftShotgun": {
+    "weight": 24,
+    "stack": 1
+  },
+  "MakeshiftShotgun_2": {
+    "weight": 24,
+    "stack": 1
+  },
+  "MakeshiftShotgun_3": {
+    "weight": 24,
+    "stack": 1
+  },
+  "MakeshiftShotgun_4": {
+    "weight": 24,
+    "stack": 1
+  },
+  "MakeshiftShotgun_5": {
+    "weight": 24,
+    "stack": 1
+  },
+  "MakeshiftSubmachineGun": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftSubmachineGun_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftSubmachineGun_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftSubmachineGun_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "MakeshiftSubmachineGun_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "ManganeseIngot": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "ManganeseOre": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "MarinatedMushrooms": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "MateItem01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "MeaninglessItem_ButcheringImportPal": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "Meat": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Meat2": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "MeatAndPotatoes": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "MeatCutterKnife": {
+    "weight": 10,
+    "stack": 1
+  },
+  "MeatSauce": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Meat_BerryGoat": {
+    "weight": 2.5,
+    "stack": 9999
+  },
+  "Meat_Boar": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Meat_ChickenPal": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Meat_CowPal": {
+    "weight": 2.5,
+    "stack": 9999
+  },
+  "Meat_Deer": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Meat_Eagle": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Meat_GrassMammoth": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Meat_IceCrocodile": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Meat_IceDeer": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Meat_JellyfishFairy": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Meat_JellyfishGhost": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Meat_Kelpie": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Meat_LazyCatfish": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Meat_OctopusGirl": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Meat_SakuraSaurus": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Meat_SheepBall": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Meat_SwordCutlassFish": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Medicines": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "MetalDetector": {
+    "weight": 25,
+    "stack": 1
+  },
+  "MeteorBullet": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "MeteorDrop": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Milk": {
+    "weight": 1.5,
+    "stack": 9999
+  },
+  "MindControlDrug": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Minestrone": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "MissileBullet": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Money": {
+    "weight": 0,
+    "stack": 99999999
+  },
+  "MonsterEquipWeapon_Dummy": {
+    "weight": 1,
+    "stack": 1
+  },
+  "MultiGuidedMissileLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "MultiGuidedMissileLauncher_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "MultiGuidedMissileLauncher_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "MultiGuidedMissileLauncher_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "MultiGuidedMissileLauncher_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Mushroom": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "MushroomJuice": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "MushroomSoup": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "MushroomStew": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Musket": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Musket_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Musket_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Musket_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Musket_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Narcotic": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "NightStone": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "NightVisionGoggles": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Octavia001_Armor": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Octavia001_Armor_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "Octavia002_Armor": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Octavia002_Armor_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "OctaviaRevolver": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OctaviaRevolver_2": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OctaviaRevolver_3": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OctaviaRevolver_4": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OctaviaRevolver_5": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OctaviaShotgun": {
+    "weight": 20,
+    "stack": 1
+  },
+  "OctaviaShotgun_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "OctaviaShotgun_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "OctaviaShotgun_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "OctaviaShotgun_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "OctopusGirl_Takoyaki": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "OctopusGirl_Takoyaki2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "OldRevolver": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OldRevolver_2": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OldRevolver_3": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OldRevolver_4": {
+    "weight": 8,
+    "stack": 1
+  },
+  "OldRevolver_5": {
+    "weight": 8,
+    "stack": 1
+  },
+  "Omelet": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Onion": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "OnionSeeds": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "Opium": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Otomo_ATDark_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ATDragon_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ATEarth_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ATElectricity_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ATFire_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ATIce_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ATLeaf_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ATNormal_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ATWater_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_Attack_up1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_Attack_up2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_Attack_up3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFDark_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFDragon_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFEarth_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFElectricity_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFFire_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFIce_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFLeaf_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFNormal_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_DFWater_ElementBoost_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_Defense_up1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_Defense_up2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_Defense_up3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Dark_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Dark_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Dark_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Dragon_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Dragon_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Dragon_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Earth_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Earth_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Earth_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Electricity_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Electricity_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Electricity_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Fire_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Fire_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Fire_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Ice_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Ice_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Ice_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Leaf_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Leaf_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Leaf_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Normal_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Normal_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Normal_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Water_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Water_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_ElementBoost_Water_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_MoveSpeed_up_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_PalConfidence_Increase_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_PalExp_Increase_1": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_PalExp_Increase_2": {
+    "weight": 2,
+    "stack": 1
+  },
+  "Otomo_PalExp_Increase_3": {
+    "weight": 2,
+    "stack": 1
+  },
+  "OverheatRifle": {
+    "weight": 15,
+    "stack": 1
+  },
+  "OverheatRifleBullet": {
+    "weight": 0.01,
+    "stack": 9999
+  },
+  "OverheatRifle_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "OverheatRifle_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "OverheatRifle_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "OverheatRifle_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "PAL_Growth_Stone_L": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PAL_Growth_Stone_M": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PAL_Growth_Stone_S": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PAL_Growth_Stone_XL": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PV_Glider_Manta": {
+    "weight": 15,
+    "stack": 1
+  },
+  "PalAwakening_Dark": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Dragon": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Electric": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Fire": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Grass": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Ground": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Ice": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Dark": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Dragon": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Electric": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Fire": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Grass": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Ground": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Ice": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Neutral": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Material_Water": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Neutral": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalAwakening_Water": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalCrystal_Ex": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalDarkParts": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalDopingShot": {
+    "weight": 8,
+    "stack": 1
+  },
+  "PalDopingShotBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "PalDopingShot_2": {
+    "weight": 8,
+    "stack": 1
+  },
+  "PalDopingShot_3": {
+    "weight": 8,
+    "stack": 1
+  },
+  "PalEgg_Dark_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Dark_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Dark_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Dark_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Dark_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_Dragon_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Dragon_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Dragon_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Dragon_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Dragon_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_Earth_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Earth_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Earth_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Earth_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Earth_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_Electricity_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Electricity_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Electricity_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Electricity_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Electricity_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_Fire_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Fire_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Fire_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Fire_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Fire_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_Ice_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Ice_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Ice_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Ice_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Ice_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_Leaf_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Leaf_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Leaf_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Leaf_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Leaf_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_MutationPal": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_MutationPal_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_MutationPal_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_MutationPal_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_MutationPal_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_MutationPal_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_Normal_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Normal_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Normal_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Normal_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Normal_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_Water_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Water_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_Water_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Water_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_Water_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalEgg_WorldTree_01": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_WorldTree_02": {
+    "weight": 10,
+    "stack": 1
+  },
+  "PalEgg_WorldTree_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_WorldTree_04": {
+    "weight": 25,
+    "stack": 1
+  },
+  "PalEgg_WorldTree_05": {
+    "weight": 50,
+    "stack": 1
+  },
+  "PalFluid": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalGenderReverse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalHealingGrenade": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalItem_CaptainPenguin": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_CatMage": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_ColorfulBird": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_LizardMan": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_MopBaby": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_NegativeOctopus": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_PinkRabbit": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_PlantSlime": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_RaijinDaughter": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalItem_ToSell_01": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalItem_ToSell_02": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalItem_ToSell_03": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalItem_ToSell_04": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalItem_ToSell_05": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalOil": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_AutoHPRegeneRate_Passive": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_CraftSpeed_up3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Deffence_up3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_EternalFlame": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Invader": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Legend": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_MoveSpeed_up_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_MutationPal_Babysitter": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_MutationPal_ExplosionResist": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_MutationPal_Immortal": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_MutationPal_Mutant": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Nushi": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_PAL_ALLAttack_up3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_PAL_FullStomach_Down_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_PAL_Sanity_Down_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Rare": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_RideJumpCount_Increase2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Salvation": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Stamina_Up_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_SwimSpeed_up_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Vampire": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_Witch": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_WorldTree_ATK": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_WorldTree_ATK_DEF": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_WorldTree_CraftSpeed": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_WorldTree_DEF": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_WorldTree_FullStomach": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_WorldTree_MoveSpeed": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Consumable_WorldTree_Sanity": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_CoolTimeReduction_Up_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_CoolTimeReduction_Up_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_CraftSpeed_up1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_CraftSpeed_up2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_CraftSpeed_up3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Deffence_up1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Deffence_up2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Deffence_up3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_HatchingSpeed_Up": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_MoveSpeed_up_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_MoveSpeed_up_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_MoveSpeed_up_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Nocturnal": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_NonKilling": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Noukin": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_ALLAttack_up1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_ALLAttack_up2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_ALLAttack_up3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_CorporateSlave": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_FullStomach_Down_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_FullStomach_Down_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_FullStomach_Down_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_Sanity_Down_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_Sanity_Down_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PAL_Sanity_Down_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_PlayerSP_DecreaseRate_Passive": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_ReloadSpeedUp_Passive": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_SalePrice_Up_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_SalePrice_Up_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Stamina_Up_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Stamina_Up_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_Stamina_Up_3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_SwimSpeed_up_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_SwimSpeed_up_2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_TrainerATK_UP_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_TrainerDEF_UP_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_TrainerLogging_up1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_TrainerMining_up1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalPassiveSkillChange_TrainerWorkSpeed_UP_1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalRevive": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSphere": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Ancient_1": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Ancient_2": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Debug": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "PalSphere_Exotic": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Giga": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Legend": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Master": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Mega": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Robbery": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSphere_Tera": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSphere_Ultimate": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalSummon": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_DarkMechaDragon": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_DarkMechaDragon_2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_DarkMechaDragon_Parts": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_DarkMechaDragon_Parts_2": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_KingBahamut_Dragon": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_KingBahamut_Dragon_2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_KingBahamut_Dragon_Parts": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_KingBahamut_Dragon_Parts_2": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_LegendDeer": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_LegendDeer_2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_LegendDeer_Parts": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_LegendDeer_Parts_2": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_NightLady": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_NightLady_Dark": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_NightLady_Dark_2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_NightLady_Dark_Parts": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_NightLady_Dark_Parts_2": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_NightLady_Parts": {
+    "weight": 0.25,
+    "stack": 9999
+  },
+  "PalSummon_YakushimaBoss002": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalSummon_YakushimaBoss002_2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PalUpgradeStone": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "PalUpgradeStone2": {
+    "weight": 0.15,
+    "stack": 9999
+  },
+  "PalUpgradeStone3": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PalUpgradeStone4": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Pal_crystal_L": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Pal_crystal_S": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Pan": {
+    "weight": 0.3,
+    "stack": 9999
+  },
+  "Pancake": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "PenguinLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "Pickaxe_Steal": {
+    "weight": 25,
+    "stack": 1
+  },
+  "Pickaxe_Tier_00": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Pickaxe_Tier_01": {
+    "weight": 15,
+    "stack": 1
+  },
+  "Pickaxe_Tier_02": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Pickaxe_Tier_03": {
+    "weight": 25,
+    "stack": 1
+  },
+  "Pizza": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Plastic": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PlasticArmor": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorCold": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorCold_2": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorCold_3": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorCold_4": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorCold_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorHeat": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorHeat_2": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorHeat_3": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorHeat_4": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorHeat_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorWeight": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorWeight_2": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorWeight_3": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorWeight_4": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmorWeight_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmor_2": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmor_3": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmor_4": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticArmor_5": {
+    "weight": 35,
+    "stack": 1
+  },
+  "PlasticHelmet": {
+    "weight": 12,
+    "stack": 1
+  },
+  "PlasticHelmet_2": {
+    "weight": 12,
+    "stack": 1
+  },
+  "PlasticHelmet_3": {
+    "weight": 12,
+    "stack": 1
+  },
+  "PlasticHelmet_4": {
+    "weight": 12,
+    "stack": 1
+  },
+  "PlasticHelmet_5": {
+    "weight": 12,
+    "stack": 1
+  },
+  "PlayerDropItem": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Player_Outfit_Kigurumi001": {
+    "weight": 30,
+    "stack": 1
+  },
+  "PoisonMushroom": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Polymer": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Poppy": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Potage": {
+    "weight": 0.3,
+    "stack": 9999
+  },
+  "Potato": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PotatoChips": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "PotatoSeedPotatoes": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "PotatoSeeds": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "Potato_old": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Potion": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Potion_Extreme": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Potion_High": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Potion_Low": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "PredatorCrystal": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Premium_Processed_Wood": {
+    "weight": 4,
+    "stack": 9999
+  },
+  "Processed_Wood": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Propellant": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "PumpActionShotgun": {
+    "weight": 20,
+    "stack": 1
+  },
+  "PumpActionShotgun_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "PumpActionShotgun_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "PumpActionShotgun_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "PumpActionShotgun_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Pumpkin": {
+    "weight": 1.5,
+    "stack": 9999
+  },
+  "Quartz": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "QuestItem_Breeder_1": {
+    "weight": 0,
+    "stack": 1
+  },
+  "QuestItem_Farmer_1": {
+    "weight": 0,
+    "stack": 1
+  },
+  "QuestItem_Zoe_1": {
+    "weight": 0,
+    "stack": 1
+  },
+  "QuestItem_Zoe_Halloweenskin_1": {
+    "weight": 0,
+    "stack": 1
+  },
+  "Quiche": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "RainbowCrystal": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Rankup_1": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Rankup_2": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Rankup_3": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Rankup_4": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Rankup_Arbitrary": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "RecurveBow": {
+    "weight": 15,
+    "stack": 1
+  },
+  "ReinforcedArrow": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "Relic": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_01": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_02": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_03": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_04": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_05": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_06": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_07": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_08": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_09": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_10": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_11": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Relic_12": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "RepairKit": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "RifleBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "RoughBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "Ruby": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "SFArmor": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorCold": {
+    "weight": 35,
+    "stack": 1
+  },
+  "SFArmorCold_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorCold_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorCold_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorCold_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorHeat": {
+    "weight": 35,
+    "stack": 1
+  },
+  "SFArmorHeat_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorHeat_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorHeat_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorHeat_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorWeight": {
+    "weight": 35,
+    "stack": 1
+  },
+  "SFArmorWeight_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorWeight_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorWeight_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmorWeight_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmor_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmor_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmor_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArmor_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "SFArrow": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "SFBow": {
+    "weight": 25,
+    "stack": 1
+  },
+  "SFBow_2": {
+    "weight": 25,
+    "stack": 1
+  },
+  "SFBow_3": {
+    "weight": 25,
+    "stack": 1
+  },
+  "SFBow_4": {
+    "weight": 25,
+    "stack": 1
+  },
+  "SFBow_5": {
+    "weight": 25,
+    "stack": 1
+  },
+  "SFHelmet": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SFHelmet_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SFHelmet_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SFHelmet_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SFHelmet_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "Salad": {
+    "weight": 0.3,
+    "stack": 9999
+  },
+  "Salvage_TreasureBoxKey01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Salvage_TreasureBoxKey02": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Sand": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Sandwich": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Sapphire": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Scales": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Scales2": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "SeafoodSoup": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Seafood_Salada": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Seed_Tmp": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "SemiAutoRifle": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoRifle_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoRifle_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoRifle_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoRifle_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoShotgun": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoShotgun_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoShotgun_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoShotgun_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SemiAutoShotgun_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Sharkkid_Scale": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Shield_01": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Shield_02": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Shield_03": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Shield_04": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Shield_05": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Shield_07": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Shield_SF": {
+    "weight": 5,
+    "stack": 1
+  },
+  "Shield_Ultra": {
+    "weight": 5,
+    "stack": 1
+  },
+  "ShotgunBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "Silicon": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "SingleShotRifle": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SingleShotRifle_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SingleShotRifle_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SingleShotRifle_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SingleShotRifle_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SkillCard_AcidRain": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_AirBlade": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_AirCanon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_Apocalypse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_AquaJet": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_BeamSlicer": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_BlastCanon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_BlizzardLance": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_BubbleShot": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_BubbleShower": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ChargeCanon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_Commet": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_CrossWind": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DarkArrow": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DarkCanon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DarkLaser": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DarkLegion": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DarkPulse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DarkWave": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DiamondFall": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DiversionLaser": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DragonBreath": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DragonCanon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DragonMeteor": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_DragonWave": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ElecWave": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_Eruption": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_FireBall": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_FireBlast": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_FireSeed": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_FlameFunnel": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_FlameWall": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_Flamethrower": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_FlareArrow": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_FlareTornado": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_FrostBreath": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_GhostFlame": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_GrassTornado": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_GravityShot": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_HolyBlast": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_HydroPump": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_HydroSlicer": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_HyperBeam": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_IceAge": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_IceBlade": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_IceMissile": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_IceWall": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_IcicleLine": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_IciclePierce": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_IcicleThrow": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_Inferno": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_LightningStrike": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_LineGeyser": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_LineThunder": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_LockonLaser": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_MudShot": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_PoisonShot": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_PowerBall": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_PowerShot": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_Psychokinesis": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_RangeThunder": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ReflectiveShuriken": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_RipTide": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_RockBeat": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_RockLance": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_RootAttack": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_RootLance": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SandTornado": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SandTwister": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SeaGush": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SeedMachinegun": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SeedMine": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SelfDestruct": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ShadowBall": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SolarBeam": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SpecialCutter": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_SpreadPulse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_StoneShotgun": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ThreeThunder": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ThrowRock": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ThunderBall": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ThunderFunnel": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ThunderRain": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ThunderSpear": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_ThunderStorm": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_Thunderbolt": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_Tremor": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_TriSpark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_WallSplash": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_WaterBall": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_WaterGun": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_WindBurst": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillCard_WindCutter": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Alpaca": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_AmaterasuWolf": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_AmaterasuWolf_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_BadCatgirl": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_BirdDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_BirdDragon_Ice": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_BlackCentaur": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_BlackFurDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_BlackGriffon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_BlackMetalDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_BlackPuppy": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_BlackPuppy_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_BlueDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_BlueDragon_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_BlueSkyDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_BlueThunderHorse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Boar": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Carbunclo": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_ColorfulBird": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_CubeTurtle": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_CubeTurtle_Neutral": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_DarkMechaDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_DarkMutant": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Deer": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Deer_Ground": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_DomeArmorDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_DreamDemon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_DrillGame": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Eagle": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_ElecLion": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_ElecPanda": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FairyDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FairyDragon_Water": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FeatherOstrich": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FengyunDeeper": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FengyunDeeper_Electric": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_FireKirin": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FireKirin_Dark": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FlameBuffalo": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FlowerDinosaur": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FlowerDinosaur_Electric": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FlowerRabbit": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FlyingManta": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_FlyingManta_Thunder": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Garm": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_GhostAnglerfish": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_GhostAnglerfish_Fire": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_GhostBeast": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_GhostDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_GhostDragon_Fire": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_GoldenHorse": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_GrassGolem": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_GrassGolem_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_GrassMammoth": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_GrassMammoth_Ice": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_GrassPanda": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_GrassPanda_Electric": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_GuardianDog": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_HadesBird": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_HadesBird_Electric": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_HawkBird": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Hedgehog": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Hedgehog_Ice": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Horus": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Horus_Water": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_IceDeer": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_IceHorse": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_IceHorse_Dark": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_IceNarwhal": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_IceNarwhal_Fire": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_IceSeal": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_IceSeal_Ground": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_JetDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_KingAlpaca": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_KingAlpaca_Ice": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_KingBahamut": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_KingBahamut_Dragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_KingSunfish": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_KingSunfish_Thunder": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Kirin": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Kirin_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Kitsunebi": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Kitsunebi_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_LazyDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_LazyDragon_Electric": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_LeafMomonga": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_LegendDeer": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_LotusDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Manticore": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Manticore_Dark": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Monkey": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Monkey_Fire": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_MoonQueen": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_MopKing": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_MushroomDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_MushroomDragon_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_NaughtyCat": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_NegativeOctopus": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_NegativeOctopus_Neutral": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_NightBlueHorse": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_NightBlueHorse_Neutral": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Penguin": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Penguin_Electric": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Plesiosaur": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_PoseidonOrca": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_PurpleSpider": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_RaijinDaughter": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_RaijinDaughter_Water": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_RedArmorBird": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_SaintCentaur": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_SakuraSaurus": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_SakuraSaurus_Water": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Serpent": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Serpent_Ground": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_SkyDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_SkyDragon_Grass": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_SnowTigerBeastman": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_SumoDog": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Suzaku": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Suzaku_Water": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_ThiefBird": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_ThunderBird": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_ThunderBird_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_ThunderDog": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_ThunderFluffyBird": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Thunderdog_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_TropicalOstrich": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_Umihebi": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Umihebi_Fire": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_VolcanicMonster": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_VolcanicMonster_Ice": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_VolcanoDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_VolcanoDragon_Ice": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_WeaselDragon": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_WeaselDragon_Fire": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_WhiteAlienDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_WhiteDeer": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_WhiteDeer_Dark": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_WhiteShieldDragon": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SkillUnlock_WindChimes": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_WindChimes_Ice": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Yeti": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkillUnlock_Yeti_Grass": {
+    "weight": 0,
+    "stack": 999999
+  },
+  "SkyAssaultRifle": {
+    "weight": 5,
+    "stack": 1
+  },
+  "SkyAssaultRifleBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "SkyAssaultRifle_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "SkyAssaultRifle_3": {
+    "weight": 5,
+    "stack": 1
+  },
+  "SkyAssaultRifle_4": {
+    "weight": 5,
+    "stack": 1
+  },
+  "SkyAssaultRifle_5": {
+    "weight": 5,
+    "stack": 1
+  },
+  "SkyBeamSword": {
+    "weight": 10,
+    "stack": 1
+  },
+  "SkyBeamSword_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "SkyBeamSword_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "SkyBeamSword_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "SkyBeamSword_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "SkyBow": {
+    "weight": 6,
+    "stack": 1
+  },
+  "SkyBowArrow": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "SkyBow_2": {
+    "weight": 6,
+    "stack": 1
+  },
+  "SkyBow_3": {
+    "weight": 6,
+    "stack": 1
+  },
+  "SkyBow_4": {
+    "weight": 6,
+    "stack": 1
+  },
+  "SkyBow_5": {
+    "weight": 6,
+    "stack": 1
+  },
+  "SkyGrenadeLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "SkyGrenadeLauncherBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "SkyGrenadeLauncher_2": {
+    "weight": 30,
+    "stack": 1
+  },
+  "SkyGrenadeLauncher_3": {
+    "weight": 30,
+    "stack": 1
+  },
+  "SkyGrenadeLauncher_4": {
+    "weight": 30,
+    "stack": 1
+  },
+  "SkyGrenadeLauncher_5": {
+    "weight": 30,
+    "stack": 1
+  },
+  "SkyHeavyBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "SkyIslandOre": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "SkyLightBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "SkyShotgun": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SkyShotgunBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "SkyShotgun_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SkyShotgun_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SkyShotgun_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SkyShotgun_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "SkySubmachineGun": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SkySubmachineGunBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "SkySubmachineGun_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SkySubmachineGun_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SkySubmachineGun_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SkySubmachineGun_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SkyislandIngot": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "SmallBullet": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "SniperRifle_Default": {
+    "weight": 25,
+    "stack": 1
+  },
+  "Spear": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Spear_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "Spear_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Spear_ForestBoss": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Spear_ForestBoss2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Spear_ForestBoss2_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Spear_ForestBoss_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Spear_QueenBee": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Spear_SoldierBee": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SphereLauncher": {
+    "weight": 30,
+    "stack": 1
+  },
+  "SphereLauncher_Once": {
+    "weight": 30,
+    "stack": 1
+  },
+  "SphereModule_Curve": {
+    "weight": 1,
+    "stack": 1
+  },
+  "SphereModule_Curve2": {
+    "weight": 1,
+    "stack": 1
+  },
+  "SphereModule_Heavy": {
+    "weight": 1,
+    "stack": 1
+  },
+  "SphereModule_Homing": {
+    "weight": 1,
+    "stack": 1
+  },
+  "SphereModule_Sniper": {
+    "weight": 1,
+    "stack": 1
+  },
+  "SphereModule_Sniper2": {
+    "weight": 1,
+    "stack": 1
+  },
+  "SpringRolls": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "StainlessSteel": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "StatusPointResetSan": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "StealArmor": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorCold": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorCold_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorCold_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorCold_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorCold_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorHeat": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorHeat_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorHeat_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorHeat_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmorHeat_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmor_2": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmor_3": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmor_4": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealArmor_5": {
+    "weight": 40,
+    "stack": 1
+  },
+  "StealHelmet": {
+    "weight": 15,
+    "stack": 1
+  },
+  "StealHelmet_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "StealHelmet_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "StealHelmet_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "StealHelmet_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "StealIngot": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Stew": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "StewedIceDeer": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "StirFriedVegetables": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "Stone": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "SubmachineGun": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SubmachineGun_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SubmachineGun_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SubmachineGun_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "SubmachineGun_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "Sulfur": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Supplement": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Sweet": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Sweet_Caramel": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "Sword": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Sword_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Sword_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Sword_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "Sword_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "TEST_BossDefeatReward": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "TEST_CaptureItemModifier": {
+    "weight": 1,
+    "stack": 1
+  },
+  "TechnologyBook_G1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "TechnologyBook_G2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "TechnologyBook_G3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Thermal_Core": {
+    "weight": 8,
+    "stack": 9999
+  },
+  "ThrowStone": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "Tomato": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "TomatoSeeds": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "Torch": {
+    "weight": 5,
+    "stack": 1
+  },
+  "TreasureBoxKey01": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "TreasureBoxKey02": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "TreasureBoxKey03": {
+    "weight": 0.1,
+    "stack": 9999
+  },
+  "TreasureMap01": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "TreasureMap02": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "TreasureMap03": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "TreasureMap04": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "TreasureMap05": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "UniqueMaterial_FlowerPrince": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "UniqueMaterial_Mothman": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Unko_L": {
+    "weight": 2,
+    "stack": 9999
+  },
+  "Unko_S": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "UnlockEquipmentSlot_Accessory_01": {
+    "weight": 0,
+    "stack": 1
+  },
+  "UnlockEquipmentSlot_Accessory_02": {
+    "weight": 0,
+    "stack": 1
+  },
+  "UnlockEquipmentSlot_Weapon_01": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "UnlockEquipmentSlot_Weapon_02": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Unlock_Picking_Tier1": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Unlock_Picking_Tier2": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Unlock_Picking_Tier3": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "VenisonBoiledInTomato": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Venom": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "WaterBucket": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "WaterBuildKit": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "WeakerBow": {
+    "weight": 6,
+    "stack": 1
+  },
+  "WeakerBow_2": {
+    "weight": 6,
+    "stack": 1
+  },
+  "WeakerBow_3": {
+    "weight": 6,
+    "stack": 1
+  },
+  "WeakerBow_4": {
+    "weight": 6,
+    "stack": 1
+  },
+  "WeakerBow_5": {
+    "weight": 6,
+    "stack": 1
+  },
+  "WhaleWhistle": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "WhaleWhistleFragment_01": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "WhaleWhistleFragment_02": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "WhaleWhistleFragment_03": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "WhaleWhistleFragment_04": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "Wheat": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "WheatSeeds": {
+    "weight": 0.05,
+    "stack": 9999
+  },
+  "WidePenetrateShotgun": {
+    "weight": 20,
+    "stack": 1
+  },
+  "WidePenetrateShotgunBullet": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "WidePenetrateShotgun_2": {
+    "weight": 20,
+    "stack": 1
+  },
+  "WidePenetrateShotgun_3": {
+    "weight": 20,
+    "stack": 1
+  },
+  "WidePenetrateShotgun_4": {
+    "weight": 20,
+    "stack": 1
+  },
+  "WidePenetrateShotgun_5": {
+    "weight": 20,
+    "stack": 1
+  },
+  "Wine": {
+    "weight": 1.5,
+    "stack": 9999
+  },
+  "WingGlider": {
+    "weight": 25,
+    "stack": 1
+  },
+  "WingGlider_Fuel": {
+    "weight": 0.025,
+    "stack": 9999
+  },
+  "Wood": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "Wood_Ancient": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Wood_Fine": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "Wood_WorldTree": {
+    "weight": 8,
+    "stack": 9999
+  },
+  "Wool": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_Collection": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_Cool": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_Deforest": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_EmitFlame": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_GenerateElectricity": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_Handcraft": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_Mining": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_MonsterFarm": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_ProductMedicine": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_Seeding": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_Transport": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorkSuitability_AddTicket_Watering": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorldTreeHolyWater": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorldTreeIngot": {
+    "weight": 3,
+    "stack": 9999
+  },
+  "WorldTreeOre": {
+    "weight": 5,
+    "stack": 9999
+  },
+  "WorldTreeRelic_01": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorldTreeRelic_02": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorldTreeRelic_03": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorldTreeRelic_04": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "WorldTreeRelic_05": {
+    "weight": 1,
+    "stack": 9999
+  },
+  "Yakisoba": {
+    "weight": 0.5,
+    "stack": 9999
+  },
+  "YakushimaArmor001": {
+    "weight": 37,
+    "stack": 1
+  },
+  "YakushimaArmor001_2": {
+    "weight": 37,
+    "stack": 1
+  },
+  "YakushimaArmor001_3": {
+    "weight": 37,
+    "stack": 1
+  },
+  "YakushimaArmor001_4": {
+    "weight": 37,
+    "stack": 1
+  },
+  "YakushimaArmor001_5": {
+    "weight": 37,
+    "stack": 1
+  },
+  "YakushimaBlade": {
+    "weight": 22,
+    "stack": 1
+  },
+  "YakushimaBlade002": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade002_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade002_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade002_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade002_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade003": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaBlade003_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaBlade003_3": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaBlade003_4": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaBlade003_5": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaBlade004": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade004_2": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade004_3": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade004_4": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade004_5": {
+    "weight": 10,
+    "stack": 1
+  },
+  "YakushimaBlade005": {
+    "weight": 22,
+    "stack": 1
+  },
+  "YakushimaGun001": {
+    "weight": 15,
+    "stack": 1
+  },
+  "YakushimaGun001_2": {
+    "weight": 15,
+    "stack": 1
+  },
+  "YakushimaGun001_3": {
+    "weight": 15,
+    "stack": 1
+  },
+  "YakushimaGun001_4": {
+    "weight": 15,
+    "stack": 1
+  },
+  "YakushimaGun001_5": {
+    "weight": 15,
+    "stack": 1
+  },
+  "YakushimaHeadEquip001": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip001_2": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip001_3": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip001_4": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip001_5": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip002": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip002_2": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip002_3": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip002_4": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip002_5": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip003": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip003_2": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip003_3": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip003_4": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip003_5": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip004": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip004_2": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip004_3": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip004_4": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip004_5": {
+    "weight": 13,
+    "stack": 1
+  },
+  "YakushimaHeadEquip005": {
+    "weight": 15,
+    "stack": 1
+  },
+  "YakushimaHeadEquip006": {
+    "weight": 15,
+    "stack": 1
+  },
+  "YakushimaIngot001": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "YakushimaIngot002": {
+    "weight": 0,
+    "stack": 9999
+  },
+  "YakushimaLantern001": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaLantern001_2": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaLantern001_3": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaLantern001_4": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaLantern001_5": {
+    "weight": 5,
+    "stack": 1
+  },
+  "YakushimaParts001": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "YakushimaParts002": {
+    "weight": 0.2,
+    "stack": 9999
+  },
+  "YakushimaParts003": {
+    "weight": 5,
+    "stack": 9999
+  }
+}

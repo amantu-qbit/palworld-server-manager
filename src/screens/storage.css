@@ -92,6 +92,83 @@
   opacity: 0.65;
 }
 
+/* One compact player row (name + total items) — collapses the old
+   five-rows-per-player wall into a scannable list. */
+.st-prow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
+  text-align: left;
+  color: var(--dim);
+  border-left: 2px solid transparent;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.st-prow:hover {
+  background: var(--surface-2, rgba(255, 255, 255, 0.03));
+  color: var(--text);
+}
+.st-prow.is-active {
+  background: rgba(52, 211, 234, 0.1);
+  border-left-color: var(--accent);
+}
+.st-prow__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.st-prow.is-active .st-prow__name {
+  color: var(--accent);
+}
+.st-prow__meta {
+  flex: none;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--faint);
+}
+
+/* Bag selector: the chosen player's five containers as tabs in the pane. */
+.st-bagtabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+.st-bagtabs button {
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 8px 14px;
+  margin-bottom: -1px;
+  font-size: 13px;
+  color: var(--faint);
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur) var(--ease);
+}
+.st-bagtabs button span {
+  margin-left: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+}
+.st-bagtabs button:hover {
+  color: var(--dim);
+}
+.st-bagtabs button.is-on {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+.st-bagtabs button.is-on span {
+  color: var(--accent);
+}
+
 /* ---- Main pane ---- */
 .st-main {
   flex: 1;

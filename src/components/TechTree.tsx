@@ -152,6 +152,7 @@ export function TechTree({
         <div className="tt-board">
           <div className="tt-boardinner">
             <div className="tt-colhead">
+              <span className="tt-colhead__rail" />
               <span className="tt-colhead__tech">Technology</span>
               <span className="tt-colhead__spacer" />
               <span className="tt-colhead__anc">Ancient Technology</span>
@@ -166,13 +167,13 @@ export function TechTree({
                     <i>{row.level}</i>
                   </span>
                 </div>
-                {slots.map((m, i) =>
-                  m ? (
-                    <Tile key={m.code} m={m} on={isOn(m)} onHover={hover} onLeave={clear} onClick={click} />
-                  ) : (
-                    <span key={`e${i}`} className="tt-slot" />
-                  ),
-                )}
+                {slots.map((m, i) => (
+                  <div key={m ? m.code : `e${i}`} className="tt-cell">
+                    {m && (
+                      <Tile m={m} on={isOn(m)} onHover={hover} onLeave={clear} onClick={click} />
+                    )}
+                  </div>
+                ))}
                 <span className="tt-div" />
                 <div className="tt-anc">
                   {row.ancient ? (

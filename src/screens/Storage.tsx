@@ -79,6 +79,12 @@ export function Storage() {
   }, [data, groups, selectedId]);
 
   const selected = data?.find((c) => c.id === selectedId) ?? null;
+  // The selected owner's sibling bags, shown as tabs in the pane header.
+  // Guild chests stand alone, so no tabs for them.
+  const bagTabs =
+    selected && selected.kind !== "guild_chest"
+      ? groups.find((g) => g.containers.some((c) => c.id === selectedId))?.containers ?? []
+      : [];
 
   return (
     <>
@@ -110,42 +116,70 @@ export function Storage() {
           />
         ) : (
           <div className="st">
+            {/* One compact row per player (or guild chest) instead of every
+                bag of every player — clicking a player opens their bags as
+                tabs in the pane header. */}
             <aside className="st-list">
-              {groups.map((g) => (
-                <div key={g.title} className="st-group">
-                  <div className="st-group__head">{g.title}</div>
-                  {g.containers.map((c) => {
-                    const pct = c.slot_num > 0 ? Math.min(100, (c.used / c.slot_num) * 100) : 0;
-                    return (
+              {groups.map((g) =>
+                g.title === "Guilds" ? (
+                  <div key="guilds" className="st-group">
+                    <div className="st-group__head">Guilds</div>
+                    {g.containers.map((c) => (
                       <button
                         key={c.id}
-                        className={`st-row${c.id === selectedId ? " is-active" : ""}`}
+                        className={`st-prow${c.id === selectedId ? " is-active" : ""}`}
                         onClick={() => setSelectedId(c.id)}
                       >
-                        <span className="st-row__top">
-                          <span className="st-row__label">{containerLabel(c)}</span>
-                          <span className="st-row__fill">
-                            {c.used}/{c.slot_num}
-                          </span>
-                        </span>
-                        <span className="st-row__bar">
-                          <i style={{ width: `${pct}%` }} />
-                        </span>
+                        <span className="st-prow__name">{c.guild_name ?? "Guild"}</span>
+                        <span className="st-prow__meta">{c.used} items</span>
                       </button>
-                    );
-                  })}
-                </div>
-              ))}
+                    ))}
+                  </div>
+                ) : (
+                  <button
+                    key={g.title}
+                    className={`st-prow${
+                      g.containers.some((c) => c.id === selectedId) ? " is-active" : ""
+                    }`}
+                    onClick={() => setSelectedId(g.containers[0]?.id ?? null)}
+                  >
+                    <span className="st-prow__name">{g.title}</span>
+                    <span className="st-prow__meta">
+                      {g.containers.reduce((t, c) => t + c.used, 0)} items
+                    </span>
+                  </button>
+                ),
+              )}
             </aside>
 
             <main className="st-main">
               {selected ? (
-                <ContainerPane
-                  key={selected.id}
-                  c={selected}
-                  writesEnabled={bridge.writesEnabled}
-                  serverRunning={bridge.serverRunning}
-                />
+                <>
+                  {bagTabs.length > 1 && (
+                    <div className="st-bagtabs" role="tablist">
+                      {bagTabs.map((c) => (
+                        <button
+                          key={c.id}
+                          role="tab"
+                          aria-selected={c.id === selectedId}
+                          className={c.id === selectedId ? "is-on" : ""}
+                          onClick={() => setSelectedId(c.id)}
+                        >
+                          {containerLabel(c)}
+                          <span>
+                            {c.used}/{c.slot_num}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <ContainerPane
+                    key={selected.id}
+                    c={selected}
+                    writesEnabled={bridge.writesEnabled}
+                    serverRunning={bridge.serverRunning}
+                  />
+                </>
               ) : (
                 <div className="st-main__empty">
                   <Boxes size={26} />
