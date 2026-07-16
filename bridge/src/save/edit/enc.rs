@@ -113,6 +113,44 @@ pub fn names_elements(values: &[String]) -> Vec<u8> {
     out
 }
 
+/// A `FloatProperty` (4-byte LE f32).
+pub fn float_prop(name: &str, value: f32) -> Vec<u8> {
+    let mut out = tag(name, "FloatProperty", 4);
+    out.push(0);
+    out.extend_from_slice(&value.to_le_bytes());
+    out
+}
+
+/// An `EnumProperty` (`Gender`, work suitabilities, …): the enum type name is
+/// a tag field; the declared size covers the selected-variant fstring only.
+pub fn enum_prop(name: &str, enum_type: &str, value: &str) -> Vec<u8> {
+    let body = fstring(value);
+    let mut out = tag(name, "EnumProperty", body.len() as u64);
+    out.extend(fstring(enum_type));
+    out.push(0);
+    out.extend(body);
+    out
+}
+
+/// A full `StructProperty` with a generic property-stream body (already
+/// encoded, WITHOUT the `"None"` terminator — it is appended here). The
+/// struct guid and optional guid are zero/absent, like the reference writer.
+pub fn struct_prop(name: &str, struct_type: &str, body_props: &[u8]) -> Vec<u8> {
+    let mut body = body_props.to_vec();
+    body.extend(fstring("None"));
+    let mut out = tag(name, "StructProperty", body.len() as u64);
+    out.extend(fstring(struct_type));
+    out.extend(nil_guid()); // struct guid
+    out.push(0); // optional_guid absent
+    out.extend(body);
+    out
+}
+
+/// A `FixedPoint64` struct (`Hp`): `{ Value: Int64Property }`.
+pub fn fixed_point64_prop(name: &str, value: i64) -> Vec<u8> {
+    struct_prop(name, "FixedPoint64", &int64_prop("Value", value))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

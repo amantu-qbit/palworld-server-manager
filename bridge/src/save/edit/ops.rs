@@ -632,6 +632,11 @@ pub struct CharacterEdits {
     pub status_points: Option<BTreeMap<String, i32>>,
     /// `GotExStatusPointList` updates, keyed by the exact on-disk status name.
     pub ext_status_points: Option<BTreeMap<String, i32>>,
+    /// `Gender`: `"Male"`/`"Female"` (bare or `EPalGenderType::`-prefixed).
+    pub gender: Option<String>,
+    /// `GotWorkSuitabilityAddRankList` updates keyed by
+    /// `EPalWorkSuitability::…` code; codes not yet on the pal are added.
+    pub work_suitability: Option<BTreeMap<String, i32>>,
 }
 
 /// Apply `edits` to the matching character. Returns the edited buffer.
@@ -640,6 +645,44 @@ pub fn edit_character(
     target: CharTarget,
     edits: &CharacterEdits,
 ) -> Result<Vec<u8>, SaveError> {
+    let loc = locate_character_entry(buf, target)?;
+    let mut plan = EditPlan::default();
+    character_scopes(&mut plan, &loc);
+    plan_save_parameter_edits(buf, loc.blob.clone(), edits, &mut plan)?;
+
+    let out = apply(buf, &plan)?;
+    validate_character(&out, target, edits)?;
+    Ok(out)
+}
+
+/// A located `CharacterSaveParameterMap` entry.
+struct CharEntryLoc {
+    wsd_scope: (usize, Range<usize>),
+    map_scope: (usize, Range<usize>),
+    /// The `u32` entry-count field of the map.
+    map_count_offset: usize,
+    /// The whole entry: key stream start .. value stream end.
+    entry: Range<usize>,
+    /// Absolute offset of the key's `InstanceId` 16 on-disk guid bytes.
+    key_instance_offset: usize,
+    /// `RawData` property size field / value region.
+    raw_size_field: usize,
+    raw_value: Range<usize>,
+    /// The RawData blob bytes (after the count word).
+    blob: Range<usize>,
+}
+
+/// Register the enclosing scopes for edits inside a character entry's blob.
+fn character_scopes(plan: &mut EditPlan, loc: &CharEntryLoc) {
+    plan.scope_u64(loc.wsd_scope.0, loc.wsd_scope.1.clone());
+    plan.scope_u64(loc.map_scope.0, loc.map_scope.1.clone());
+    plan.scope_u64(loc.raw_size_field, loc.raw_value.clone());
+    plan.scope_u32(loc.raw_value.start, loc.blob.clone());
+}
+
+/// Locate one character entry, capturing every span the edit/delete/clone
+/// paths need.
+fn locate_character_entry(buf: &[u8], target: CharTarget) -> Result<CharEntryLoc, SaveError> {
     let wsd = world_save_data(buf)?;
     let map_tag = find_in_body(buf, wsd.value_start, "CharacterSaveParameterMap")?
         .filter(|t| t.type_name == "MapProperty")
@@ -649,9 +692,31 @@ pub fn edit_character(
     let info = map_info(&mut c)?;
 
     for _ in 0..info.count {
-        let key = read_guid_key_stream(&mut c)?;
-        let player_uid = key.get("PlayerUId").copied().unwrap_or_default();
-        let instance_id = key.get("InstanceId").copied().unwrap_or_default();
+        let key_start = c.pos();
+        // Key stream `{ PlayerUId: Guid, InstanceId: Guid }`, recording the
+        // InstanceId's on-disk guid offset for the clone path.
+        let mut player_uid = Uuid::nil();
+        let mut instance_id = Uuid::nil();
+        let mut key_instance_offset = 0usize;
+        loop {
+            match read_tag(&mut c)? {
+                None => break,
+                Some(t) => {
+                    if t.struct_type.as_deref() == Some("Guid") && t.size == 16 {
+                        let g = c.guid()?;
+                        match t.name.as_str() {
+                            "PlayerUId" => player_uid = g,
+                            "InstanceId" => {
+                                instance_id = g;
+                                key_instance_offset = t.value_start;
+                            }
+                            _ => {}
+                        }
+                    }
+                    c.seek(t.value_end)?;
+                }
+            }
+        }
 
         let matched = match target {
             CharTarget::Player(uid) => player_uid == uid && !is_nil(uid),
@@ -670,18 +735,20 @@ pub fn edit_character(
             })
             .ok_or_else(|| edit_err("character entry missing RawData"))?;
         let blob = raw.value_start + 4..raw.value_end;
+        let mut e = Cursor::new(buf, value_start);
+        let value_end = skip_value_stream(&mut e)?;
 
-        let mut plan = EditPlan::default();
-        plan.scope_u64(wsd.size_field, wsd.value_start..wsd.value_end);
-        plan.scope_u64(map_tag.size_field, map_tag.value_start..map_tag.value_end);
-        plan.scope_u64(raw.size_field, raw.value_start..raw.value_end);
-        plan.scope_u32(raw.value_start, blob.clone());
-
-        plan_save_parameter_edits(buf, blob.clone(), edits, &mut plan)?;
-
-        let out = apply(buf, &plan)?;
-        validate_character(&out, target, edits)?;
-        return Ok(out);
+        let _ = player_uid;
+        return Ok(CharEntryLoc {
+            wsd_scope: (wsd.size_field, wsd.value_start..wsd.value_end),
+            map_scope: (map_tag.size_field, map_tag.value_start..map_tag.value_end),
+            map_count_offset: info.count_offset,
+            entry: key_start..value_end,
+            key_instance_offset,
+            raw_size_field: raw.size_field,
+            raw_value: raw.value_start..raw.value_end,
+            blob,
+        });
     }
 
     Err(edit_err(match target {
@@ -763,6 +830,33 @@ fn plan_save_parameter_edits(
         if let Some(values) = values {
             plan_names_array(buf, body, name, default_elem, values, plan)?;
         }
+    }
+
+    if let Some(g) = &edits.gender {
+        let value = if g.starts_with("EPalGenderType::") {
+            g.clone()
+        } else {
+            format!("EPalGenderType::{g}")
+        };
+        match find_in_body(buf, body, "Gender")? {
+            Some(t) if t.type_name == "EnumProperty" => {
+                plan.patch(t.value_start..t.value_end, enc::fstring(&value));
+                plan.scope_u64(t.size_field, t.value_start..t.value_end);
+            }
+            Some(t) => {
+                return Err(edit_err(format!("Gender has unexpected type {}", t.type_name)))
+            }
+            None => insert_at_terminator(
+                buf,
+                body,
+                enc::enum_prop("Gender", "EPalGenderType", &value),
+                plan,
+            )?,
+        }
+    }
+
+    if let Some(ws) = &edits.work_suitability {
+        plan_work_suitability(buf, body, ws, plan)?;
     }
 
     if let Some(points) = &edits.status_points {
@@ -1074,4 +1168,532 @@ pub fn edit_player_technologies(buf: &[u8], edits: &TechEdits) -> Result<Vec<u8>
         }
     }
     Ok(out)
+}
+
+// ---------------------------------------------------------------------------
+// Work suitability
+// ---------------------------------------------------------------------------
+
+/// Update/add entries in `GotWorkSuitabilityAddRankList` (an array of
+/// `{ WorkSuitability: Enum, Rank: Int }` structs). Existing codes get their
+/// `Rank` patched; new codes get a fresh element appended.
+fn plan_work_suitability(
+    buf: &[u8],
+    body: usize,
+    ranks: &BTreeMap<String, i32>,
+    plan: &mut EditPlan,
+) -> Result<(), SaveError> {
+    let mut remaining: BTreeMap<&str, i32> = ranks.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+
+    match find_in_body(buf, body, "GotWorkSuitabilityAddRankList")? {
+        Some(t) if t.type_name == "ArrayProperty" && t.elem_type.as_deref() == Some("StructProperty") => {
+            let mut a = Cursor::new(buf, t.value_start);
+            let arr = array_info(&mut a, &t)?;
+            let inner = arr
+                .inner
+                .clone()
+                .ok_or_else(|| edit_err("GotWorkSuitabilityAddRankList missing inner header"))?;
+
+            let mut c = Cursor::new(buf, arr.elems_start);
+            for _ in 0..arr.count {
+                let mut work = None;
+                let mut rank_off = None;
+                loop {
+                    match read_tag(&mut c)? {
+                        None => break,
+                        Some(tag) => {
+                            if tag.name == "WorkSuitability" && tag.type_name == "EnumProperty" {
+                                let mut v = Cursor::new(buf, tag.value_start);
+                                work = Some(v.fstring()?);
+                            } else if tag.name == "Rank" && tag.type_name == "IntProperty" {
+                                rank_off = Some(tag.value_start);
+                            }
+                            c.seek(tag.value_end)?;
+                        }
+                    }
+                }
+                if let (Some(w), Some(off)) = (work, rank_off) {
+                    if let Some(v) = remaining.remove(w.as_str()) {
+                        plan.patch(off..off + 4, v.to_le_bytes().to_vec());
+                    }
+                }
+            }
+            c.expect_at(t.value_end, "GotWorkSuitabilityAddRankList")?;
+
+            if !remaining.is_empty() {
+                // Append new elements at the array end; the boundary insert is
+                // deliberately inside the array scopes so both size fields grow.
+                let mut added = 0i64;
+                for (code, v) in &remaining {
+                    let mut elem = enc::enum_prop("WorkSuitability", "EPalWorkSuitability", code);
+                    elem.extend(enc::int_prop("Rank", *v));
+                    elem.extend(enc::fstring("None"));
+                    plan.insert(t.value_end, elem);
+                    added += 1;
+                }
+                plan.count(arr.count_offset, added);
+                plan.scope_u64(t.size_field, t.value_start..t.value_end);
+                plan.scope_u64(inner.size_field, arr.elems_start..t.value_end);
+            }
+            Ok(())
+        }
+        Some(t) => Err(edit_err(format!(
+            "GotWorkSuitabilityAddRankList has unexpected shape ({})",
+            t.type_name
+        ))),
+        None => Err(edit_err(
+            "pal has no GotWorkSuitabilityAddRankList to edit".to_string(),
+        )),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Heal
+// ---------------------------------------------------------------------------
+
+/// Vitals written by [`heal_pal`]. `hp` is the on-disk fixed-point value
+/// (max HP × 1000), computed by the caller from the species catalog.
+#[derive(Debug, Clone, Copy)]
+pub struct HealValues {
+    pub hp: Option<i64>,
+    pub stomach: f32,
+    pub sanity: f32,
+}
+
+/// Fully restore a pal, porting `palworld-save-pal pal.py::heal` (+ the
+/// `hp = max_hp` revive step): remove the sick/faint state properties, reset
+/// sanity and stomach, and set HP to the computed maximum.
+pub fn heal_pal(buf: &[u8], instance_id: Uuid, heal: &HealValues) -> Result<Vec<u8>, SaveError> {
+    let loc = locate_character_entry(buf, CharTarget::Instance(instance_id))?;
+    let mut plan = EditPlan::default();
+    character_scopes(&mut plan, &loc);
+
+    let mut c = Cursor::new(buf, loc.blob.start);
+    let sp = find_in_stream(&mut c, "SaveParameter")?
+        .found
+        .filter(|t| t.type_name == "StructProperty")
+        .ok_or_else(|| edit_err("character RawData missing SaveParameter"))?;
+    plan.scope_u64(sp.size_field, sp.value_start..sp.value_end);
+    let body = sp.value_start;
+
+    // The sick/faint state properties upstream's heal removes (PAL_SICK_TYPES
+    // minus SanityValue, which is reset below instead of removed).
+    for sick in ["PalReviveTimer", "PhysicalHealth", "WorkerSick", "HungerType"] {
+        if let Some(t) = find_in_body(buf, body, sick)? {
+            plan.delete(t.tag_start..t.value_end);
+        }
+    }
+
+    plan_float_field(buf, body, "SanityValue", heal.sanity, &mut plan)?;
+    plan_float_field(buf, body, "FullStomach", heal.stomach, &mut plan)?;
+
+    if let Some(hp) = heal.hp {
+        match find_in_body(buf, body, "Hp")? {
+            Some(t) if t.type_name == "StructProperty" => {
+                let value = find_in_body(buf, t.value_start, "Value")?;
+                match value {
+                    Some(v) if v.type_name == "Int64Property" => {
+                        plan.patch(v.value_start..v.value_start + 8, hp.to_le_bytes().to_vec());
+                    }
+                    _ => {
+                        plan.patch(t.tag_start..t.value_end, enc::fixed_point64_prop("Hp", hp));
+                    }
+                }
+            }
+            Some(t) => {
+                plan.patch(t.tag_start..t.value_end, enc::fixed_point64_prop("Hp", hp));
+            }
+            None => insert_at_terminator(buf, body, enc::fixed_point64_prop("Hp", hp), &mut plan)?,
+        }
+    }
+
+    let out = apply(buf, &plan)?;
+
+    // Validate through the production decoder.
+    let gvas = parse_gvas(&out, &default_skip_set())?;
+    let map = gvas
+        .root
+        .get("worldSaveData")
+        .and_then(|w| w.get_child("CharacterSaveParameterMap"))
+        .ok_or_else(|| edit_err("post-edit parse lost CharacterSaveParameterMap"))?;
+    let (_, pals) = decode_characters(map)?;
+    let p = pals
+        .iter()
+        .find(|p| p.instance_id == instance_id.to_string())
+        .ok_or_else(|| edit_err("post-edit parse lost the pal"))?;
+    if p.sanity != heal.sanity as i32 {
+        return Err(edit_err(format!("post-heal sanity {} != {}", p.sanity, heal.sanity)));
+    }
+    if let Some(hp) = heal.hp {
+        if i64::from(p.hp) != hp && p.hp != i32::MAX {
+            return Err(edit_err(format!("post-heal hp {} != {hp}", p.hp)));
+        }
+    }
+    Ok(out)
+}
+
+/// Patch or insert a `FloatProperty` field.
+fn plan_float_field(
+    buf: &[u8],
+    body: usize,
+    name: &str,
+    value: f32,
+    plan: &mut EditPlan,
+) -> Result<(), SaveError> {
+    match find_in_body(buf, body, name)? {
+        Some(t) if t.type_name == "FloatProperty" => {
+            plan.patch(t.value_start..t.value_start + 4, value.to_le_bytes().to_vec());
+            Ok(())
+        }
+        Some(t) => Err(edit_err(format!("{name} has unexpected type {}", t.type_name))),
+        None => insert_at_terminator(buf, body, enc::float_prop(name, value), plan),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Character containers (pal box / party / base) — location helpers
+// ---------------------------------------------------------------------------
+
+/// One `CharacterContainerSaveData` slot element: `{ SlotIndex: Int,
+/// RawData: Bytes(player_uid ‖ instance_id ‖ tribe) }`.
+struct CcSlotElem {
+    range: Range<usize>,
+    slot_index: i32,
+    /// Absolute offset of the `SlotIndex` 4-byte value.
+    slot_index_value: usize,
+    /// The 33-byte RawData blob.
+    blob: Range<usize>,
+    instance: Uuid,
+}
+
+/// One located character container.
+struct CcLoc {
+    container_id: Uuid,
+    slot_num: i32,
+    arr_size_field: usize,
+    arr_value: Range<usize>,
+    inner_size_field: usize,
+    elems_start: usize,
+    count_offset: usize,
+    elements: Vec<CcSlotElem>,
+}
+
+/// Locate every character container (with the map/wsd scopes shared by all).
+struct CcIndex {
+    map_scope: (usize, Range<usize>),
+    containers: Vec<CcLoc>,
+}
+
+fn locate_character_containers(buf: &[u8]) -> Result<CcIndex, SaveError> {
+    let wsd = world_save_data(buf)?;
+    let map_tag = find_in_body(buf, wsd.value_start, "CharacterContainerSaveData")?
+        .filter(|t| t.type_name == "MapProperty")
+        .ok_or_else(|| edit_err("worldSaveData missing CharacterContainerSaveData"))?;
+
+    let mut c = Cursor::new(buf, map_tag.value_start);
+    let info = map_info(&mut c)?;
+    let mut containers = Vec::with_capacity(info.count as usize);
+
+    for _ in 0..info.count {
+        let key = read_guid_key_stream(&mut c)?;
+        let container_id = key
+            .get("ID")
+            .copied()
+            .ok_or_else(|| edit_err("CharacterContainerSaveData key missing ID"))?;
+
+        let value_start = c.pos();
+        let slot_num = match find_in_body(buf, value_start, "SlotNum")? {
+            Some(t) if t.type_name == "IntProperty" => {
+                let mut v = Cursor::new(buf, t.value_start);
+                v.read_i32()?
+            }
+            _ => 0,
+        };
+        let slots_tag = find_in_body(buf, value_start, "Slots")?
+            .filter(|t| {
+                t.type_name == "ArrayProperty" && t.elem_type.as_deref() == Some("StructProperty")
+            })
+            .ok_or_else(|| edit_err("character container missing Slots array"))?;
+        let mut a = Cursor::new(buf, slots_tag.value_start);
+        let arr = array_info(&mut a, &slots_tag)?;
+        let inner = arr
+            .inner
+            .clone()
+            .ok_or_else(|| edit_err("character container Slots missing inner header"))?;
+
+        let mut elements = Vec::with_capacity(arr.count as usize);
+        let mut e = Cursor::new(buf, arr.elems_start);
+        for _ in 0..arr.count {
+            let start = e.pos();
+            let mut slot_index = 0i32;
+            let mut slot_index_value = 0usize;
+            let mut blob = 0..0;
+            let mut instance = Uuid::nil();
+            loop {
+                match read_tag(&mut e)? {
+                    None => break,
+                    Some(tag) => {
+                        if tag.name == "SlotIndex" && tag.type_name == "IntProperty" {
+                            let mut v = Cursor::new(buf, tag.value_start);
+                            slot_index = v.read_i32()?;
+                            slot_index_value = tag.value_start;
+                        } else if tag.name == "RawData"
+                            && tag.type_name == "ArrayProperty"
+                            && tag.elem_type.as_deref() == Some("ByteProperty")
+                        {
+                            blob = tag.value_start + 4..tag.value_end;
+                            if blob.len() >= 32 {
+                                let mut v = Cursor::new(buf, blob.start);
+                                let _player = v.guid()?;
+                                instance = v.guid()?;
+                            }
+                        }
+                        e.seek(tag.value_end)?;
+                    }
+                }
+            }
+            elements.push(CcSlotElem {
+                range: start..e.pos(),
+                slot_index,
+                slot_index_value,
+                blob,
+                instance,
+            });
+        }
+        e.expect_at(slots_tag.value_end, "character container Slots")?;
+
+        // Advance the shared map cursor past this entry's value stream so the
+        // next iteration starts on the next key (the sub-parses above all used
+        // their own cursors).
+        let mut v = Cursor::new(buf, value_start);
+        let value_end = skip_value_stream(&mut v)?;
+        c.seek(value_end)?;
+
+        containers.push(CcLoc {
+            container_id,
+            slot_num,
+            arr_size_field: slots_tag.size_field,
+            arr_value: slots_tag.value_start..slots_tag.value_end,
+            inner_size_field: inner.size_field,
+            elems_start: arr.elems_start,
+            count_offset: arr.count_offset,
+            elements,
+        });
+    }
+
+    let _ = &wsd;
+    Ok(CcIndex {
+        map_scope: (map_tag.size_field, map_tag.value_start..map_tag.value_end),
+        containers,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Delete pal
+// ---------------------------------------------------------------------------
+
+/// Remove a pal: its `CharacterSaveParameterMap` entry plus every character
+/// container slot referencing it (upstream `remove_pal` removes the slot
+/// element outright — slots carry explicit `SlotIndex`es, they are not
+/// positional).
+pub fn delete_pal(buf: &[u8], instance_id: Uuid) -> Result<Vec<u8>, SaveError> {
+    let loc = locate_character_entry(buf, CharTarget::Instance(instance_id))?;
+    let mut plan = EditPlan::default();
+    plan.scope_u64(loc.wsd_scope.0, loc.wsd_scope.1.clone());
+    plan.scope_u64(loc.map_scope.0, loc.map_scope.1.clone());
+    plan.delete(loc.entry.clone());
+    plan.count(loc.map_count_offset, -1);
+
+    let cc = locate_character_containers(buf)?;
+    plan.scope_u64(cc.map_scope.0, cc.map_scope.1.clone());
+    for container in &cc.containers {
+        let doomed: Vec<&CcSlotElem> = container
+            .elements
+            .iter()
+            .filter(|e| e.instance == instance_id)
+            .collect();
+        if doomed.is_empty() {
+            continue;
+        }
+        for e in &doomed {
+            plan.delete(e.range.clone());
+        }
+        plan.count(container.count_offset, -(doomed.len() as i64));
+        plan.scope_u64(container.arr_size_field, container.arr_value.clone());
+        plan.scope_u64(container.inner_size_field, container.elems_start..container.arr_value.end);
+    }
+
+    let out = apply(buf, &plan)?;
+
+    let gvas = parse_gvas(&out, &default_skip_set())?;
+    let wsd = gvas
+        .root
+        .get("worldSaveData")
+        .ok_or_else(|| edit_err("post-edit parse lost worldSaveData"))?;
+    let (_, pals) = decode_characters(
+        wsd.get_child("CharacterSaveParameterMap")
+            .ok_or_else(|| edit_err("post-edit parse lost CharacterSaveParameterMap"))?,
+    )?;
+    if pals.iter().any(|p| p.instance_id == instance_id.to_string()) {
+        return Err(edit_err("post-delete parse still finds the pal"));
+    }
+    if let Some(ccs) = wsd.get_child("CharacterContainerSaveData") {
+        let containers = super::super::containers::decode_character_containers(ccs)?;
+        if containers
+            .values()
+            .flatten()
+            .any(|s| s.pal_id == instance_id.to_string())
+        {
+            return Err(edit_err("post-delete container slot still references the pal"));
+        }
+    }
+    Ok(out)
+}
+
+// ---------------------------------------------------------------------------
+// Clone pal
+// ---------------------------------------------------------------------------
+
+/// Duplicate a pal into `target_container` (normally the owner's pal box)
+/// under `new_instance_id`. The copy keeps every stat/skill; only its
+/// identity and box slot differ.
+pub fn clone_pal(
+    buf: &[u8],
+    instance_id: Uuid,
+    target_container: Uuid,
+    new_instance_id: Uuid,
+) -> Result<Vec<u8>, SaveError> {
+    if is_nil(new_instance_id) || new_instance_id == instance_id {
+        return Err(edit_err("invalid new instance id"));
+    }
+    let loc = locate_character_entry(buf, CharTarget::Instance(instance_id))?;
+    let cc = locate_character_containers(buf)?;
+    let target = cc
+        .containers
+        .iter()
+        .find(|c| c.container_id == target_container)
+        .ok_or_else(|| edit_err(format!("character container {target_container} not found")))?;
+
+    // Free slot: first index in 0..slot_num not taken by a live entry.
+    let used: std::collections::HashSet<i32> = target
+        .elements
+        .iter()
+        .filter(|e| !is_nil(e.instance))
+        .map(|e| e.slot_index)
+        .collect();
+    let free_slot = (0..target.slot_num.max(0))
+        .find(|i| !used.contains(i))
+        .ok_or_else(|| edit_err("target container is full"))?;
+
+    // Template slot element: reuse a dead (nil-instance) element in place if
+    // one exists, else append a patched copy of the source pal's own element.
+    let source_elem = cc
+        .containers
+        .iter()
+        .flat_map(|c| c.elements.iter())
+        .find(|e| e.instance == instance_id)
+        .ok_or_else(|| edit_err("source pal has no container slot to copy"))?;
+
+    let mut plan = EditPlan::default();
+    plan.scope_u64(loc.wsd_scope.0, loc.wsd_scope.1.clone());
+    plan.scope_u64(loc.map_scope.0, loc.map_scope.1.clone());
+    plan.scope_u64(cc.map_scope.0, cc.map_scope.1.clone());
+
+    // --- new character map entry -----------------------------------------
+    let mut entry = buf[loc.entry.clone()].to_vec();
+    let key_rel = loc.key_instance_offset - loc.entry.start;
+    entry[key_rel..key_rel + 16].copy_from_slice(&enc::guid(new_instance_id));
+    // Rewrite SlotID (container + index) inside the copied blob so the clone
+    // points at its own box slot. All patches are same-length, so the copy
+    // needs no size fixups.
+    rewrite_clone_slot_id(&mut entry, &loc, target_container, free_slot)?;
+    plan.insert(loc.map_scope.1.end, entry);
+    plan.count(loc.map_count_offset, 1);
+
+    // --- container slot ----------------------------------------------------
+    if let Some(dead) = target
+        .elements
+        .iter()
+        .find(|e| is_nil(e.instance) && e.slot_index == free_slot)
+    {
+        // Reuse the dead element in place: same-length patches only.
+        let mut blob_patch = buf[dead.blob.clone()].to_vec();
+        blob_patch[16..32].copy_from_slice(&enc::guid(new_instance_id));
+        plan.patch(dead.blob.clone(), blob_patch);
+    } else {
+        let mut elem = buf[source_elem.range.clone()].to_vec();
+        let si_rel = source_elem.slot_index_value - source_elem.range.start;
+        elem[si_rel..si_rel + 4].copy_from_slice(&free_slot.to_le_bytes());
+        let blob_rel = source_elem.blob.start - source_elem.range.start;
+        elem[blob_rel + 16..blob_rel + 32].copy_from_slice(&enc::guid(new_instance_id));
+        plan.insert(target.arr_value.end, elem);
+        plan.count(target.count_offset, 1);
+        plan.scope_u64(target.arr_size_field, target.arr_value.clone());
+        plan.scope_u64(target.inner_size_field, target.elems_start..target.arr_value.end);
+    }
+
+    let out = apply(buf, &plan)?;
+
+    // Validate: the clone decodes with the source's species, in the target box.
+    let gvas = parse_gvas(&out, &default_skip_set())?;
+    let map = gvas
+        .root
+        .get("worldSaveData")
+        .and_then(|w| w.get_child("CharacterSaveParameterMap"))
+        .ok_or_else(|| edit_err("post-clone parse lost CharacterSaveParameterMap"))?;
+    let (_, pals) = decode_characters(map)?;
+    let source = pals
+        .iter()
+        .find(|p| p.instance_id == instance_id.to_string())
+        .ok_or_else(|| edit_err("post-clone parse lost the source pal"))?;
+    let clone = pals
+        .iter()
+        .find(|p| p.instance_id == new_instance_id.to_string())
+        .ok_or_else(|| edit_err("post-clone parse cannot find the clone"))?;
+    if clone.character_id != source.character_id
+        || clone.level != source.level
+        || clone.storage_id != target_container.to_string()
+        || clone.storage_slot != free_slot
+    {
+        return Err(edit_err("post-clone validation mismatch"));
+    }
+    Ok(out)
+}
+
+/// Inside a copied character-map entry, retarget `SaveParameter.SlotID`
+/// (`ContainerId.ID` guid + `SlotIndex` int) with same-length patches.
+fn rewrite_clone_slot_id(
+    entry: &mut [u8],
+    loc: &CharEntryLoc,
+    container: Uuid,
+    slot: i32,
+) -> Result<(), SaveError> {
+    let blob_rel = (loc.blob.start - loc.entry.start)..(loc.blob.end - loc.entry.start);
+    let snapshot = entry.to_vec();
+    let mut c = Cursor::new(&snapshot, blob_rel.start);
+    let sp = find_in_stream(&mut c, "SaveParameter")?
+        .found
+        .ok_or_else(|| edit_err("clone: RawData missing SaveParameter"))?;
+    // `SlotID` (current) with a legacy `SlotId` fallback, mirroring the reader.
+    let slot_tag = match find_in_body(&snapshot, sp.value_start, "SlotID")? {
+        Some(t) => Some(t),
+        None => find_in_body(&snapshot, sp.value_start, "SlotId")?,
+    };
+    let slot_tag = slot_tag
+        .filter(|t| t.type_name == "StructProperty")
+        .ok_or_else(|| edit_err("clone: SaveParameter missing SlotID"))?;
+
+    let cid = find_in_body(&snapshot, slot_tag.value_start, "ContainerId")?
+        .filter(|t| t.type_name == "StructProperty")
+        .ok_or_else(|| edit_err("clone: SlotID missing ContainerId"))?;
+    let id = find_in_body(&snapshot, cid.value_start, "ID")?
+        .filter(|t| t.struct_type.as_deref() == Some("Guid"))
+        .ok_or_else(|| edit_err("clone: ContainerId missing ID"))?;
+    entry[id.value_start..id.value_start + 16].copy_from_slice(&enc::guid(container));
+
+    let si = find_in_body(&snapshot, slot_tag.value_start, "SlotIndex")?
+        .filter(|t| t.type_name == "IntProperty")
+        .ok_or_else(|| edit_err("clone: SlotID missing SlotIndex"))?;
+    entry[si.value_start..si.value_start + 4].copy_from_slice(&slot.to_le_bytes());
+    Ok(())
 }

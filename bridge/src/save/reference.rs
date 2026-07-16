@@ -98,3 +98,77 @@ pub fn load_reference() -> Reference {
         elements: parse_catalog(ELEMENTS_JSON),
     }
 }
+
+// --- Species stat catalog (heal support) ------------------------------------
+
+const PAL_STATS_JSON: &str = include_str!("../../data/pal_stats.json");
+
+/// Per-species stat inputs for the max-HP / max-stomach computations
+/// (`scripts/gen-pal-stats.mjs`, sourced from palworld-save-pal `pals.json`).
+#[derive(serde::Deserialize, Clone, Copy, Debug, Default)]
+pub struct PalStats {
+    /// The species' HP scaling stat (`scaling.hp`).
+    #[serde(default)]
+    pub hp: f64,
+    /// `max_full_stomach`.
+    #[serde(default)]
+    pub stomach: f64,
+}
+
+/// Case-insensitive species-stats lookup, keyed by lowercased code name.
+/// Save files spell `character_id` differently from the catalog (e.g.
+/// `SheepBall` vs `Sheepball`), and boss/lucky pals carry a `BOSS_` prefix.
+pub struct PalStatsCatalog {
+    by_lower: HashMap<String, PalStats>,
+}
+
+impl PalStatsCatalog {
+    /// Stats for a raw save-file `character_id` (handles `BOSS_` prefixes and
+    /// case differences). `None` for humans and unknown species.
+    pub fn for_character_id(&self, character_id: &str) -> Option<PalStats> {
+        let lower = character_id.to_ascii_lowercase();
+        let key = lower.strip_prefix("boss_").unwrap_or(&lower);
+        self.by_lower.get(key).copied()
+    }
+}
+
+/// Parse the vendored species-stats catalog (panics on invalid vendored
+/// JSON, same contract as [`load_reference`]).
+pub fn load_pal_stats() -> PalStatsCatalog {
+    let raw: HashMap<String, PalStats> =
+        serde_json::from_str(PAL_STATS_JSON).expect("vendored pal_stats.json is valid JSON");
+    PalStatsCatalog {
+        by_lower: raw
+            .into_iter()
+            .map(|(k, v)| (k.to_ascii_lowercase(), v))
+            .collect(),
+    }
+}
+
+/// Max HP for a pal, ported from palworld-save-pal `pal.py::max_hp`:
+/// `floor(500 + 5·level + hp_scaling·0.5·level·(1 + IV·0.003)·alpha)`
+/// `· (1 + 0.05·(rank−1)) · (1 + 0.03·rank_hp) · 1000`
+/// where alpha is 1.2 for boss/lucky pals. Returns the on-disk fixed-point
+/// value (×1000).
+#[allow(clippy::too_many_arguments)]
+pub fn max_hp(
+    stats: PalStats,
+    level: i32,
+    talent_hp: i32,
+    rank: i32,
+    rank_hp: i32,
+    alpha: bool,
+) -> i64 {
+    let alpha_scaling = if alpha { 1.2 } else { 1.0 };
+    let condenser_bonus = ((rank - 1).max(0) as f64) * 0.05;
+    let hp_iv = (talent_hp as f64) * 0.3 / 100.0;
+    let hp = (500.0
+        + 5.0 * level as f64
+        + stats.hp * 0.5 * level as f64 * (1.0 + hp_iv) * alpha_scaling)
+        .floor();
+    ((hp * (1.0 + condenser_bonus) * (1.0 + hp_soul_bonus(rank_hp))).floor() as i64) * 1000
+}
+
+fn hp_soul_bonus(rank_hp: i32) -> f64 {
+    1.0f64.mul_add(0.0, (rank_hp as f64) * 0.03)
+}

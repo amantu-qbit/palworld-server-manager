@@ -1,0 +1,3454 @@
+{
+ "Alpaca": {
+  "hp": 90,
+  "stomach": 150
+ },
+ "AmaterasuWolf": {
+  "hp": 100,
+  "stomach": 380
+ },
+ "AmaterasuWolf_Dark": {
+  "hp": 100,
+  "stomach": 380
+ },
+ "AmaterasuWolf_Dark_Quest_Enemy": {
+  "hp": 100,
+  "stomach": 380
+ },
+ "AmaterasuWolf_Dark_Quest_Friend": {
+  "hp": 100,
+  "stomach": 380
+ },
+ "Ambassador01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Anubis": {
+  "hp": 120,
+  "stomach": 540
+ },
+ "Arena_BossDefeat": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_DarkTrader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Female_Presenter": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Female_Soldier02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Female_Soldier03": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Female_Soldier04": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_FireCult_FlameThrower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Hunter_Fat_GatlingGun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Male_DarkTrader02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Male_Police_old": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Male_Soldier02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Male_Soldier02_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Male_Soldier03": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Male_Soldier04": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Ninja": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_NinjaElite": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_PalPassive_Doctor": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Ranger04": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Reward_Emote": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Reward_Paldex": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Scholar01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Scientist_LaserRifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Soldier": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Viking": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_VikingElite": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Believer_CrossBow": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "BOSS_Believer_Fat_GiantClub": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_DarkTrader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Female_DesertPeople": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "BOSS_Female_People": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "BOSS_Female_People02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "BOSS_Female_People03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "BOSS_Female_Soldier": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Female_Soldier02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Female_Soldier03": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Female_Soldier04": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_FireCult_FlameThrower": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "BOSS_Hunter_Fat_GatlingGun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Hunter_Fat_GatlingGun_Quest_StrongOldMan": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Hunter_Rifle": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "BOSS_Male_DesertPeople": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "BOSS_Male_NinjaElite": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Male_People": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "BOSS_Male_People02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "BOSS_Male_People03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "BOSS_Male_People2": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "BOSS_Male_Soldier": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Male_Soldier02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Male_Soldier03": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Male_Soldier04": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Male_Trader01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "BOSS_Male_Trader02": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "BOSS_Male_Trader03": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "BOSS_Ninja": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Police_Rifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Police_old": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Scientist_LaserRifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_Viking": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BOSS_VikingElite": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BadCatgirl": {
+  "hp": 110,
+  "stomach": 560
+ },
+ "Baphomet": {
+  "hp": 95,
+  "stomach": 380
+ },
+ "Baphomet_Dark": {
+  "hp": 95,
+  "stomach": 380
+ },
+ "Baphomet_Dark_Oilrig": {
+  "hp": 95,
+  "stomach": 680
+ },
+ "Bastet": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Bastet_Ice": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Believer_Bat": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Believer_Bat_Camp02": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Believer_Bat_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Believer_CrossBow": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Believer_CrossBow_Camp02": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Believer_CrossBow_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Believer_CrossBow_Tower": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Believer_Fat_Cane": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Believer_Fat_Cane_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Believer_Fat_GatlingGun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Believer_Fat_Prisoner": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Believer_Prisoner": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "BerryGoat": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "BerryGoat_Dark": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "BirdDragon": {
+  "hp": 90,
+  "stomach": 340
+ },
+ "BirdDragon_Ice": {
+  "hp": 90,
+  "stomach": 340
+ },
+ "BlackCentaur": {
+  "hp": 130,
+  "stomach": 600
+ },
+ "BlackFurDragon": {
+  "hp": 130,
+  "stomach": 530
+ },
+ "BlackGriffon": {
+  "hp": 120,
+  "stomach": 530
+ },
+ "BlackMetalDragon": {
+  "hp": 100,
+  "stomach": 470
+ },
+ "BlackPuppy": {
+  "hp": 85,
+  "stomach": 170
+ },
+ "BlackPuppy_Ice": {
+  "hp": 85,
+  "stomach": 170
+ },
+ "Blacksmith01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BlueDragon": {
+  "hp": 110,
+  "stomach": 340
+ },
+ "BlueDragon_Ice": {
+  "hp": 115,
+  "stomach": 340
+ },
+ "BluePlatypus": {
+  "hp": 60,
+  "stomach": 100
+ },
+ "BluePlatypus_Fire": {
+  "hp": 60,
+  "stomach": 100
+ },
+ "BlueSkyDragon": {
+  "hp": 140,
+  "stomach": 620
+ },
+ "BlueThunderHorse": {
+  "hp": 130,
+  "stomach": 550
+ },
+ "BlueberryFairy": {
+  "hp": 105,
+  "stomach": 380
+ },
+ "Boar": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "BountyTrader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "BrownRabbit": {
+  "hp": 70,
+  "stomach": 300
+ },
+ "CactusDoll": {
+  "hp": 75,
+  "stomach": 150
+ },
+ "CactusDoll_Dark": {
+  "hp": 75,
+  "stomach": 150
+ },
+ "CandleGhost": {
+  "hp": 105,
+  "stomach": 480
+ },
+ "CaptainPenguin": {
+  "hp": 95,
+  "stomach": 270
+ },
+ "CaptainPenguin_Black": {
+  "hp": 100,
+  "stomach": 270
+ },
+ "CaravanLeader01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "CaravanLeader02": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "CaravanLeader03": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "CaravanLeader04": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Carbunclo": {
+  "hp": 75,
+  "stomach": 100
+ },
+ "CatBat": {
+  "hp": 95,
+  "stomach": 140
+ },
+ "CatMage": {
+  "hp": 90,
+  "stomach": 280
+ },
+ "CatMage_Fire": {
+  "hp": 95,
+  "stomach": 280
+ },
+ "CatVampire": {
+  "hp": 100,
+  "stomach": 490
+ },
+ "ChickenPal": {
+  "hp": 60,
+  "stomach": 100
+ },
+ "ClioneTwins": {
+  "hp": 65,
+  "stomach": 230
+ },
+ "CloverFairy": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "ClownRabbit": {
+  "hp": 100,
+  "stomach": 600
+ },
+ "ColorfulBird": {
+  "hp": 60,
+  "stomach": 150
+ },
+ "CowPal": {
+  "hp": 90,
+  "stomach": 150
+ },
+ "CubeTurtle": {
+  "hp": 95,
+  "stomach": 580
+ },
+ "CubeTurtle_Neutral": {
+  "hp": 95,
+  "stomach": 550
+ },
+ "CuteButterfly": {
+  "hp": 70,
+  "stomach": 150
+ },
+ "CuteFox": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "CuteMole": {
+  "hp": 65,
+  "stomach": 150
+ },
+ "DandelionGirl": {
+  "hp": 70,
+  "stomach": 230
+ },
+ "DarkAlien": {
+  "hp": 90,
+  "stomach": 280
+ },
+ "DarkAlien_Oilrig": {
+  "hp": 90,
+  "stomach": 620
+ },
+ "DarkCrow": {
+  "hp": 75,
+  "stomach": 210
+ },
+ "DarkFlameFox": {
+  "hp": 110,
+  "stomach": 600
+ },
+ "DarkMechaDragon": {
+  "hp": 130,
+  "stomach": 570
+ },
+ "DarkScorpion": {
+  "hp": 100,
+  "stomach": 410
+ },
+ "DarkScorpion_Ground": {
+  "hp": 100,
+  "stomach": 410
+ },
+ "DeathPenalty_guide": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Deer": {
+  "hp": 95,
+  "stomach": 140
+ },
+ "Deer_Ground": {
+  "hp": 95,
+  "stomach": 140
+ },
+ "Doctor": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "DomeArmorDragon": {
+  "hp": 105,
+  "stomach": 600
+ },
+ "DreamDemon": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "DrillGame": {
+  "hp": 80,
+  "stomach": 350
+ },
+ "Eagle": {
+  "hp": 75,
+  "stomach": 150
+ },
+ "ElecCat": {
+  "hp": 60,
+  "stomach": 100
+ },
+ "ElecLion": {
+  "hp": 100,
+  "stomach": 350
+ },
+ "ElecLizard": {
+  "hp": 80,
+  "stomach": 300
+ },
+ "ElecPanda": {
+  "hp": 120,
+  "stomach": 410
+ },
+ "ElecPomeranian": {
+  "hp": 75,
+  "stomach": 170
+ },
+ "ElecSnail": {
+  "hp": 65,
+  "stomach": 300
+ },
+ "ElecSnail_Ground": {
+  "hp": 65,
+  "stomach": 300
+ },
+ "Emote_location_A_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_A_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_B_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_B_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_C_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_C_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_D_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_D_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_E_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_E_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_F_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_F_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_G_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_G_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_H_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_H_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_I_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_location_I_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Epicure01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Escort_PalTamer01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Escort_Warrior01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "FairyDragon": {
+  "hp": 110,
+  "stomach": 200
+ },
+ "FairyDragon_Water": {
+  "hp": 115,
+  "stomach": 200
+ },
+ "FeatherOstrich": {
+  "hp": 95,
+  "stomach": 230
+ },
+ "Female_DTairikuPeople01_v01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_DesertPeople02": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Female_Farmer01_v01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Farmer01_v02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Farmer01_v03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Farmer01_v04": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Farmer01_v05": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Kunoichi01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Female_Nomad01_v01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Nomad01_v02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Nomad01_v03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Nomad01_v04": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Nomad01_v05": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_People02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_People03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Presenter01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Female_Ranger01_v01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Female_Ranger01_v02": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Female_Ranger01_v03": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Female_Ranger01_v04": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Female_Ranger01_v05": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Female_SakurajimaPeople01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_SnowPeople01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_Soldier01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Female_Soldier02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Female_Soldier03": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Female_Soldier03_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Female_Soldier04": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Female_Soldier04_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Female_SorajimaPeople01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_SurveyGirl01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_SurveyGirl02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_SurveyGirl03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_SurveyGirl04": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_SurveyWoman01": {
+  "hp": 40,
+  "stomach": 100
+ },
+ "Female_SurveyWoman02": {
+  "hp": 40,
+  "stomach": 100
+ },
+ "Female_TenrakuPeople01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Female_WorldTreePeople01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "FengyunDeeper": {
+  "hp": 110,
+  "stomach": 340
+ },
+ "FengyunDeeper_Electric": {
+  "hp": 110,
+  "stomach": 340
+ },
+ "FireCult_FlameThrower": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_FlameThrower_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_FlameThrower_Relax": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_GrenadeLauncher": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_MissileLauncher": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_Prisoner": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_Rifle": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_Rifle_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_Rifle_Relax": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireCult_RocketLauncher": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "FireKirin": {
+  "hp": 100,
+  "stomach": 280
+ },
+ "FireKirin_Dark": {
+  "hp": 100,
+  "stomach": 280
+ },
+ "FlameBambi": {
+  "hp": 75,
+  "stomach": 100
+ },
+ "FlameBuffalo": {
+  "hp": 85,
+  "stomach": 210
+ },
+ "FlowerDinosaur": {
+  "hp": 110,
+  "stomach": 270
+ },
+ "FlowerDinosaur_Electric": {
+  "hp": 110,
+  "stomach": 270
+ },
+ "FlowerDoll": {
+  "hp": 100,
+  "stomach": 450
+ },
+ "FlowerDoll_Fire": {
+  "hp": 95,
+  "stomach": 450
+ },
+ "FlowerPrince": {
+  "hp": 125,
+  "stomach": 630
+ },
+ "FlowerRabbit": {
+  "hp": 75,
+  "stomach": 150
+ },
+ "FluffyBird": {
+  "hp": 60,
+  "stomach": 230
+ },
+ "FlyingManta": {
+  "hp": 80,
+  "stomach": 150
+ },
+ "FlyingManta_Thunder": {
+  "hp": 80,
+  "stomach": 150
+ },
+ "FoxExorcist": {
+  "hp": 110,
+  "stomach": 600
+ },
+ "FoxMage": {
+  "hp": 90,
+  "stomach": 280
+ },
+ "FoxMage_Dark": {
+  "hp": 90,
+  "stomach": 280
+ },
+ "GYM_BlackGriffon": {
+  "hp": 120,
+  "stomach": 525
+ },
+ "GYM_BlackGriffon_2": {
+  "hp": 120,
+  "stomach": 525
+ },
+ "GYM_BlackGriffon_2_Avatar": {
+  "hp": 120,
+  "stomach": 525
+ },
+ "GYM_BlueSkyDragon": {
+  "hp": 168,
+  "stomach": 620
+ },
+ "GYM_BlueSkyDragon_2": {
+  "hp": 120,
+  "stomach": 150
+ },
+ "GYM_ElecPanda": {
+  "hp": 105,
+  "stomach": 475
+ },
+ "GYM_ElecPanda_2": {
+  "hp": 105,
+  "stomach": 475
+ },
+ "GYM_ElecPanda_Otomo": {
+  "hp": 125,
+  "stomach": 475
+ },
+ "GYM_Horus": {
+  "hp": 100,
+  "stomach": 525
+ },
+ "GYM_Horus_2": {
+  "hp": 100,
+  "stomach": 525
+ },
+ "GYM_LilyQueen": {
+  "hp": 110,
+  "stomach": 475
+ },
+ "GYM_LilyQueen_2": {
+  "hp": 110,
+  "stomach": 475
+ },
+ "GYM_MoonQueen": {
+  "hp": 130,
+  "stomach": 150
+ },
+ "GYM_MoonQueen_2": {
+  "hp": 130,
+  "stomach": 150
+ },
+ "GYM_MoonQueen_2_Servant": {
+  "hp": 130,
+  "stomach": 150
+ },
+ "GYM_SnowTigerBeastman": {
+  "hp": 140,
+  "stomach": 150
+ },
+ "GYM_SnowTigerBeastman_2": {
+  "hp": 140,
+  "stomach": 150
+ },
+ "GYM_ThunderDragonMan": {
+  "hp": 100,
+  "stomach": 475
+ },
+ "GYM_ThunderDragonMan_2": {
+  "hp": 100,
+  "stomach": 475
+ },
+ "GYM_WorldTreeDragon": {
+  "hp": 240,
+  "stomach": 600
+ },
+ "GYM_WorldTreeDragon_2": {
+  "hp": 288,
+  "stomach": 600
+ },
+ "Ganesha": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Garm": {
+  "hp": 80,
+  "stomach": 150
+ },
+ "GhostAnglerfish": {
+  "hp": 90,
+  "stomach": 480
+ },
+ "GhostAnglerfish_Fire": {
+  "hp": 90,
+  "stomach": 480
+ },
+ "GhostBeast": {
+  "hp": 75,
+  "stomach": 380
+ },
+ "GhostBlackCat": {
+  "hp": 85,
+  "stomach": 450
+ },
+ "GhostDragon": {
+  "hp": 115,
+  "stomach": 620
+ },
+ "GhostDragon_Fire": {
+  "hp": 115,
+  "stomach": 620
+ },
+ "GhostRabbit": {
+  "hp": 105,
+  "stomach": 510
+ },
+ "GhostRabbit_Grass": {
+  "hp": 110,
+  "stomach": 510
+ },
+ "GoldenHorse": {
+  "hp": 120,
+  "stomach": 550
+ },
+ "GoodwillAmbassador": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Gorilla": {
+  "hp": 90,
+  "stomach": 230
+ },
+ "Gorilla_Ground": {
+  "hp": 90,
+  "stomach": 230
+ },
+ "GrassBoss": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "GrassGolem": {
+  "hp": 110,
+  "stomach": 550
+ },
+ "GrassGolem_Dark": {
+  "hp": 110,
+  "stomach": 550
+ },
+ "GrassMammoth": {
+  "hp": 150,
+  "stomach": 400
+ },
+ "GrassMammoth_Ice": {
+  "hp": 150,
+  "stomach": 400
+ },
+ "GrassMinotaur": {
+  "hp": 110,
+  "stomach": 560
+ },
+ "GrassMinotaur_Ice": {
+  "hp": 120,
+  "stomach": 560
+ },
+ "GrassPanda": {
+  "hp": 100,
+  "stomach": 280
+ },
+ "GrassPanda_Electric": {
+  "hp": 100,
+  "stomach": 280
+ },
+ "GrassPanda_Electric_Tower": {
+  "hp": 100,
+  "stomach": 350
+ },
+ "GrassRabbitMan": {
+  "hp": 90,
+  "stomach": 450
+ },
+ "GrimGirl": {
+  "hp": 95,
+  "stomach": 530
+ },
+ "Guard_Rifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Guard_Shotgun": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "GuardianDog": {
+  "hp": 85,
+  "stomach": 270
+ },
+ "HadesBird": {
+  "hp": 100,
+  "stomach": 460
+ },
+ "HadesBird_Electric": {
+  "hp": 105,
+  "stomach": 460
+ },
+ "HadesBird_Oilrig": {
+  "hp": 100,
+  "stomach": 600
+ },
+ "HawkBird": {
+  "hp": 100,
+  "stomach": 140
+ },
+ "Hedgehog": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Hedgehog_Ice": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Help01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Help02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Help03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Help04": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "HerculesBeetle": {
+  "hp": 120,
+  "stomach": 400
+ },
+ "HerculesBeetle_Ground": {
+  "hp": 120,
+  "stomach": 400
+ },
+ "HoodGhost": {
+  "hp": 70,
+  "stomach": 230
+ },
+ "Horus": {
+  "hp": 105,
+  "stomach": 600
+ },
+ "Horus_Oilrig": {
+  "hp": 105,
+  "stomach": 600
+ },
+ "Horus_Water": {
+  "hp": 110,
+  "stomach": 600
+ },
+ "Hunter_Bat": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Bat_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_BowGun": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "Hunter_BowGun_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Fat_GatlingGun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Fat_GatlingGun_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Fat_GatlingGun_LargeOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Fat_GatlingGun_MiniOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Fat_GatlingGun_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Fat_GatlingGun_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Fat_Prisoner": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_FlameThrower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_FlameThrower_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_FlameThrower_LargeOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_FlameThrower_MiiniOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_FlameThrower_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Grenade": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_GrenadeLauncher": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_GrenadeLauncher_LargeOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_GrenadeLauncher_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Grenade_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Grenade_LargeOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Grenade_MiniOilrig": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Grenade_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Handgun": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Handgun_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Handgun_MiniOilrig": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Handgun_Quest_StrongOldMan": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Katana": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "Hunter_Katana_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_LaserRifle": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "Hunter_LaserRifle_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_MissileLauncher": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_MissileLauncher_LargeOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_MissileLauncher_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Prisoner": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Rifle": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "Hunter_Rifle_Invader": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "Hunter_Rifle_LargeOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Rifle_MiniOilrig": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "Hunter_Rifle_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Rifle_Tower": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "Hunter_RocketLauncher": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_RocketLauncher_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_RocketLauncher_LargeOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_RocketLauncher_MiniOilrig": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_RocketLauncher_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_RocketLauncher_Oilrig_LD": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_RocketLauncher_Quest_StrongOldMan": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Shotgun": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Shotgun_Invader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Shotgun_LargeOilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Shotgun_MiniOilrig": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Hunter_Shotgun_Oilrig": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Hunter_Shotgun_Quest_StrongOldMan": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "IceCrocodile": {
+  "hp": 75,
+  "stomach": 310
+ },
+ "IceDeer": {
+  "hp": 100,
+  "stomach": 280
+ },
+ "IceFox": {
+  "hp": 90,
+  "stomach": 300
+ },
+ "IceHorse": {
+  "hp": 140,
+  "stomach": 620
+ },
+ "IceHorse_Dark": {
+  "hp": 140,
+  "stomach": 620
+ },
+ "IceNarwhal": {
+  "hp": 105,
+  "stomach": 560
+ },
+ "IceNarwhal_Fire": {
+  "hp": 105,
+  "stomach": 560
+ },
+ "IceSeal": {
+  "hp": 95,
+  "stomach": 220
+ },
+ "IceSeal_Ground": {
+  "hp": 95,
+  "stomach": 220
+ },
+ "IceWitch": {
+  "hp": 95,
+  "stomach": 270
+ },
+ "Inspector": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "JellyfishFairy": {
+  "hp": 75,
+  "stomach": 220
+ },
+ "JellyfishGhost": {
+  "hp": 90,
+  "stomach": 220
+ },
+ "JetDragon": {
+  "hp": 115,
+  "stomach": 600
+ },
+ "KabukiMan": {
+  "hp": 105,
+  "stomach": 560
+ },
+ "Kelpie": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Kelpie_Fire": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "KendoFrog": {
+  "hp": 80,
+  "stomach": 150
+ },
+ "KendoFrog_Dark": {
+  "hp": 85,
+  "stomach": 150
+ },
+ "KingAlpaca": {
+  "hp": 120,
+  "stomach": 280
+ },
+ "KingAlpaca_Ice": {
+  "hp": 120,
+  "stomach": 280
+ },
+ "KingBahamut": {
+  "hp": 100,
+  "stomach": 600
+ },
+ "KingBahamut_Dragon": {
+  "hp": 105,
+  "stomach": 600
+ },
+ "KingSunfish": {
+  "hp": 90,
+  "stomach": 450
+ },
+ "KingSunfish_Thunder": {
+  "hp": 90,
+  "stomach": 450
+ },
+ "KingWhale": {
+  "hp": 180,
+  "stomach": 600
+ },
+ "Kirin": {
+  "hp": 80,
+  "stomach": 210
+ },
+ "Kirin_Ice": {
+  "hp": 80,
+  "stomach": 210
+ },
+ "Kitsunebi": {
+  "hp": 65,
+  "stomach": 100
+ },
+ "Kitsunebi_Ice": {
+  "hp": 65,
+  "stomach": 100
+ },
+ "LanternButler": {
+  "hp": 90,
+  "stomach": 530
+ },
+ "LavaGirl": {
+  "hp": 60,
+  "stomach": 150
+ },
+ "LazyCatfish": {
+  "hp": 100,
+  "stomach": 230
+ },
+ "LazyCatfish_Gold": {
+  "hp": 105,
+  "stomach": 230
+ },
+ "LazyDragon": {
+  "hp": 120,
+  "stomach": 480
+ },
+ "LazyDragon_Electric": {
+  "hp": 120,
+  "stomach": 480
+ },
+ "LazyDragon_Electric_Tower": {
+  "hp": 120,
+  "stomach": 475
+ },
+ "LeafMomonga": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "LeafPrincess": {
+  "hp": 90,
+  "stomach": 300
+ },
+ "LegendDeer": {
+  "hp": 135,
+  "stomach": 710
+ },
+ "LilyQueen": {
+  "hp": 120,
+  "stomach": 540
+ },
+ "LilyQueen_Dark": {
+  "hp": 115,
+  "stomach": 540
+ },
+ "LittleBriarRose": {
+  "hp": 80,
+  "stomach": 140
+ },
+ "LizardMan": {
+  "hp": 80,
+  "stomach": 150
+ },
+ "LizardMan_Fire": {
+  "hp": 80,
+  "stomach": 150
+ },
+ "LizardMan_Oilrig": {
+  "hp": 80,
+  "stomach": 680
+ },
+ "LongCat": {
+  "hp": 75,
+  "stomach": 230
+ },
+ "LotusDragon": {
+  "hp": 130,
+  "stomach": 620
+ },
+ "Male_Angler01_v01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Breeder01_v01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Breeder01_v02": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Breeder01_v03": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Breeder01_v04": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Breeder01_v05": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_DTairikuPeople01_v01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_DarkTrader01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_DarkTrader01_02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_DarkTrader01_03": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_DarkTrader01_04": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_DarkTrader02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_DesertPeople01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Kigurumi01_v01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Ninja01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_Ninja01_Seabase": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_NinjaElite01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_NinjaElite01_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_NinjaElite01_Seabase": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_People02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_People03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Police_old": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_SakurajimaPeople01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Scholar01_v01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Scholar01_v02": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Scholar01_v03": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Scholar01_v04": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Scholar01_v05": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Scholar02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_Scientist01_LaserRifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_Scientist01_LaserRifle_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_SnowPeople01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Soldier01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Soldier01_EnemyGroup": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Soldier02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_Soldier02_EnemyGroup": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Soldier02_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_Soldier03": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_Soldier04": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Male_SorajimaPeople01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_StrongOldMan01": {
+  "hp": 500,
+  "stomach": 100
+ },
+ "Male_StrongOldMan02": {
+  "hp": 500,
+  "stomach": 100
+ },
+ "Male_SurveyMan01": {
+  "hp": 60,
+  "stomach": 100
+ },
+ "Male_SurveyMan02": {
+  "hp": 60,
+  "stomach": 100
+ },
+ "Male_SurveyMan03": {
+  "hp": 60,
+  "stomach": 100
+ },
+ "Male_TenrakuPeople01": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Male_Trader01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v04": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v05": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v06": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v07": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v08": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v09": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v10": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v11": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v12": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v13": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v14": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v15": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v16": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v17": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v18": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v19": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v20": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v21": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v22": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v23": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v24": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader01_v25": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader02": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_Trader03": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Male_WorldTreePeople01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Manticore": {
+  "hp": 105,
+  "stomach": 410
+ },
+ "Manticore_Dark": {
+  "hp": 105,
+  "stomach": 410
+ },
+ "MimicDog": {
+  "hp": 60,
+  "stomach": 230
+ },
+ "MobuCitizen": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "MobuCitizen_Male": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "MobuVillager": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "Monkey": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "Monkey_Fire": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "MonochromeQueen": {
+  "hp": 110,
+  "stomach": 680
+ },
+ "MoonChild": {
+  "hp": 80,
+  "stomach": 380
+ },
+ "MoonQueen": {
+  "hp": 130,
+  "stomach": 680
+ },
+ "MopBaby": {
+  "hp": 60,
+  "stomach": 100
+ },
+ "MopKing": {
+  "hp": 100,
+  "stomach": 300
+ },
+ "Mothman": {
+  "hp": 140,
+  "stomach": 630
+ },
+ "MummyPal": {
+  "hp": 105,
+  "stomach": 450
+ },
+ "MushroomDragon": {
+  "hp": 110,
+  "stomach": 450
+ },
+ "MushroomDragon_Dark": {
+  "hp": 110,
+  "stomach": 450
+ },
+ "MushroomLady": {
+  "hp": 105,
+  "stomach": 530
+ },
+ "Mutant": {
+  "hp": 90,
+  "stomach": 300
+ },
+ "MysteryMask": {
+  "hp": 95,
+  "stomach": 400
+ },
+ "NPC_Dungeon_Shop": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "NPC_FoodRequire_1": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "NPC_PalDisplay_1": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "NaughtyCat": {
+  "hp": 110,
+  "stomach": 300
+ },
+ "NegativeKoala": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "NegativeOctopus": {
+  "hp": 60,
+  "stomach": 150
+ },
+ "NegativeOctopus_Neutral": {
+  "hp": 70,
+  "stomach": 150
+ },
+ "NightBlueHorse": {
+  "hp": 110,
+  "stomach": 440
+ },
+ "NightBlueHorse_Neutral": {
+  "hp": 110,
+  "stomach": 440
+ },
+ "NightFox": {
+  "hp": 75,
+  "stomach": 100
+ },
+ "NightLady": {
+  "hp": 120,
+  "stomach": 530
+ },
+ "NightLady_Dark": {
+  "hp": 120,
+  "stomach": 530
+ },
+ "Ninja01_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "NinjaElite01_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "NinjaElite_Bowgun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "NinjaElite_Grenade": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "NinjaElite_NoEquip": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Ninja_Bowgun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Ninja_Bowgun_Seabase": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Ninja_Grenade": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Ninja_NoEquip": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Ninja_Prisoner": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "OctopusGirl": {
+  "hp": 70,
+  "stomach": 280
+ },
+ "OctopusGirl_Neutral": {
+  "hp": 75,
+  "stomach": 280
+ },
+ "OniGhostGirl": {
+  "hp": 70,
+  "stomach": 290
+ },
+ "POLICE_HawkBird": {
+  "hp": 100,
+  "stomach": 475
+ },
+ "POLICE_ThunderDog": {
+  "hp": 90,
+  "stomach": 350
+ },
+ "PREDATOR_AmaterasuWolf": {
+  "hp": 120,
+  "stomach": 380
+ },
+ "PREDATOR_Baphomet_Dark": {
+  "hp": 114,
+  "stomach": 380
+ },
+ "PREDATOR_BirdDragon": {
+  "hp": 108,
+  "stomach": 340
+ },
+ "PREDATOR_CandleGhost": {
+  "hp": 126,
+  "stomach": 480
+ },
+ "PREDATOR_DarkScorpion": {
+  "hp": 120,
+  "stomach": 410
+ },
+ "PREDATOR_DrillGame": {
+  "hp": 96,
+  "stomach": 350
+ },
+ "PREDATOR_FairyDragon": {
+  "hp": 132,
+  "stomach": 200
+ },
+ "PREDATOR_FeatherOstrich": {
+  "hp": 114,
+  "stomach": 230
+ },
+ "PREDATOR_FlowerDinosaur": {
+  "hp": 132,
+  "stomach": 270
+ },
+ "PREDATOR_FlowerRabbit_Quest": {
+  "hp": 75,
+  "stomach": 225
+ },
+ "PREDATOR_Garm": {
+  "hp": 96,
+  "stomach": 150
+ },
+ "PREDATOR_Garm_Quest": {
+  "hp": 115,
+  "stomach": 150
+ },
+ "PREDATOR_GhostBeast": {
+  "hp": 90,
+  "stomach": 380
+ },
+ "PREDATOR_GoldenHorse": {
+  "hp": 144,
+  "stomach": 550
+ },
+ "PREDATOR_Gorilla": {
+  "hp": 108,
+  "stomach": 230
+ },
+ "PREDATOR_GrassMammoth_Ice": {
+  "hp": 180,
+  "stomach": 400
+ },
+ "PREDATOR_GrassMinotaur_Ice": {
+  "hp": 144,
+  "stomach": 560
+ },
+ "PREDATOR_GrassPanda": {
+  "hp": 120,
+  "stomach": 280
+ },
+ "PREDATOR_GrimGirl": {
+  "hp": 114,
+  "stomach": 530
+ },
+ "PREDATOR_HadesBird_Electric": {
+  "hp": 126,
+  "stomach": 460
+ },
+ "PREDATOR_Horus_Water": {
+  "hp": 132,
+  "stomach": 600
+ },
+ "PREDATOR_LazyDragon": {
+  "hp": 144,
+  "stomach": 480
+ },
+ "PREDATOR_Manticore_Dark": {
+  "hp": 126,
+  "stomach": 410
+ },
+ "PREDATOR_MonochromeQueen": {
+  "hp": 132,
+  "stomach": 680
+ },
+ "PREDATOR_MummyPal": {
+  "hp": 126,
+  "stomach": 450
+ },
+ "PREDATOR_MushroomDragon": {
+  "hp": 132,
+  "stomach": 450
+ },
+ "PREDATOR_MysteryMask": {
+  "hp": 114,
+  "stomach": 400
+ },
+ "PREDATOR_NightBlueHorse": {
+  "hp": 132,
+  "stomach": 440
+ },
+ "PREDATOR_PandaGirl": {
+  "hp": 120,
+  "stomach": 530
+ },
+ "PREDATOR_PinkLizard": {
+  "hp": 144,
+  "stomach": 280
+ },
+ "PREDATOR_PinkLizard_Quest": {
+  "hp": 172,
+  "stomach": 280
+ },
+ "PREDATOR_PurpleSpider": {
+  "hp": 132,
+  "stomach": 320
+ },
+ "PREDATOR_RedArmorBird": {
+  "hp": 114,
+  "stomach": 480
+ },
+ "PREDATOR_RedFlowerBird": {
+  "hp": 102,
+  "stomach": 450
+ },
+ "PREDATOR_Ronin_Dark": {
+  "hp": 96,
+  "stomach": 380
+ },
+ "PREDATOR_ScorpionMan": {
+  "hp": 108,
+  "stomach": 380
+ },
+ "PREDATOR_SifuDog": {
+  "hp": 108,
+  "stomach": 300
+ },
+ "PREDATOR_SnakeGirl": {
+  "hp": 96,
+  "stomach": 340
+ },
+ "PREDATOR_Suzaku": {
+  "hp": 144,
+  "stomach": 460
+ },
+ "PREDATOR_ThunderDog": {
+  "hp": 108,
+  "stomach": 280
+ },
+ "PREDATOR_Umihebi_Fire": {
+  "hp": 156,
+  "stomach": 550
+ },
+ "PREDATOR_Umihebi_Fire_Quest": {
+  "hp": 187,
+  "stomach": 550
+ },
+ "PREDATOR_VolcanicMonster_Ice": {
+  "hp": 132,
+  "stomach": 490
+ },
+ "PREDATOR_VolcanoDragon": {
+  "hp": 132,
+  "stomach": 530
+ },
+ "PREDATOR_Werewolf_Ice": {
+  "hp": 96,
+  "stomach": 210
+ },
+ "PREDATOR_WhiteShieldDragon_Quest": {
+  "hp": 144,
+  "stomach": 225
+ },
+ "PREDATOR_WhiteTiger_Ground": {
+  "hp": 120,
+  "stomach": 480
+ },
+ "PREDATOR_Yeti": {
+  "hp": 168,
+  "stomach": 460
+ },
+ "PalDealer": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "PalDealer_Desert": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "PalDealer_Volcano": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "PalPassive_Doctor": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "PalTrader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "PandaGirl": {
+  "hp": 100,
+  "stomach": 530
+ },
+ "Penguin": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Penguin_Electric": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "PinkCat": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "PinkLizard": {
+  "hp": 120,
+  "stomach": 280
+ },
+ "PinkRabbit": {
+  "hp": 75,
+  "stomach": 100
+ },
+ "PinkRabbit_Grass": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "PlantSlime": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "PlantSlime_Flower": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Plesiosaur": {
+  "hp": 130,
+  "stomach": 460
+ },
+ "Police_BowGun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Chief": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Handgun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_CrossBow": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_FlameThrower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_GrenadeLauncher": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_Handgun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_Katana": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_LaserRifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_MissileLauncher": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_Rifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_RocketLauncher": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Invader_Shotgun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Rifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Rifle_Crime_Lv4": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Rifle_Crime_Lv5": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Rifle_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Shield_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Shotgun": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Shotgun_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_TreasureGuard_NarrowSite": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_Vigilance": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Police_old_Prisoner": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "PoseidonOrca": {
+  "hp": 105,
+  "stomach": 620
+ },
+ "PurpleSpider": {
+  "hp": 110,
+  "stomach": 320
+ },
+ "QueenBee": {
+  "hp": 90,
+  "stomach": 340
+ },
+ "QuestMan": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Quest_Farmer03_PinkCat": {
+  "hp": 70,
+  "stomach": 150
+ },
+ "Quest_Farmer03_SheepBall": {
+  "hp": 70,
+  "stomach": 150
+ },
+ "Quest_Hunter_Fat_GatlingGun01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Quest_Hunter_FlameThrower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Quest_Hunter_Katana01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Quest_Hunter_RocketLauncher01": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Quest_Male_Ninja01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Quest_Male_NinjaElite01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Quest_Male_Scientist01_LaserRifle": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Quest_Scientist_FlameThrower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "RAID_DarkMechaDragon": {
+  "hp": 130,
+  "stomach": 150
+ },
+ "RAID_DarkMechaDragon_2": {
+  "hp": 130,
+  "stomach": 150
+ },
+ "RAID_KingBahamut_Dragon": {
+  "hp": 105,
+  "stomach": 600
+ },
+ "RAID_KingBahamut_Dragon_2": {
+  "hp": 105,
+  "stomach": 600
+ },
+ "RAID_LegendDeer": {
+  "hp": 130,
+  "stomach": 150
+ },
+ "RAID_LegendDeer_2": {
+  "hp": 130,
+  "stomach": 150
+ },
+ "RAID_NightLady": {
+  "hp": 120,
+  "stomach": 150
+ },
+ "RAID_NightLady_Dark": {
+  "hp": 120,
+  "stomach": 150
+ },
+ "RAID_NightLady_Dark_2": {
+  "hp": 120,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss001_Green": {
+  "hp": 135,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss001_Green_2": {
+  "hp": 135,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss002": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss002_2": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss002_Hand_Left": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss002_Hand_Left_2": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss002_Hand_Right": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss002_Hand_Right_2": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss002_Head": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "RAID_YakushimaBoss002_Head_2": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "RaijinDaughter": {
+  "hp": 70,
+  "stomach": 150
+ },
+ "RaijinDaughter_Water": {
+  "hp": 70,
+  "stomach": 150
+ },
+ "RandomEventShop": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "RedArmorBird": {
+  "hp": 95,
+  "stomach": 480
+ },
+ "RedFlowerBird": {
+  "hp": 85,
+  "stomach": 450
+ },
+ "Respawn_guide": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_BossDefeat": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_A_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_B_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_C_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_D_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_E_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_F_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_G_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_H_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Emote_I_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Food": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalCaptureCount": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalCaptureCount_v02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_A_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_B_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_C_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_D_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_E_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_F_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_G_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_H_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_PalDisplay_I_01": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Paldex": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Reward_Paldex_v02": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Robbery_Leader": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Robbery_Minion": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "RobinHood": {
+  "hp": 90,
+  "stomach": 230
+ },
+ "RobinHood_Ground": {
+  "hp": 90,
+  "stomach": 230
+ },
+ "RockBeast": {
+  "hp": 100,
+  "stomach": 580
+ },
+ "RockBeast_Ice": {
+  "hp": 100,
+  "stomach": 580
+ },
+ "Ronin": {
+  "hp": 80,
+  "stomach": 380
+ },
+ "Ronin_Dark": {
+  "hp": 80,
+  "stomach": 380
+ },
+ "SUMMON_DarkAlien": {
+  "hp": 90,
+  "stomach": 475
+ },
+ "SUMMON_DarkAlien_MAX": {
+  "hp": 90,
+  "stomach": 475
+ },
+ "SUMMON_WhiteAlienDragon": {
+  "hp": 110,
+  "stomach": 600
+ },
+ "SUMMON_WhiteAlienDragon_MAX": {
+  "hp": 110,
+  "stomach": 600
+ },
+ "SaintCentaur": {
+  "hp": 130,
+  "stomach": 600
+ },
+ "SakuraSaurus": {
+  "hp": 120,
+  "stomach": 410
+ },
+ "SakuraSaurus_Water": {
+  "hp": 120,
+  "stomach": 410
+ },
+ "SalesPerson": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "SalesPerson_Desert": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "SalesPerson_Desert2": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "SalesPerson_Volcano": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "SalesPerson_Volcano2": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "SalesPerson_Wander": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "SamuraiDog": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "Scientist_FlameThrower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Scientist_FlameThrower_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Scientist_GrenadeLauncher": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Scientist_MissileLauncher": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Scientist_Prisoner": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "ScorpionMan": {
+  "hp": 90,
+  "stomach": 380
+ },
+ "ScorpionMan_Electric": {
+  "hp": 90,
+  "stomach": 380
+ },
+ "SecurityDrone": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "SecurityDrone_Field": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Sekhmet": {
+  "hp": 110,
+  "stomach": 530
+ },
+ "Serpent": {
+  "hp": 90,
+  "stomach": 210
+ },
+ "Serpent_Ground": {
+  "hp": 90,
+  "stomach": 210
+ },
+ "SharkKid": {
+  "hp": 90,
+  "stomach": 150
+ },
+ "SharkKid_Fire": {
+  "hp": 90,
+  "stomach": 150
+ },
+ "Sheepball": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "SifuDog": {
+  "hp": 90,
+  "stomach": 380
+ },
+ "SkyDragon": {
+  "hp": 105,
+  "stomach": 450
+ },
+ "SkyDragon_Grass": {
+  "hp": 105,
+  "stomach": 450
+ },
+ "SleeveRabbit": {
+  "hp": 105,
+  "stomach": 400
+ },
+ "SmallArmadillo": {
+  "hp": 75,
+  "stomach": 340
+ },
+ "SmallYeti": {
+  "hp": 80,
+  "stomach": 380
+ },
+ "SnakeGirl": {
+  "hp": 80,
+  "stomach": 340
+ },
+ "SnowPeafowl": {
+  "hp": 110,
+  "stomach": 300
+ },
+ "SnowTigerBeastman": {
+  "hp": 140,
+  "stomach": 730
+ },
+ "SoldierBee": {
+  "hp": 80,
+  "stomach": 230
+ },
+ "SorajimaTowerGuide": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "StuffedShark": {
+  "hp": 75,
+  "stomach": 140
+ },
+ "StuffedShark_Fire": {
+  "hp": 75,
+  "stomach": 140
+ },
+ "SumoDog": {
+  "hp": 115,
+  "stomach": 420
+ },
+ "Suzaku": {
+  "hp": 120,
+  "stomach": 460
+ },
+ "Suzaku_Water": {
+  "hp": 125,
+  "stomach": 460
+ },
+ "SweetsSheep": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "SweetsSheep_Ground": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "SwordCutlassfish": {
+  "hp": 70,
+  "stomach": 340
+ },
+ "SwordCutlassfish_Fire": {
+  "hp": 70,
+  "stomach": 340
+ },
+ "TentacleTurtle": {
+  "hp": 75,
+  "stomach": 280
+ },
+ "TentacleTurtle_Ground": {
+  "hp": 85,
+  "stomach": 280
+ },
+ "ThiefBird": {
+  "hp": 110,
+  "stomach": 560
+ },
+ "ThunderBird": {
+  "hp": 105,
+  "stomach": 340
+ },
+ "ThunderBird_Ice": {
+  "hp": 105,
+  "stomach": 340
+ },
+ "ThunderDog": {
+  "hp": 90,
+  "stomach": 280
+ },
+ "ThunderDog_Ice": {
+  "hp": 90,
+  "stomach": 280
+ },
+ "ThunderDragonMan": {
+  "hp": 120,
+  "stomach": 620
+ },
+ "ThunderFluffyBird": {
+  "hp": 75,
+  "stomach": 450
+ },
+ "TropicalOstrich": {
+  "hp": 105,
+  "stomach": 410
+ },
+ "Umihebi": {
+  "hp": 130,
+  "stomach": 550
+ },
+ "Umihebi_Fire": {
+  "hp": 130,
+  "stomach": 550
+ },
+ "VenusFlytrap": {
+  "hp": 85,
+  "stomach": 530
+ },
+ "Viking": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "VikingElite_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Viking_Elite": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Viking_Elite_Invader": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Viking_GrenadeLauncher": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Viking_Melee": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Viking_Prisoner": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Viking_RocketLauncher": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Viking_Tower": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "VioletFairy": {
+  "hp": 100,
+  "stomach": 380
+ },
+ "VisitingMerchant": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Visitor_Hunter_Rifle": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Visitor_Present": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Visitor_Recruiter": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "VolcanicMonster": {
+  "hp": 110,
+  "stomach": 490
+ },
+ "VolcanicMonster_Ice": {
+  "hp": 110,
+  "stomach": 490
+ },
+ "VolcanoDragon": {
+  "hp": 110,
+  "stomach": 530
+ },
+ "VolcanoDragon_Ice": {
+  "hp": 110,
+  "stomach": 530
+ },
+ "WeaponsDealer": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "WeaselDragon": {
+  "hp": 90,
+  "stomach": 230
+ },
+ "WeaselDragon_Fire": {
+  "hp": 90,
+  "stomach": 230
+ },
+ "Werewolf": {
+  "hp": 80,
+  "stomach": 210
+ },
+ "Werewolf_Ice": {
+  "hp": 80,
+  "stomach": 210
+ },
+ "WhiteAlienDragon": {
+  "hp": 110,
+  "stomach": 470
+ },
+ "WhiteDeer": {
+  "hp": 120,
+  "stomach": 550
+ },
+ "WhiteDeer_Dark": {
+  "hp": 120,
+  "stomach": 550
+ },
+ "WhiteMoth": {
+  "hp": 110,
+  "stomach": 350
+ },
+ "WhiteMoth_Neutral": {
+  "hp": 115,
+  "stomach": 350
+ },
+ "WhiteShieldDragon": {
+  "hp": 120,
+  "stomach": 600
+ },
+ "WhiteTiger": {
+  "hp": 100,
+  "stomach": 480
+ },
+ "WhiteTiger_Ground": {
+  "hp": 100,
+  "stomach": 480
+ },
+ "WildlifeSanctuaryDrone": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "WildlifeSanctuary_guide": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "WindChimes": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "WindChimes_Ice": {
+  "hp": 80,
+  "stomach": 100
+ },
+ "WingGolem": {
+  "hp": 105,
+  "stomach": 600
+ },
+ "WingGolem_Fire": {
+  "hp": 105,
+  "stomach": 600
+ },
+ "WingGolem_Oilrig": {
+  "hp": 126,
+  "stomach": 600
+ },
+ "WizardOwl": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "WoolFox": {
+  "hp": 70,
+  "stomach": 100
+ },
+ "WorldTreeDragon": {
+  "hp": 200,
+  "stomach": 600
+ },
+ "YakushimaBoss001": {
+  "hp": 110,
+  "stomach": 240
+ },
+ "YakushimaBoss001_Small": {
+  "hp": 105,
+  "stomach": 220
+ },
+ "YakushimaMonster001": {
+  "hp": 65,
+  "stomach": 180
+ },
+ "YakushimaMonster001_Blue": {
+  "hp": 70,
+  "stomach": 210
+ },
+ "YakushimaMonster001_Pink": {
+  "hp": 80,
+  "stomach": 300
+ },
+ "YakushimaMonster001_Purple": {
+  "hp": 75,
+  "stomach": 270
+ },
+ "YakushimaMonster001_Rainbow": {
+  "hp": 105,
+  "stomach": 330
+ },
+ "YakushimaMonster001_Red": {
+  "hp": 70,
+  "stomach": 240
+ },
+ "YakushimaMonster002": {
+  "hp": 95,
+  "stomach": 180
+ },
+ "YakushimaMonster003": {
+  "hp": 65,
+  "stomach": 220
+ },
+ "YakushimaMonster003_Purple": {
+  "hp": 80,
+  "stomach": 220
+ },
+ "Yamishima_guide1": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Yamishima_guide2": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Yamishima_guide3": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Yamishima_guide4": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Yamishima_guide5": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Yeti": {
+  "hp": 140,
+  "stomach": 460
+ },
+ "Yeti_Grass": {
+  "hp": 140,
+  "stomach": 460
+ },
+ "ArenaShop": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "Arena_Legend_1": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_10": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_11": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_12": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_13": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_14": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_15": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_16": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_17": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_18": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_19": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_2": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_20": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_3": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_4": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_5": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_6": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_7": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_8": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Arena_Legend_9": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "ArmorWoodlouse": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "BeardedDragon": {
+  "hp": 100,
+  "stomach": 600
+ },
+ "BlueWoolRabbit": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "CandleWitch": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "CuteOrca": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "DarkMutant": {
+  "hp": 100,
+  "stomach": 530
+ },
+ "DesertBoss": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "ElecSnail_Fire": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "ElectricBoss": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "Emote_Tester": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "ForestBoss": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "FrozenBear": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "GrassDragon": {
+  "hp": 130,
+  "stomach": 480
+ },
+ "IceVeilDragon": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "KingCrab": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "LeafBird": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "MedjedBird": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "MexicanSalamander": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "Monkey_Ice": {
+  "hp": 80,
+  "stomach": 150
+ },
+ "MonochromeMushroom": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "Negotiator": {
+  "hp": 20,
+  "stomach": 100
+ },
+ "PinkKangaroo": {
+  "hp": 100,
+  "stomach": 350
+ },
+ "RockCheetah": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "SakurajimaBoss": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "SnakeQueen": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "SnowBoss": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "StrawHatCat": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "TestAssassin": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "TestNPC": {
+  "hp": 50,
+  "stomach": 100
+ },
+ "VikingBoss": {
+  "hp": 100,
+  "stomach": 100
+ },
+ "VolcanicTurtle": {
+  "hp": 100,
+  "stomach": 150
+ },
+ "WaterLizard": {
+  "hp": 90,
+  "stomach": 350
+ },
+ "WorldTree_Hunter_MissileLauncher_test": {
+  "hp": 100,
+  "stomach": 100
+ }
+}

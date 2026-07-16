@@ -198,7 +198,19 @@ pub fn apply(buf: &[u8], plan: &EditPlan) -> Result<Vec<u8>, SaveError> {
     // Fixup patches are same-length overwrites of size/count fields. They may
     // nest inside other scopes' bodies (harmless: zero delta) but must not
     // overlap content patches (a content patch replacing a region that
-    // contains a field being fixed up would be contradictory).
+    // contains a field being fixed up would be contradictory). A scope
+    // accidentally registered twice yields byte-identical fixups — dedup
+    // those; different bytes at the same offset are a contradictory plan.
+    fixup_patches.sort_by_key(|p| (p.range.start, p.range.end));
+    fixup_patches.dedup_by(|a, b| a.range == b.range && a.bytes == b.bytes);
+    for pair in fixup_patches.windows(2) {
+        if pair[0].range.start < pair[1].range.end && pair[1].range.start < pair[0].range.end {
+            return Err(edit_err(format!(
+                "conflicting fixups at {:?} / {:?}",
+                pair[0].range, pair[1].range
+            )));
+        }
+    }
     for f in &fixup_patches {
         for p in &plan.patches {
             if f.range.start < p.range.end && p.range.start < f.range.end {

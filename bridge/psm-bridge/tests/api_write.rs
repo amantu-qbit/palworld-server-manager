@@ -350,3 +350,87 @@ async fn clear_container_end_to_end() {
 
     std::fs::remove_dir_all(&dir).ok();
 }
+
+#[tokio::test]
+async fn pal_heal_delete_clone_end_to_end() {
+    let dir = temp_world("tier2");
+    let app = make_router_at(&dir, true);
+
+    let (_, pals) = request(&app, "GET", &format!("/v1/players/{PLAYER_O_UID}/pals"), None).await;
+    let pal = pals[0].clone();
+    let pal_id = pal["instance_id"].as_str().unwrap().to_string();
+
+    // Heal.
+    let (status, json) = request(&app, "POST", &format!("/v1/pals/{pal_id}/heal"), None).await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    let (_, pals) = request(&app, "GET", &format!("/v1/players/{PLAYER_O_UID}/pals"), None).await;
+    let healed = pals
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["instance_id"] == pal_id.as_str())
+        .unwrap();
+    assert_eq!(healed["sanity"], 100);
+    // HP is set to the formula's max (upstream palworld-save-pal parity —
+    // slightly under the game's true 1.0 max, which adds friendship bonuses
+    // the reference formula predates; the game tops it off on load).
+    assert!(healed["hp"].as_i64().unwrap() > 0);
+
+    // Clone into the owner's pal box.
+    let (status, json) = request(&app, "POST", &format!("/v1/pals/{pal_id}/clone"), None).await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    let clone_id = json["instance_id"].as_str().unwrap().to_string();
+    let (_, pals) = request(&app, "GET", &format!("/v1/players/{PLAYER_O_UID}/pals"), None).await;
+    let cloned = pals
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["instance_id"] == clone_id.as_str())
+        .expect("clone visible via API");
+    assert_eq!(cloned["character_id"], pal["character_id"]);
+
+    // Delete the clone.
+    let (status, json) =
+        request(&app, "POST", &format!("/v1/pals/{clone_id}/delete"), None).await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    let (_, pals) = request(&app, "GET", &format!("/v1/players/{PLAYER_O_UID}/pals"), None).await;
+    assert!(pals
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|p| p["instance_id"] != clone_id.as_str()));
+
+    // Gender + work suitability through the edit endpoint.
+    let (status, json) = request(
+        &app,
+        "POST",
+        &format!("/v1/pals/{pal_id}/edit"),
+        Some(serde_json::json!({
+            "gender": "Female",
+            "work_suitability": {"EPalWorkSuitability::Cool": 2}
+        })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    let (_, pals) = request(&app, "GET", &format!("/v1/players/{PLAYER_O_UID}/pals"), None).await;
+    let edited = pals
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["instance_id"] == pal_id.as_str())
+        .unwrap();
+    assert_eq!(edited["gender"], "EPalGenderType::Female");
+    assert_eq!(edited["work_suitability"]["EPalWorkSuitability::Cool"], 2);
+
+    // Invalid values → 422.
+    for body in [
+        serde_json::json!({"gender": "Yes"}),
+        serde_json::json!({"work_suitability": {"EPalWorkSuitability::Cool": 9}}),
+    ] {
+        let (status, _) =
+            request(&app, "POST", &format!("/v1/pals/{pal_id}/edit"), Some(body)).await;
+        assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    }
+
+    std::fs::remove_dir_all(&dir).ok();
+}

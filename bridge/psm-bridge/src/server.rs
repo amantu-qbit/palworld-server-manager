@@ -67,6 +67,9 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/players/{id}/edit", post(player_edit))
         .route("/v1/players/{id}/technologies", post(player_technologies))
         .route("/v1/pals/{id}/edit", post(pal_edit))
+        .route("/v1/pals/{id}/heal", post(pal_heal))
+        .route("/v1/pals/{id}/delete", post(pal_delete))
+        .route("/v1/pals/{id}/clone", post(pal_clone))
         .route("/v1/guilds", get(list_guilds))
         .route("/v1/containers", get(list_containers))
         .route("/v1/containers/{id}/resize", post(container_resize))
@@ -879,6 +882,10 @@ struct PalEditBody {
     talent_hp: Option<u8>,
     talent_shot: Option<u8>,
     talent_defense: Option<u8>,
+    /// `"Male"` / `"Female"` (bare or `EPalGenderType::`-prefixed).
+    gender: Option<String>,
+    /// `EPalWorkSuitability::…` code → rank (0..=5).
+    work_suitability: Option<BTreeMap<String, i32>>,
 }
 
 /// `POST /v1/pals/{id}/edit` — pal edits in `Level.sav`, keyed by pal
@@ -907,6 +914,20 @@ async fn pal_edit(
     if body.rank.is_some_and(|r| !(1..=5).contains(&r)) {
         return unprocessable("rank out of range (1..=5; 1 = no condenser stars)");
     }
+    if let Some(g) = &body.gender {
+        let bare = g.strip_prefix("EPalGenderType::").unwrap_or(g);
+        if bare != "Male" && bare != "Female" {
+            return unprocessable("gender must be Male or Female");
+        }
+    }
+    if let Some(ws) = &body.work_suitability {
+        if ws.len() > 32
+            || ws.keys().any(|k| k.len() > 64)
+            || ws.values().any(|v| !(0..=5).contains(v))
+        {
+            return unprocessable("work suitability ranks out of range (0..=5)");
+        }
+    }
     for l in [&body.passive_skills, &body.active_skills, &body.learned_skills]
         .into_iter()
         .flatten()
@@ -932,6 +953,8 @@ async fn pal_edit(
         talent_hp: body.talent_hp,
         talent_shot: body.talent_shot,
         talent_defense: body.talent_defense,
+        gender: body.gender,
+        work_suitability: body.work_suitability,
         ..Default::default()
     };
     let path = state.app.save_dir().join("Level.sav");
@@ -947,6 +970,141 @@ async fn pal_edit(
     .await
     {
         Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+/// Process-wide species-stats catalog (compiled in, parsed once).
+static PAL_STATS: OnceLock<psm_save::save::reference::PalStatsCatalog> = OnceLock::new();
+
+fn pal_stats() -> &'static psm_save::save::reference::PalStatsCatalog {
+    PAL_STATS.get_or_init(psm_save::save::reference::load_pal_stats)
+}
+
+/// Find a pal in the bundle by canonical instance-id string, or 404.
+async fn find_pal(state: &ServerState, id: &str) -> Result<(Uuid, Pal), Response> {
+    let Some(iid_str) = canonical_uid(id) else {
+        return Err(not_found());
+    };
+    let bundle = state.app.bundle().await.map_err(internal_error)?;
+    let pal = bundle
+        .world
+        .pals
+        .iter()
+        .find(|p| p.instance_id == iid_str)
+        .cloned()
+        .ok_or_else(not_found)?;
+    Ok((Uuid::parse_str(&iid_str).expect("canonical uid parses"), pal))
+}
+
+/// `POST /v1/pals/{id}/heal` — full restore: revive/sick state cleared,
+/// sanity 100, stomach to species max, HP to the computed maximum (ports
+/// palworld-save-pal `pal.heal` + `hp = max_hp`).
+async fn pal_heal(State(state): State<ServerState>, Path(id): Path<String>) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let (iid, pal) = match find_pal(&state, &id).await {
+        Ok(v) => v,
+        Err(resp) => return resp,
+    };
+
+    let stats = pal_stats().for_character_id(&pal.character_id);
+    let heal = psm_save::save::edit::ops::HealValues {
+        hp: stats.map(|s| {
+            psm_save::save::reference::max_hp(
+                s,
+                pal.level,
+                pal.talent_hp,
+                pal.rank,
+                pal.rank_hp,
+                pal.is_boss || pal.is_lucky,
+            )
+        }),
+        stomach: stats.map(|s| s.stomach as f32).filter(|s| *s > 0.0).unwrap_or(150.0),
+        sanity: 100.0,
+    };
+
+    let path = state.app.save_dir().join("Level.sav");
+    match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::heal_pal(gvas, iid, &heal)
+        })
+    })
+    .await
+    {
+        Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+/// `POST /v1/pals/{id}/delete` — remove the pal and its container slots.
+async fn pal_delete(State(state): State<ServerState>, Path(id): Path<String>) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let (iid, _pal) = match find_pal(&state, &id).await {
+        Ok(v) => v,
+        Err(resp) => return resp,
+    };
+    let path = state.app.save_dir().join("Level.sav");
+    match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::delete_pal(gvas, iid)
+        })
+    })
+    .await
+    {
+        Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+#[derive(Serialize)]
+struct CloneResponse {
+    ok: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    backup: Option<String>,
+    /// The new pal's instance id.
+    instance_id: String,
+}
+
+/// `POST /v1/pals/{id}/clone` — duplicate the pal into its owner's pal box.
+async fn pal_clone(State(state): State<ServerState>, Path(id): Path<String>) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let (iid, pal) = match find_pal(&state, &id).await {
+        Ok(v) => v,
+        Err(resp) => return resp,
+    };
+    if pal.owner_uid.is_empty() {
+        return unprocessable("pal has no owner; only owned pals can be cloned");
+    }
+    // Target: the owner's pal box, from their per-player save.
+    let save = match state.app.player_save(&pal.owner_uid).await {
+        Ok(s) => s,
+        Err(e) => return internal_error(e),
+    };
+    let Ok(target) = Uuid::parse_str(&save.containers.pal_storage) else {
+        return unprocessable("owner's pal box container id is missing");
+    };
+    let new_iid = Uuid::new_v4();
+
+    let path = state.app.save_dir().join("Level.sav");
+    match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::clone_pal(gvas, iid, target, new_iid)
+        })
+    })
+    .await
+    {
+        Ok(receipt) => Json(CloneResponse {
+            ok: true,
+            backup: receipt.backup.as_ref().map(|b| b.display().to_string()),
+            instance_id: new_iid.to_string(),
+        })
+        .into_response(),
         Err(resp) => resp,
     }
 }
