@@ -3,6 +3,12 @@ import { isTauri } from "./index";
 import type { Connection } from "../types/api";
 import type {
   BridgeHealth,
+  ContainerInfo,
+  ContainersResponse,
+  ContainerWriteResult,
+  EditPalBody,
+  EditPlayerBody,
+  EditPlayerTechnologiesBody,
   Guild,
   PlayerDetail,
   PlayerSummary,
@@ -10,6 +16,7 @@ import type {
   SavFileInfo,
   SavTreeResponse,
   ServerStatus,
+  WriteResult,
 } from "../types/bridge";
 
 /**
@@ -35,11 +42,33 @@ export interface BridgeApi {
   savFiles(): Promise<SavFileInfo[]>;
   /** Raw Save debug: one bounded subtree of a `.sav`'s decoded GVAS tree. */
   savTree(file: string, path?: string, page?: number, depth?: number): Promise<SavTreeResponse>;
+  /** Every labeled item container (player bags + guild chests). */
+  containers(): Promise<ContainerInfo[]>;
+  /** Resize a container; shrinking deletes slots `>= slotNum` (backup taken). */
+  resizeContainer(cid: string, slotNum: number): Promise<ContainerWriteResult>;
+  /** Write one slot; `staticId: "None"` or `count: 0` clears it. */
+  setContainerSlot(
+    cid: string,
+    slotIndex: number,
+    staticId: string,
+    count: number,
+  ): Promise<ContainerWriteResult>;
+  /** Edit player level/EXP/status points (Level.sav). */
+  editPlayer(uid: string, body: EditPlayerBody): Promise<WriteResult>;
+  /** Unlock/relock technologies and set tech points (per-player `<UID>.sav`). */
+  editPlayerTechnologies(uid: string, body: EditPlayerTechnologiesBody): Promise<WriteResult>;
+  /** Edit one Pal instance (level, nickname, souls, talents, skills…). */
+  editPal(instanceId: string, body: EditPalBody): Promise<WriteResult>;
 }
 
 const path = {
   playerDetail: (uid: string) => `/players/${encodeURIComponent(uid)}`,
   reference: (catalog: string) => `/reference/${encodeURIComponent(catalog)}`,
+  resize: (cid: string) => `/containers/${encodeURIComponent(cid)}/resize`,
+  slot: (cid: string) => `/containers/${encodeURIComponent(cid)}/slot`,
+  editPlayer: (uid: string) => `/players/${encodeURIComponent(uid)}/edit`,
+  technologies: (uid: string) => `/players/${encodeURIComponent(uid)}/technologies`,
+  editPal: (id: string) => `/pals/${encodeURIComponent(id)}/edit`,
   savTree: (file: string, sub = "", page?: number, depth?: number) => {
     const q = new URLSearchParams({ file });
     if (sub) q.set("path", sub);
@@ -69,19 +98,36 @@ const tauriBridge: BridgeApi = {
   savFiles: () => invoke<SavFileInfo[]>("bridge_get", { path: "/debug/savfiles" }),
   savTree: (file, sub, page, depth) =>
     invoke<SavTreeResponse>("bridge_get", { path: path.savTree(file, sub, page, depth) }),
+  containers: () =>
+    invoke<ContainersResponse>("bridge_get", { path: "/containers" }).then((r) => r.containers),
+  resizeContainer: (cid, slotNum) =>
+    invoke<ContainerWriteResult>("bridge_post", { path: path.resize(cid), body: { slot_num: slotNum } }),
+  setContainerSlot: (cid, slotIndex, staticId, count) =>
+    invoke<ContainerWriteResult>("bridge_post", {
+      path: path.slot(cid),
+      body: { slot_index: slotIndex, static_id: staticId, count },
+    }),
+  editPlayer: (uid, body) => invoke<WriteResult>("bridge_post", { path: path.editPlayer(uid), body }),
+  editPlayerTechnologies: (uid, body) =>
+    invoke<WriteResult>("bridge_post", { path: path.technologies(uid), body }),
+  editPal: (instanceId, body) =>
+    invoke<WriteResult>("bridge_post", { path: path.editPal(instanceId), body }),
 };
 
 let conn: Connection | null = null;
 
-async function call<T>(p: string, method = "GET"): Promise<T> {
+async function call<T>(p: string, method = "GET", body?: unknown): Promise<T> {
   if (!conn?.bridgePort || !conn?.bridgeToken) throw new Error("Bridge not configured.");
+  const headers: Record<string, string> = {
+    "x-bridge-host": conn.host,
+    "x-bridge-port": String(conn.bridgePort),
+    "x-bridge-token": conn.bridgeToken,
+  };
+  if (body !== undefined) headers["content-type"] = "application/json";
   const res = await fetch(`/__bridge__${p}`, {
     method,
-    headers: {
-      "x-bridge-host": conn.host,
-      "x-bridge-port": String(conn.bridgePort),
-      "x-bridge-token": conn.bridgeToken,
-    },
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   }).catch(() => {
     throw new Error("Could not reach the app proxy. Are you running `npm run dev`?");
   });
@@ -94,7 +140,8 @@ async function call<T>(p: string, method = "GET"): Promise<T> {
   if (!res.ok) {
     let detail = "";
     try {
-      detail = (JSON.parse(text) as { detail?: string })?.detail ?? "";
+      const parsed = JSON.parse(text) as { detail?: string; error?: string };
+      detail = parsed?.detail ?? parsed?.error ?? "";
     } catch {
       /* body wasn't JSON */
     }
@@ -118,6 +165,18 @@ const httpBridge: BridgeApi = {
   serverRestart: () => call<ServerStatus>("/server/restart", "POST"),
   savFiles: () => call<SavFileInfo[]>("/debug/savfiles"),
   savTree: (file, sub, page, depth) => call<SavTreeResponse>(path.savTree(file, sub, page, depth)),
+  containers: () => call<ContainersResponse>("/containers").then((r) => r.containers),
+  resizeContainer: (cid, slotNum) =>
+    call<ContainerWriteResult>(path.resize(cid), "POST", { slot_num: slotNum }),
+  setContainerSlot: (cid, slotIndex, staticId, count) =>
+    call<ContainerWriteResult>(path.slot(cid), "POST", {
+      slot_index: slotIndex,
+      static_id: staticId,
+      count,
+    }),
+  editPlayer: (uid, body) => call<WriteResult>(path.editPlayer(uid), "POST", body),
+  editPlayerTechnologies: (uid, body) => call<WriteResult>(path.technologies(uid), "POST", body),
+  editPal: (instanceId, body) => call<WriteResult>(path.editPal(instanceId), "POST", body),
 };
 
 export const bridgeApi: BridgeApi = isTauri() ? tauriBridge : httpBridge;

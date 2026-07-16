@@ -77,3 +77,25 @@ export function elementColor(el: string): string {
 export function isRare(rarity: number): boolean {
   return rarity >= 8;
 }
+
+/**
+ * Best-effort element for an active-skill (`EPalWazaID::…`) code, keyed off
+ * common element tokens in the id. Used only for a hint chip in the skill
+ * picker — codes that don't map simply show no chip.
+ */
+const WAZA_ELEMENT_TOKENS: [RegExp, string][] = [
+  [/fire|flame|ignis|burn|inferno/i, "Fire"],
+  [/water|aqua|bubble|splash|hydro/i, "Water"],
+  [/thunder|electric|spark|lightning|volt|plasma/i, "Electric"],
+  [/ice|frost|snow|blizzard|cryst/i, "Ice"],
+  [/dragon/i, "Dragon"],
+  [/dark|night|shadow|abyss|spirit/i, "Dark"],
+  [/sand|stone|rock|earth|mud|ground/i, "Earth"],
+  [/leaf|grass|seed|bloom|wind|tornado/i, "Leaf"],
+];
+
+export function wazaElement(code: string): string | null {
+  const s = code.replace(/^EPalWazaID::/, "");
+  for (const [re, el] of WAZA_ELEMENT_TOKENS) if (re.test(s)) return el;
+  return null;
+}
