@@ -60,6 +60,7 @@ const STATUS_LABELS: Record<string, string> = {
   WorkSpeed: "Work Speed",
   Support: "Support",
   // Japanese display forms (the language most servers surfaced in these saves).
+  // Base status points.
   最大HP: "Health",
   最大SP: "Stamina",
   攻撃力: "Attack",
@@ -68,12 +69,36 @@ const STATUS_LABELS: Record<string, string> = {
   作業速度: "Work Speed",
   滑空速度: "Glide Speed",
   移動速度アップ: "Movement Speed",
+  移動速度: "Movement Speed",
   泳ぎ速度: "Swim Speed",
   ジャンプ力: "Jump Power",
   空腹率低減: "Hunger Resistance",
   パルスフィアホーミング: "Pal Sphere Aim",
+  // Extended (1.0) status points.
+  スタミナ消費軽減: "Stamina Cost",
+  登り速度: "Climb Speed",
+  状態異常耐性: "Ailment Resist",
+  経験値ボーナス: "EXP Bonus",
+  食料腐敗低減: "Food Preservation",
+  レアパッシブ率: "Rare Passive Rate",
+  紅イッシブ率: "Rare Passive Rate", // mojibake variant seen on some 1.0 saves
 };
+
+/** True if `s` contains any CJK (Chinese/Japanese/Korean) character — used to
+ *  catch status names we haven't mapped yet so raw foreign text never leaks
+ *  into the English UI. */
+function hasCjk(s: string): boolean {
+  return /[　-〿぀-ヿ㐀-䶿一-鿿豈-﫿가-힯＀-￯]/.test(
+    s,
+  );
+}
+
 export function statusLabel(code: string): string {
   const key = code.replace(/^EPalStatusName::/, "");
-  return STATUS_LABELS[code] ?? STATUS_LABELS[key] ?? humanize(code);
+  const mapped = STATUS_LABELS[code] ?? STATUS_LABELS[key];
+  if (mapped) return mapped;
+  // Any leftover CJK is an unmapped localized stat name — every status point is
+  // a stat bonus, so a clean generic beats leaking Japanese/Chinese text.
+  if (hasCjk(code)) return "Bonus";
+  return humanize(code);
 }

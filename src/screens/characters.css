@@ -329,53 +329,107 @@
   text-align: right;
 }
 
-/* ---- Inventory ---- */
-.ch-inv {
+/* ---- Inventory (game-style slot grid) ------------------------------
+ * The in-game bag rendered in the OLED-instrument language: square slots on
+ * hairline borders, item icon + mono count, the main bag as a full grid with
+ * empties and the equipment loadout as a compact side rail. */
+.inv {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding-bottom: 12px;
+  gap: 18px;
+  padding-bottom: 14px;
 }
-.ch-invhead {
+/* Main bag (wide) + equipment rail (fixed). Collapses to one column when the
+   pane is narrow. */
+.inv-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .inv-top {
+    grid-template-columns: 1fr;
+  }
+  .inv-rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+.inv-main {
+  min-width: 0;
+}
+.inv-rail {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10.5px;
-  font-family: var(--mono);
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: var(--faint);
-  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 14px;
 }
-.ch-invhead span {
+.inv-rail .invbag {
+  flex: 1 1 240px;
+}
+
+.invbag__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+  padding-bottom: 6px;
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+.invbag__label {
+  font-size: 11px;
+  font-family: var(--mono);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--dim);
 }
-.ch-slots {
+.invbag__count {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--faint);
+}
+.invbag__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, 54px);
   gap: 6px;
 }
-.ch-slot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: var(--r-sm);
-  background: var(--surface-1, rgba(255, 255, 255, 0.022));
+.inv-main .invbag__grid {
+  justify-content: start;
+}
+
+.invslot {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--r-xs);
+  display: grid;
+  place-items: center;
   box-shadow: inset 0 0 0 1px var(--line);
-  font-size: 12.5px;
+  background: transparent;
+  content-visibility: auto;
+  contain-intrinsic-size: 54px 54px;
 }
-.ch-slot__name {
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.invslot.is-filled {
+  background: var(--surface-1, rgba(255, 255, 255, 0.022));
+  box-shadow: inset 0 0 0 1px var(--line-2, rgba(255, 255, 255, 0.09));
 }
-.ch-slot__count {
-  flex: none;
+.invslot__n {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: 10.5px;
   font-family: var(--mono);
-  color: var(--accent);
+  color: var(--text);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+}
+.invslot__dyn {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: grid;
+  place-items: center;
+  color: var(--dim);
 }
 
 /* ---- Pal atlas icon (shared) ---- */
@@ -440,26 +494,31 @@
 }
 .ch-statgrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
 }
 .ch-stat {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
+  gap: 4px;
+  padding: 14px 16px;
+  min-height: 74px;
+  justify-content: center;
   border-radius: var(--r-sm);
   background: var(--surface-1, rgba(255, 255, 255, 0.022));
   box-shadow: inset 0 0 0 1px var(--line);
 }
 .ch-stat__v {
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 600;
   font-family: var(--mono);
   color: var(--text);
+  line-height: 1.05;
 }
 .ch-stat__l {
-  font-size: 10.5px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
   color: var(--faint);
 }
 .ch-count {

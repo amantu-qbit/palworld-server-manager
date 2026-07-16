@@ -3,12 +3,15 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Copy,
   Cpu,
+  Egg,
   HeartPulse,
   PackageOpen,
   PawPrint,
   Pencil,
   Plus,
   Search,
+  Shield,
+  Sword,
   Trash2,
   TriangleAlert,
   Users,
@@ -45,9 +48,11 @@ import { EXP_TABLE, LEVEL_CAP, MAX_LEVEL, levelProgress } from "../lib/expTable"
 import { DISABLED_PASSIVES, passiveRank, passiveRankColor } from "../lib/skillMeta";
 import type { TechMeta } from "../lib/techDex";
 import type {
+  DynamicItem,
   EditPalBody,
   EditPlayerBody,
   ItemContainer,
+  ItemContainerSlot,
   Pal,
   PlayerDetail,
   PlayerSummary,
@@ -1268,6 +1273,94 @@ function ChipSection({ title, chips, accent }: { title: string; chips: string[];
   );
 }
 
+/** Human labels + display order for the five inventory containers. */
+const BAG_LABELS: Record<string, string> = {
+  Common: "Inventory",
+  Essential: "Key Items",
+  WeaponLoadOut: "Weapons",
+  PlayerEquipArmor: "Equipment",
+  FoodEquip: "Food",
+};
+
+/** Glyph marking a slot that carries a dynamic payload (weapon/armor/egg). */
+function InvDynGlyph({ dyn }: { dyn: DynamicItem }) {
+  const t = dyn.item_type.toLowerCase();
+  const Icon = dyn.egg_params ? Egg : t.includes("armor") || t.includes("shield") ? Shield : Sword;
+  return (
+    <span className="invslot__dyn" title={humanize(dyn.item_type)}>
+      <Icon size={11} />
+    </span>
+  );
+}
+
+/** One occupied/empty inventory slot, styled like the in-game item cell. */
+function InvSlot({
+  slot,
+  itemName,
+}: {
+  slot: ItemContainerSlot | null;
+  itemName: (id: string) => string;
+}) {
+  if (!slot) return <div className="invslot" aria-hidden />;
+  const name = itemName(slot.static_id);
+  return (
+    <div className="invslot is-filled" title={`${name} ×${slot.count}`}>
+      <ItemIcon staticId={slot.static_id} size={40} />
+      {slot.count > 1 && <span className="invslot__n">{slot.count}</span>}
+      {slot.dynamic_item && <InvDynGlyph dyn={slot.dynamic_item} />}
+    </div>
+  );
+}
+
+/**
+ * A container rendered as a game-style slot grid. `mode: "grid"` shows every
+ * slot up to `slot_num` (empties included, like the game's main bag);
+ * `mode: "packed"` shows only occupied slots (for the 200-slot Key Items bag,
+ * where a wall of empty cells would be noise).
+ */
+function BagGrid({
+  container,
+  mode,
+  itemName,
+}: {
+  container: ItemContainer;
+  mode: "grid" | "packed";
+  itemName: (id: string) => string;
+}) {
+  const occupied = container.slots.filter((s) => s.static_id && s.static_id !== "None");
+  const label = BAG_LABELS[container.container_type] ?? humanize(container.container_type);
+
+  let cells: (ItemContainerSlot | null)[];
+  if (mode === "packed") {
+    cells = occupied;
+  } else {
+    // The game shows a bag as a full grid; render every slot up to the last
+    // occupied one, padded out to a couple of trailing empty rows, capped at
+    // the container's real size (so a hugely-expanded bag doesn't wall off).
+    const byIndex = new Map(occupied.map((s) => [s.slot_index, s]));
+    const lastFilled = occupied.reduce((m, s) => Math.max(m, s.slot_index), -1);
+    const count = Math.min(container.slot_num, Math.max(lastFilled + 7, 12));
+    cells = Array.from({ length: count }, (_, i) => byIndex.get(i) ?? null);
+  }
+
+  return (
+    <section className="invbag">
+      <header className="invbag__head">
+        <span className="invbag__label">{label}</span>
+        <span className="invbag__count">
+          {occupied.length}
+          {mode === "grid" ? ` / ${container.slot_num}` : ""}
+        </span>
+      </header>
+      <div className="invbag__grid">
+        {cells.map((s, i) => (
+          <InvSlot key={s ? `s${s.slot_index}` : `e${i}`} slot={s} itemName={itemName} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function InventoryView({
   inventory,
   itemName,
@@ -1275,35 +1368,43 @@ function InventoryView({
   inventory: ItemContainer[];
   itemName: (id: string) => string;
 }) {
-  const groups = inventory
-    .map((c) => ({ c, filled: c.slots.filter((s) => s.static_id && s.static_id !== "None") }))
-    .filter((g) => g.filled.length > 0);
+  const byType = (t: string) => inventory.find((c) => c.container_type === t);
+  const hasItems = (c?: ItemContainer) =>
+    !!c && c.slots.some((s) => s.static_id && s.static_id !== "None");
 
-  if (groups.length === 0) {
-    return <p className="ch-empty">Empty — or stored in a per-player save that isn’t on disk.</p>;
+  const main = byType("Common");
+  const weapons = byType("WeaponLoadOut");
+  const equip = byType("PlayerEquipArmor");
+  const food = byType("FoodEquip");
+  const keys = byType("Essential");
+
+  if (!inventory.some(hasItems)) {
+    return (
+      <p className="ch-empty">Empty — or stored in a per-player save that isn’t on disk.</p>
+    );
   }
 
   return (
-    <div className="ch-inv">
-      {groups.map(({ c, filled }) => (
-        <div key={c.id} className="ch-invgroup">
-          <div className="ch-invhead">
-            {humanize(c.container_type)} <span>{filled.length}</span>
-          </div>
-          <div className="ch-slots">
-            {filled.map((s) => (
-              <div key={s.slot_index} className="ch-slot" title={itemName(s.static_id)}>
-                <ItemIcon staticId={s.static_id} size={30} />
-                <span className="ch-slot__name">
-                  {itemName(s.static_id)}
-                  {s.dynamic_item?.egg_params ? " 🥚" : ""}
-                </span>
-                <span className="ch-slot__count">×{s.count}</span>
-              </div>
-            ))}
-          </div>
+    <div className="inv">
+      <div className="inv-top">
+        <div className="inv-main">
+          {main ? (
+            <BagGrid container={main} mode="grid" itemName={itemName} />
+          ) : (
+            <p className="ch-empty">No main inventory on disk.</p>
+          )}
         </div>
-      ))}
+        <div className="inv-rail">
+          {hasItems(weapons) && <BagGrid container={weapons!} mode="grid" itemName={itemName} />}
+          {hasItems(equip) && <BagGrid container={equip!} mode="grid" itemName={itemName} />}
+          {hasItems(food) && <BagGrid container={food!} mode="grid" itemName={itemName} />}
+        </div>
+      </div>
+      {hasItems(keys) && (
+        <div className="inv-keys">
+          <BagGrid container={keys!} mode="packed" itemName={itemName} />
+        </div>
+      )}
     </div>
   );
 }
