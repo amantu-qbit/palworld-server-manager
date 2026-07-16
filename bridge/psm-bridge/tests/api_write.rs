@@ -333,6 +333,47 @@ async fn guild_edit_end_to_end() {
 }
 
 #[tokio::test]
+async fn fast_travel_unlock_end_to_end() {
+    let dir = temp_world("fasttravel");
+    let app = make_router_at(&dir, true);
+
+    // Unlock all fast-travel points for player O. The op re-parses and asserts
+    // every bundled id is present + true before returning OK, so a 200 proves
+    // the FastTravelPointUnlockFlag map was written (or created) correctly.
+    let (status, json) = request(
+        &app,
+        "POST",
+        &format!("/v1/players/{PLAYER_O_UID}/map"),
+        Some(serde_json::json!({ "unlock_all_fast_travel": true })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    assert_eq!(json["ok"], true);
+
+    // Idempotent: a second unlock is a no-op (already fully unlocked) but still OK.
+    let (status2, json2) = request(
+        &app,
+        "POST",
+        &format!("/v1/players/{PLAYER_O_UID}/map"),
+        Some(serde_json::json!({ "unlock_all_fast_travel": true })),
+    )
+    .await;
+    assert_eq!(status2, StatusCode::OK, "{json2}");
+
+    // An empty request (nothing to do) is rejected.
+    let (status3, _) = request(
+        &app,
+        "POST",
+        &format!("/v1/players/{PLAYER_O_UID}/map"),
+        Some(serde_json::json!({})),
+    )
+    .await;
+    assert_eq!(status3, StatusCode::UNPROCESSABLE_ENTITY);
+
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[tokio::test]
 async fn slot_set_and_clear_end_to_end() {
     let dir = temp_world("slot");
     let app = make_router_at(&dir, true);

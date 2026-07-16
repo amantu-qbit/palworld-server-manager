@@ -66,6 +66,7 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/players/{id}/inventory", get(player_inventory))
         .route("/v1/players/{id}/edit", post(player_edit))
         .route("/v1/players/{id}/technologies", post(player_technologies))
+        .route("/v1/players/{id}/map", post(player_map))
         .route("/v1/pals/{id}/edit", post(pal_edit))
         .route("/v1/pals/{id}/heal", post(pal_heal))
         .route("/v1/pals/{id}/delete", post(pal_delete))
@@ -1250,6 +1251,55 @@ async fn player_technologies(
     match run_edit(&state, move || {
         psm_save::save::edit::edit_sav_file(&sav, |gvas| {
             psm_save::save::edit::ops::edit_player_technologies(gvas, &edits)
+        })
+    })
+    .await
+    {
+        Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct PlayerMapBody {
+    /// Unlock every fast-travel point (SaveData.RecordData.FastTravelPointUnlockFlag).
+    #[serde(default)]
+    unlock_all_fast_travel: bool,
+}
+
+/// `POST /v1/players/{id}/map` — per-player map/progression unlocks written to
+/// the per-player `<UID>.sav`. Currently: unlock all fast-travel points.
+///
+/// (Map *reveal* is intentionally not offered here: the explored-map fog lives
+/// in each client's local `LocalData.sav`, which is not part of a dedicated
+/// server's save set, so the bridge cannot reach it.)
+async fn player_map(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<PlayerMapBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Some(uid_str) = canonical_uid(&id) else {
+        return not_found();
+    };
+    if !body.unlock_all_fast_travel {
+        return unprocessable("no map unlock requested");
+    }
+
+    let sav = state
+        .app
+        .save_dir()
+        .join("Players")
+        .join(format!("{}.sav", uid_str.replace('-', "").to_uppercase()));
+    if !sav.is_file() {
+        return not_found();
+    }
+
+    match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&sav, |gvas| {
+            psm_save::save::edit::ops::unlock_all_fast_travel(gvas)
         })
     })
     .await

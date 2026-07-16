@@ -132,6 +132,28 @@ pub fn enum_prop(name: &str, enum_type: &str, value: &str) -> Vec<u8> {
     out
 }
 
+/// A `MapProperty` with `NameProperty` keys and `BoolProperty` values, every
+/// entry set to `true` — the on-disk shape of the unlock-flag maps like
+/// `FastTravelPointUnlockFlag` / `RelicObtainForInstanceFlag`. Each entry is a
+/// key fstring followed by one `true` byte (the map value has no property
+/// header). The value region is a `u32` padding word, a `u32` count, then the
+/// entries.
+pub fn name_bool_map_all_true(name: &str, keys: &[String]) -> Vec<u8> {
+    let mut body = Vec::new();
+    body.extend_from_slice(&0u32.to_le_bytes()); // padding
+    body.extend_from_slice(&(keys.len() as u32).to_le_bytes()); // count
+    for k in keys {
+        body.extend(fstring(k));
+        body.push(1); // BoolProperty value = true
+    }
+    let mut out = tag(name, "MapProperty", body.len() as u64);
+    out.extend(fstring("NameProperty"));
+    out.extend(fstring("BoolProperty"));
+    out.push(0); // optional_guid absent
+    out.extend(body);
+    out
+}
+
 /// A full `StructProperty` with a generic property-stream body (already
 /// encoded, WITHOUT the `"None"` terminator — it is appended here). The
 /// struct guid and optional guid are zero/absent, like the reference writer.

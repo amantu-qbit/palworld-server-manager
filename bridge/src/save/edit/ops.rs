@@ -1523,6 +1523,127 @@ pub fn edit_player_technologies(buf: &[u8], edits: &TechEdits) -> Result<Vec<u8>
     Ok(out)
 }
 
+/// The bundled fast-travel-point ids (32-char uppercase hex GUIDs) — the map
+/// keys of `SaveData.RecordData.FastTravelPointUnlockFlag`. Vendored from the
+/// world-map fast-travel data.
+const FAST_TRAVEL_IDS_JSON: &str = include_str!("../../../data/fast_travel_ids.json");
+
+fn fast_travel_ids() -> Vec<String> {
+    serde_json::from_str(FAST_TRAVEL_IDS_JSON).expect("vendored fast_travel_ids.json is valid JSON")
+}
+
+/// Unlock every fast-travel point for a player: set
+/// `SaveData.RecordData.FastTravelPointUnlockFlag[<id>] = true` for every
+/// bundled id, merged with any already present (the game only records
+/// discovered points, so presence == unlocked). Ports palworld-save-pal's
+/// `handleUnlockAllFastTravel`. A save that already has them all produces
+/// byte-identical output, which the caller treats as a no-op.
+pub fn unlock_all_fast_travel(buf: &[u8]) -> Result<Vec<u8>, SaveError> {
+    let want_ids = fast_travel_ids();
+    if want_ids.is_empty() {
+        return Err(edit_err("no bundled fast-travel ids"));
+    }
+
+    let start = gvas::header_len(buf)?;
+    let mut c = Cursor::new(buf, start);
+    let sd = find_in_stream(&mut c, "SaveData")?
+        .found
+        .filter(|t| t.type_name == "StructProperty")
+        .ok_or_else(|| edit_err("player save missing SaveData"))?;
+    let record = find_in_body(buf, sd.value_start, "RecordData")?
+        .filter(|t| t.type_name == "StructProperty")
+        .ok_or_else(|| edit_err("player save missing RecordData"))?;
+
+    let mut plan = EditPlan::default();
+
+    match find_in_body(buf, record.value_start, "FastTravelPointUnlockFlag")? {
+        Some(t) if t.type_name == "MapProperty" => {
+            // Existing entries: [key fstring][bool byte] * count.
+            let mut m = Cursor::new(buf, t.value_start);
+            let info = map_info(&mut m)?;
+            let mut e = Cursor::new(buf, info.entries_start);
+            let mut keys: Vec<String> = Vec::with_capacity(info.count as usize);
+            for _ in 0..info.count {
+                let k = e.fstring()?;
+                let _bool = e.read_u8()?;
+                keys.push(k);
+            }
+            e.expect_at(t.value_end, "FastTravelPointUnlockFlag entries")?;
+
+            // Merged key set: existing (kept) + any bundled id not present.
+            let have: std::collections::HashSet<String> =
+                keys.iter().map(|k| k.to_ascii_uppercase()).collect();
+            let mut all_keys = keys.clone();
+            for id in &want_ids {
+                if !have.contains(&id.to_ascii_uppercase()) {
+                    all_keys.push(id.clone());
+                }
+            }
+
+            // Rebuild the entries with every value = true.
+            let mut entries = Vec::new();
+            for k in &all_keys {
+                entries.extend(enc::fstring(k));
+                entries.push(1);
+            }
+            plan.patch(info.entries_start..t.value_end, entries);
+            plan.count(info.count_offset, all_keys.len() as i64 - info.count as i64);
+            plan.scope_u64(t.size_field, t.value_start..t.value_end);
+        }
+        Some(t) => {
+            return Err(edit_err(format!(
+                "FastTravelPointUnlockFlag has unexpected type {}",
+                t.type_name
+            )))
+        }
+        None => insert_at_terminator(
+            buf,
+            record.value_start,
+            enc::name_bool_map_all_true("FastTravelPointUnlockFlag", &want_ids),
+            &mut plan,
+        )?,
+    }
+
+    // The two enclosing struct sizes grow/shrink with the map.
+    plan.scope_u64(record.size_field, record.value_start..record.value_end);
+    plan.scope_u64(sd.size_field, sd.value_start..sd.value_end);
+
+    let out = apply(buf, &plan)?;
+    validate_fast_travel(&out, &want_ids)?;
+    Ok(out)
+}
+
+/// Re-parse and assert every bundled fast-travel id is present + true in
+/// `SaveData.RecordData.FastTravelPointUnlockFlag`.
+fn validate_fast_travel(new_buf: &[u8], want_ids: &[String]) -> Result<(), SaveError> {
+    let gvas = parse_gvas(new_buf, &default_skip_set())?;
+    let sd = gvas
+        .root
+        .get("SaveData")
+        .ok_or_else(|| edit_err("post-edit parse lost SaveData"))?;
+    let flags = sd
+        .get_child("RecordData")
+        .and_then(|r| r.get_child("FastTravelPointUnlockFlag"))
+        .ok_or_else(|| edit_err("post-edit parse lost FastTravelPointUnlockFlag"))?;
+    let entries = match flags {
+        Property::Map { entries, .. } => entries,
+        _ => return Err(edit_err("FastTravelPointUnlockFlag is not a map post-edit")),
+    };
+    let present: std::collections::HashSet<String> = entries
+        .iter()
+        .filter_map(|e| match (&e.key, &e.value) {
+            (Property::Name(k), Property::Bool(true)) => Some(k.to_ascii_uppercase()),
+            _ => None,
+        })
+        .collect();
+    for id in want_ids {
+        if !present.contains(&id.to_ascii_uppercase()) {
+            return Err(edit_err(format!("post-edit fast-travel id {id} not unlocked")));
+        }
+    }
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // Work suitability
 // ---------------------------------------------------------------------------
