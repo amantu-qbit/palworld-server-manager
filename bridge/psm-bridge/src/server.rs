@@ -71,6 +71,8 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/pals/{id}/delete", post(pal_delete))
         .route("/v1/pals/{id}/clone", post(pal_clone))
         .route("/v1/guilds", get(list_guilds))
+        .route("/v1/guilds/{id}/edit", post(guild_edit))
+        .route("/v1/bases/{id}/edit", post(base_edit))
         .route("/v1/containers", get(list_containers))
         .route("/v1/containers/{id}/resize", post(container_resize))
         .route("/v1/containers/{id}/slot", post(container_slot))
@@ -679,6 +681,92 @@ async fn refreshed_container(
 ) -> Option<ContainerInfo> {
     let all = collect_containers(state).await.ok()?;
     all.into_iter().find(|c| c.id == cid.to_string())
+}
+
+#[derive(serde::Deserialize)]
+struct GuildEditBody {
+    #[serde(default)]
+    guild_name: Option<String>,
+    #[serde(default)]
+    base_camp_level: Option<i32>,
+}
+
+/// `POST /v1/guilds/{id}/edit` — set a guild's name and/or base-camp level
+/// (spliced into the guild's `GroupSaveDataMap` RawData).
+async fn guild_edit(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<GuildEditBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Ok(gid) = Uuid::parse_str(&id) else {
+        return not_found();
+    };
+    match state.app.bundle().await {
+        Ok(b) if b.world.guilds.iter().any(|g| g.id == id) => {}
+        Ok(_) => return not_found(),
+        Err(e) => return internal_error(e),
+    }
+
+    let path = state.app.save_dir().join("Level.sav");
+    let name = body.guild_name.clone();
+    let level = body.base_camp_level;
+    let receipt = match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::edit_guild(gvas, gid, name.as_deref(), level)
+        })
+    })
+    .await
+    {
+        Ok(r) => r,
+        Err(resp) => return resp,
+    };
+    write_ok(&receipt, None)
+}
+
+#[derive(serde::Deserialize)]
+struct BaseEditBody {
+    #[serde(default)]
+    area_range: Option<f64>,
+    #[serde(default)]
+    name: Option<String>,
+}
+
+/// `POST /v1/bases/{id}/edit` — set a base camp's build-area radius (`area_range`)
+/// and/or name (spliced into the base's `BaseCampSaveData` RawData).
+async fn base_edit(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<BaseEditBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Ok(bid) = Uuid::parse_str(&id) else {
+        return not_found();
+    };
+    match state.app.bundle().await {
+        Ok(b) if b.world.guilds.iter().flat_map(|g| &g.bases).any(|base| base.id == id) => {}
+        Ok(_) => return not_found(),
+        Err(e) => return internal_error(e),
+    }
+
+    let path = state.app.save_dir().join("Level.sav");
+    let area = body.area_range.map(|a| a as f32);
+    let name = body.name.clone();
+    let receipt = match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::edit_base(gvas, bid, area, name.as_deref())
+        })
+    })
+    .await
+    {
+        Ok(r) => r,
+        Err(resp) => return resp,
+    };
+    write_ok(&receipt, None)
 }
 
 #[derive(serde::Deserialize)]

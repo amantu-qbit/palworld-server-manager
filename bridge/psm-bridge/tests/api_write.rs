@@ -231,6 +231,107 @@ async fn guild_chest_resize_end_to_end() {
     std::fs::remove_dir_all(&dir).ok();
 }
 
+/// First base under any guild (there is one in world1), as (guild_id, base_json).
+async fn first_base(app: &axum::Router) -> serde_json::Value {
+    let (_, guilds) = request(app, "GET", "/v1/guilds", None).await;
+    guilds
+        .as_array()
+        .unwrap()
+        .iter()
+        .flat_map(|g| g["bases"].as_array().cloned().unwrap_or_default())
+        .next()
+        .expect("world1 has a base camp")
+}
+
+#[tokio::test]
+async fn base_area_edit_end_to_end() {
+    let dir = temp_world("basearea");
+    let app = make_router_at(&dir, true);
+
+    let base = first_base(&app).await;
+    let bid = base["id"].as_str().unwrap().to_string();
+    assert_eq!(base["area_range"], 3500.0, "fixture base starts at the vanilla radius");
+
+    // Grow the area (in-place f32) and rename the base (length-changing fstring,
+    // Japanese→ASCII shrink) in one edit — exercises both splice paths at once.
+    let (status, json) = request(
+        &app,
+        "POST",
+        &format!("/v1/bases/{bid}/edit"),
+        Some(serde_json::json!({ "area_range": 7000.0, "name": "Fort Test" })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    assert_eq!(json["ok"], true);
+    assert!(json["backup"].as_str().is_some(), "backup written");
+
+    let (_, guilds) = request(&app, "GET", "/v1/guilds", None).await;
+    let base = guilds
+        .as_array()
+        .unwrap()
+        .iter()
+        .flat_map(|g| g["bases"].as_array().cloned().unwrap_or_default())
+        .find(|b| b["id"] == bid.as_str())
+        .unwrap();
+    assert_eq!(base["area_range"], 7000.0);
+    assert_eq!(base["name"], "Fort Test");
+
+    // Out-of-range radius is rejected (422), not written.
+    let (status, _) = request(
+        &app,
+        "POST",
+        &format!("/v1/bases/{bid}/edit"),
+        Some(serde_json::json!({ "area_range": 999_999.0 })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[tokio::test]
+async fn guild_edit_end_to_end() {
+    let dir = temp_world("guildedit");
+    let app = make_router_at(&dir, true);
+
+    let (_, guilds) = request(&app, "GET", "/v1/guilds", None).await;
+    let g0 = guilds.as_array().unwrap()[0].clone();
+    let gid = g0["id"].as_str().unwrap().to_string();
+    assert_eq!(g0["base_camp_level"], 1);
+
+    let (status, json) = request(
+        &app,
+        "POST",
+        &format!("/v1/guilds/{gid}/edit"),
+        Some(serde_json::json!({ "guild_name": "The Test Guild", "base_camp_level": 12 })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    assert_eq!(json["ok"], true);
+
+    let (_, guilds) = request(&app, "GET", "/v1/guilds", None).await;
+    let g = guilds
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|g| g["id"] == gid.as_str())
+        .unwrap();
+    assert_eq!(g["base_camp_level"], 12);
+    assert_eq!(g["name"], "The Test Guild");
+
+    // Out-of-range level rejected.
+    let (status, _) = request(
+        &app,
+        "POST",
+        &format!("/v1/guilds/{gid}/edit"),
+        Some(serde_json::json!({ "base_camp_level": 999 })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    std::fs::remove_dir_all(&dir).ok();
+}
+
 #[tokio::test]
 async fn slot_set_and_clear_end_to_end() {
     let dir = temp_world("slot");

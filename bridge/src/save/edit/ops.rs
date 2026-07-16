@@ -595,6 +595,359 @@ where
 }
 
 // ---------------------------------------------------------------------------
+// Public ops: guilds & bases (GroupSaveDataMap + BaseCampSaveData in Level.sav)
+// ---------------------------------------------------------------------------
+
+/// A located base camp: the offsets a base edit needs plus enclosing size
+/// scopes. `area_range` is a fixed-offset in-place `f32`; `name` is a
+/// length-changing fstring (hence the RawData/map/wsd scopes).
+struct BaseCampLoc {
+    wsd_scope: (usize, Range<usize>),
+    map_scope: (usize, Range<usize>),
+    /// `RawData` `ByteProperty` `u64` size field.
+    raw_size_field: usize,
+    /// `RawData` `u32` byte-count word (== blob length).
+    raw_count_offset: usize,
+    /// End of the RawData value region (`raw.value_end`).
+    blob_end: usize,
+    /// The `name` fstring bytes inside the blob.
+    name_range: Range<usize>,
+    /// Offset of the `area_range` `f32`.
+    area_range_offset: usize,
+}
+
+/// Locate `base_id` inside `BaseCampSaveData` (a `MapProperty` with a bare-Guid
+/// key and a property-stream value). Parses the RawData blob prefix — `id(16)`,
+/// `name` fstring, `state(1)`, an 80-byte `FTransform` — to pin the `name` range
+/// and the `area_range` offset. Mirrors [`super::super::base_camp`].
+fn locate_base_camp(buf: &[u8], base_id: Uuid) -> Result<BaseCampLoc, SaveError> {
+    let wsd = world_save_data(buf)?;
+    let map_tag = find_in_body(buf, wsd.value_start, "BaseCampSaveData")?
+        .filter(|t| t.type_name == "MapProperty")
+        .ok_or_else(|| edit_err("worldSaveData missing BaseCampSaveData"))?;
+
+    let mut c = Cursor::new(buf, map_tag.value_start);
+    let info = map_info(&mut c)?;
+    for _ in 0..info.count {
+        let key = c.guid()?; // bare Guid key
+        let value_start = c.pos();
+        if key != base_id {
+            skip_value_stream(&mut c)?;
+            continue;
+        }
+
+        let raw = find_in_body(buf, value_start, "RawData")?
+            .filter(|t| {
+                t.type_name == "ArrayProperty" && t.elem_type.as_deref() == Some("ByteProperty")
+            })
+            .ok_or_else(|| edit_err("base camp value missing RawData"))?;
+        let raw_count_offset = raw.value_start;
+        let blob_start = raw.value_start + 4;
+
+        let mut b = Cursor::new(buf, blob_start);
+        b.skip(16)?; // id
+        let name_start = b.pos();
+        let _name = b.fstring()?;
+        let name_end = b.pos();
+        b.skip(1)?; // state
+        b.skip(super::super::base_camp::FTRANSFORM_LEN)?; // transform
+        let area_range_offset = b.pos();
+        if area_range_offset + 4 > raw.value_end {
+            return Err(edit_err("base camp blob too short for area_range"));
+        }
+
+        return Ok(BaseCampLoc {
+            wsd_scope: (wsd.size_field, wsd.value_start..wsd.value_end),
+            map_scope: (map_tag.size_field, map_tag.value_start..map_tag.value_end),
+            raw_size_field: raw.size_field,
+            raw_count_offset,
+            blob_end: raw.value_end,
+            name_range: name_start..name_end,
+            area_range_offset,
+        });
+    }
+    Err(edit_err(format!("base camp {base_id} not found")))
+}
+
+/// Edit a base camp's `area_range` (in-place `f32`) and/or `name`
+/// (length-changing fstring). `None` (or an empty name, per the reference)
+/// leaves that field unchanged.
+pub fn edit_base(
+    buf: &[u8],
+    base_id: Uuid,
+    area_range: Option<f32>,
+    name: Option<&str>,
+) -> Result<Vec<u8>, SaveError> {
+    let name = name.filter(|s| !s.is_empty());
+    if area_range.is_none() && name.is_none() {
+        return Ok(buf.to_vec());
+    }
+    if let Some(a) = area_range {
+        if !a.is_finite() || !(0.0..=100_000.0).contains(&a) {
+            return Err(edit_err("area_range out of range (0..=100000)"));
+        }
+    }
+
+    let loc = locate_base_camp(buf, base_id)?;
+    let mut plan = EditPlan::default();
+    let mut length_changing = false;
+
+    if let Some(a) = area_range {
+        plan.patch(
+            loc.area_range_offset..loc.area_range_offset + 4,
+            a.to_le_bytes().to_vec(),
+        );
+    }
+    if let Some(n) = name {
+        plan.patch(loc.name_range.clone(), enc::fstring(n));
+        length_changing = true;
+    }
+    if length_changing {
+        register_rawdata_scopes(
+            &mut plan,
+            loc.raw_size_field,
+            loc.raw_count_offset,
+            loc.blob_end,
+            &loc.map_scope,
+            &loc.wsd_scope,
+        );
+    }
+
+    let out = apply(buf, &plan)?;
+    validate_base(&out, base_id, area_range, name)?;
+    Ok(out)
+}
+
+/// Re-parse an edited buffer and assert the base's `area_range`/`name` match.
+fn validate_base(
+    new_buf: &[u8],
+    base_id: Uuid,
+    area_range: Option<f32>,
+    name: Option<&str>,
+) -> Result<(), SaveError> {
+    let gvas = parse_gvas(new_buf, &default_skip_set())?;
+    let wsd = gvas
+        .root
+        .get("worldSaveData")
+        .ok_or_else(|| edit_err("post-edit parse lost worldSaveData"))?;
+    let map = wsd
+        .get_child("BaseCampSaveData")
+        .ok_or_else(|| edit_err("post-edit parse lost BaseCampSaveData"))?;
+    let camps = super::super::base_camp::decode_base_camps(map)?;
+    let info = camps
+        .get(&base_id)
+        .ok_or_else(|| edit_err("post-edit parse lost the base camp"))?;
+    if let Some(a) = area_range {
+        if info.area_range != a {
+            return Err(edit_err(format!(
+                "post-edit area_range is {}, expected {a}",
+                info.area_range
+            )));
+        }
+    }
+    if let Some(n) = name {
+        if info.name != n {
+            return Err(edit_err(format!(
+                "post-edit base name is {:?}, expected {n:?}",
+                info.name
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// A located guild group: offsets for the in-place `base_camp_level` `i32` and
+/// the length-changing `guild_name` fstring, plus enclosing size scopes.
+struct GuildLoc {
+    wsd_scope: (usize, Range<usize>),
+    map_scope: (usize, Range<usize>),
+    raw_size_field: usize,
+    raw_count_offset: usize,
+    blob_end: usize,
+    base_camp_level_offset: usize,
+    guild_name_range: Range<usize>,
+}
+
+/// Locate `guild_id` inside `GroupSaveDataMap` and walk its Guild `RawData` blob
+/// (mirroring [`super::super::guild`]'s decoder) to the `base_camp_level` `i32`
+/// and the `guild_name` fstring. Every read is bounds-checked, so a non-Guild
+/// group (or a malformed blob) errors out rather than mis-patching.
+fn locate_guild_group(buf: &[u8], guild_id: Uuid) -> Result<GuildLoc, SaveError> {
+    let wsd = world_save_data(buf)?;
+    let map_tag = find_in_body(buf, wsd.value_start, "GroupSaveDataMap")?
+        .filter(|t| t.type_name == "MapProperty")
+        .ok_or_else(|| edit_err("worldSaveData missing GroupSaveDataMap"))?;
+
+    let mut c = Cursor::new(buf, map_tag.value_start);
+    let info = map_info(&mut c)?;
+    for _ in 0..info.count {
+        let key = c.guid()?;
+        let value_start = c.pos();
+        if key != guild_id {
+            skip_value_stream(&mut c)?;
+            continue;
+        }
+
+        let raw = find_in_body(buf, value_start, "RawData")?
+            .filter(|t| {
+                t.type_name == "ArrayProperty" && t.elem_type.as_deref() == Some("ByteProperty")
+            })
+            .ok_or_else(|| edit_err("guild group value missing RawData"))?;
+        let raw_count_offset = raw.value_start;
+        let blob_start = raw.value_start + 4;
+
+        // Walk the Guild blob prefix (group.py Guild branch): group_id(16),
+        // group_name fstring, individual_character_handle_ids tarray<32>,
+        // org_type(1), leading(4), base_ids tarray<16>, unknown_1(4),
+        // base_camp_level(i32), base_camp_points tarray<16>, guild_name fstring.
+        let mut b = Cursor::new(buf, blob_start);
+        b.skip(16)?; // group_id
+        let _group_name = b.fstring()?;
+        let n_handles = b.read_u32()? as usize;
+        b.skip(mul_checked(n_handles, 32)?)?; // individual_character_handle_ids
+        b.skip(1)?; // org_type
+        b.skip(4)?; // leading_bytes
+        let n_bases = b.read_u32()? as usize;
+        b.skip(mul_checked(n_bases, 16)?)?; // base_ids
+        b.skip(4)?; // unknown_1
+        let base_camp_level_offset = b.pos();
+        let _base_camp_level = b.read_i32()?;
+        let n_points = b.read_u32()? as usize;
+        b.skip(mul_checked(n_points, 16)?)?; // base_camp_points
+        let guild_name_start = b.pos();
+        let _guild_name = b.fstring()?;
+        let guild_name_end = b.pos();
+        if guild_name_end > raw.value_end {
+            return Err(edit_err("guild blob overran its RawData"));
+        }
+
+        return Ok(GuildLoc {
+            wsd_scope: (wsd.size_field, wsd.value_start..wsd.value_end),
+            map_scope: (map_tag.size_field, map_tag.value_start..map_tag.value_end),
+            raw_size_field: raw.size_field,
+            raw_count_offset,
+            blob_end: raw.value_end,
+            base_camp_level_offset,
+            guild_name_range: guild_name_start..guild_name_end,
+        });
+    }
+    Err(edit_err(format!("guild {guild_id} not found")))
+}
+
+/// Edit a guild's `guild_name` (length-changing) and/or `base_camp_level`
+/// (in-place `i32`). `None` (or empty name) leaves that field unchanged.
+pub fn edit_guild(
+    buf: &[u8],
+    guild_id: Uuid,
+    guild_name: Option<&str>,
+    base_camp_level: Option<i32>,
+) -> Result<Vec<u8>, SaveError> {
+    let guild_name = guild_name.filter(|s| !s.is_empty());
+    if guild_name.is_none() && base_camp_level.is_none() {
+        return Ok(buf.to_vec());
+    }
+    if let Some(l) = base_camp_level {
+        if !(1..=50).contains(&l) {
+            return Err(edit_err("base_camp_level out of range (1..=50)"));
+        }
+    }
+
+    let loc = locate_guild_group(buf, guild_id)?;
+    let mut plan = EditPlan::default();
+    let mut length_changing = false;
+
+    if let Some(l) = base_camp_level {
+        plan.patch(
+            loc.base_camp_level_offset..loc.base_camp_level_offset + 4,
+            l.to_le_bytes().to_vec(),
+        );
+    }
+    if let Some(n) = guild_name {
+        plan.patch(loc.guild_name_range.clone(), enc::fstring(n));
+        length_changing = true;
+    }
+    if length_changing {
+        register_rawdata_scopes(
+            &mut plan,
+            loc.raw_size_field,
+            loc.raw_count_offset,
+            loc.blob_end,
+            &loc.map_scope,
+            &loc.wsd_scope,
+        );
+    }
+
+    let out = apply(buf, &plan)?;
+    validate_guild(&out, guild_id, guild_name, base_camp_level)?;
+    Ok(out)
+}
+
+/// Re-parse an edited buffer and assert the guild's `name`/`base_camp_level`.
+fn validate_guild(
+    new_buf: &[u8],
+    guild_id: Uuid,
+    guild_name: Option<&str>,
+    base_camp_level: Option<i32>,
+) -> Result<(), SaveError> {
+    let gvas = parse_gvas(new_buf, &default_skip_set())?;
+    let wsd = gvas
+        .root
+        .get("worldSaveData")
+        .ok_or_else(|| edit_err("post-edit parse lost worldSaveData"))?;
+    let map = wsd
+        .get_child("GroupSaveDataMap")
+        .ok_or_else(|| edit_err("post-edit parse lost GroupSaveDataMap"))?;
+    let guilds = super::super::guild::decode_guilds(map)?;
+    let gid = guild_id.to_string();
+    let g = guilds
+        .iter()
+        .find(|g| g.id == gid)
+        .ok_or_else(|| edit_err("post-edit parse lost the guild"))?;
+    if let Some(l) = base_camp_level {
+        if g.base_camp_level != l {
+            return Err(edit_err(format!(
+                "post-edit base_camp_level is {}, expected {l}",
+                g.base_camp_level
+            )));
+        }
+    }
+    if let Some(n) = guild_name {
+        if g.name != n {
+            return Err(edit_err(format!(
+                "post-edit guild name is {:?}, expected {n:?}",
+                g.name
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Register the four enclosing size scopes for a length-changing edit inside a
+/// map value's `RawData` blob: the `RawData` `u64` size + its `u32` count word,
+/// then the `MapProperty` and `worldSaveData` sizes. Shared by base/guild name
+/// edits (a null edit — zero net delta — leaves every field untouched).
+fn register_rawdata_scopes(
+    plan: &mut EditPlan,
+    raw_size_field: usize,
+    raw_count_offset: usize,
+    blob_end: usize,
+    map_scope: &(usize, Range<usize>),
+    wsd_scope: &(usize, Range<usize>),
+) {
+    plan.scope_u64(raw_size_field, raw_count_offset..blob_end);
+    plan.scope_u32(raw_count_offset, (raw_count_offset + 4)..blob_end);
+    plan.scope_u64(map_scope.0, map_scope.1.clone());
+    plan.scope_u64(wsd_scope.0, wsd_scope.1.clone());
+}
+
+/// `a * b` guarded against overflow (a file-controlled array count times an
+/// element size), erroring instead of wrapping.
+fn mul_checked(a: usize, b: usize) -> Result<usize, SaveError> {
+    a.checked_mul(b)
+        .ok_or_else(|| edit_err("array size overflow"))
+}
+
+// ---------------------------------------------------------------------------
 // Public ops: characters (players + pals in Level.sav)
 // ---------------------------------------------------------------------------
 
