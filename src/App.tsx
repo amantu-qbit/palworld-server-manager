@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import {
   Boxes,
   Braces,
+  Castle,
   Heart,
   LayoutDashboard,
   Loader2,
@@ -28,6 +29,7 @@ import { Settings } from "./screens/Settings";
 import { BanManager } from "./screens/BanManager";
 import { Characters } from "./screens/Characters";
 import { Storage } from "./screens/Storage";
+import { Guilds } from "./screens/Guilds";
 import { ServerControl } from "./screens/ServerControl";
 import { RawSave } from "./screens/RawSave";
 import { Support } from "./screens/Support";
@@ -52,6 +54,7 @@ const SCREENS: Record<string, ComponentType> = {
   bans: BanManager,
   characters: Characters,
   storage: Storage,
+  guilds: Guilds,
   servercontrol: ServerControl,
   rawsave: RawSave,
   support: Support,
@@ -62,6 +65,7 @@ const BRIDGE_NAV: NavItem[] = [
   { id: "servercontrol", label: "Server Control", icon: Power, group: "Server+" },
   { id: "characters", label: "Characters", icon: PawPrint, group: "Server+" },
   { id: "storage", label: "Storage", icon: Boxes, group: "Server+" },
+  { id: "guilds", label: "Guilds", icon: Castle, group: "Server+" },
   { id: "rawsave", label: "Raw Save", icon: Braces, group: "Server+" },
 ];
 

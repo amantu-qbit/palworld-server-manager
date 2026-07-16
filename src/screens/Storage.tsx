@@ -194,7 +194,9 @@ export function Storage() {
   );
 }
 
-function ContainerPane({
+/** One container's editor pane (slot grid + resize/clear + slot drawer). Also
+ *  reused by the Guilds screen to render a guild's chest. */
+export function ContainerPane({
   c,
   writesEnabled,
   serverRunning,

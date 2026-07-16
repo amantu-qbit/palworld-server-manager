@@ -120,7 +120,10 @@ export interface PlayerDetail {
 export interface Base {
   id: string;
   name: string;
+  /** Build-area radius (base camp `area_range`; vanilla default 3500). */
   area_range: number;
+  /** World position (transform translation x/y/z), when decoded. */
+  position?: [number, number, number] | null;
   storage_containers: string[];
   pals: string[];
 }
@@ -177,6 +180,18 @@ export interface ContainerWriteResult extends WriteResult {
 /** `POST /v1/pals/{id}/clone` echoes the new copy's instance id. */
 export interface CloneResult extends WriteResult {
   instance_id: string;
+}
+
+/** `POST /v1/guilds/{id}/edit` body — set guild name and/or base-camp level. */
+export interface EditGuildBody {
+  guild_name?: string;
+  base_camp_level?: number;
+}
+
+/** `POST /v1/bases/{id}/edit` body — set base build-area radius and/or name. */
+export interface EditBaseBody {
+  area_range?: number;
+  name?: string;
 }
 
 /** `POST /v1/players/{uid}/edit` body — all fields optional.

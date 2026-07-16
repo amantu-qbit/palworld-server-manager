@@ -1,0 +1,284 @@
+/* ------------------------------------------------------------------ *
+ *  Guilds (Tier-2 bridge) — guild hub: name + base-camp level, per-base
+ *  build-area radius + name, and the guild chest (reusing Storage's pane).
+ * ------------------------------------------------------------------ */
+
+.gl-page {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gl {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---- Left rail: one row per guild ---- */
+.gl-list {
+  width: 244px;
+  flex: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 2px;
+}
+.gl-grow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  text-align: left;
+  color: var(--dim);
+  border-left: 2px solid transparent;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.gl-grow:hover {
+  background: var(--surface-2, rgba(255, 255, 255, 0.03));
+  color: var(--text);
+}
+.gl-grow.is-active {
+  background: rgba(52, 211, 234, 0.1);
+  border-left-color: var(--accent);
+}
+.gl-grow__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gl-grow__meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--faint);
+}
+
+/* ---- Main pane ---- */
+.gl-main {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+.gl-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--faint);
+}
+
+.gl-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.gl-head__id {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--accent);
+}
+.gl-head__id h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--text);
+}
+.gl-head__meta {
+  display: flex;
+  gap: 6px;
+}
+.gl-chip {
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(52, 211, 234, 0.12);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.gl-chip--dim {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--dim);
+}
+
+.gl-note {
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--faint);
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.gl-note--warn {
+  color: #e6b450;
+  background: rgba(230, 180, 80, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(230, 180, 80, 0.2);
+}
+
+/* ---- Cards + section titles ---- */
+.gl-card__title {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 8px;
+}
+.gl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gl-form {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(240px, 1.4fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .gl-form {
+    grid-template-columns: 1fr;
+  }
+}
+.gl-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---- Bases ---- */
+.gl-basegrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.gl-base {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gl-base__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.gl-base__idx {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.gl-base__pos {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--faint);
+}
+
+/* ---- Slider ---- */
+.gl-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.gl-slider.is-disabled {
+  opacity: 0.55;
+}
+.gl-slider__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.gl-slider__label {
+  font-size: 11px;
+  color: var(--dim);
+}
+.gl-slider__val {
+  font-size: 13px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--accent);
+}
+.gl-slider__hint {
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+.gl-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 3px;
+  /* Cyan fill up to the thumb, faint track after — driven by --fill. */
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--fill, 0%),
+    rgba(255, 255, 255, 0.09) var(--fill, 0%),
+    rgba(255, 255, 255, 0.09) 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
+.gl-range:disabled {
+  cursor: default;
+}
+.gl-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(52, 211, 234, 0.18);
+  cursor: pointer;
+}
+.gl-range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(52, 211, 234, 0.18);
+  cursor: pointer;
+}
+.gl-range:disabled::-webkit-slider-thumb {
+  background: var(--faint);
+  box-shadow: none;
+}
+
+/* ---- Guild chest ---- */
+.gl-chest {
+  display: flex;
+  flex-direction: column;
+}
+.gl-chest__empty {
+  font-size: 12.5px;
+  color: var(--faint);
+  padding: 16px;
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}

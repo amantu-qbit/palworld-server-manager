@@ -3,6 +3,8 @@ import { bridgeApi } from "../api/bridge";
 import { queryClient } from "./queries";
 import { useConnection } from "../store/connection";
 import type {
+  EditBaseBody,
+  EditGuildBody,
   EditPalBody,
   EditPlayerBody,
   EditPlayerTechnologiesBody,
@@ -180,6 +182,21 @@ export function useDeletePal() {
 export function useClonePal() {
   return useMutation({
     mutationFn: (instanceId: string) => bridgeApi.clonePal(instanceId),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useEditGuild() {
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: EditGuildBody }) =>
+      bridgeApi.editGuild(id, body),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useEditBase() {
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: EditBaseBody }) => bridgeApi.editBase(id, body),
     onSuccess: () => invalidateBridgeData(),
   });
 }
