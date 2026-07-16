@@ -182,6 +182,11 @@ export interface CloneResult extends WriteResult {
   instance_id: string;
 }
 
+/** `POST /v1/players/{id}/map` body — per-player map/progression unlocks. */
+export interface PlayerMapBody {
+  unlock_all_fast_travel?: boolean;
+}
+
 /** `POST /v1/guilds/{id}/edit` body — set guild name and/or base-camp level. */
 export interface EditGuildBody {
   guild_name?: string;

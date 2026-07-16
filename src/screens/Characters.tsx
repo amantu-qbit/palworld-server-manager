@@ -5,6 +5,7 @@ import {
   Cpu,
   Egg,
   HeartPulse,
+  MapPin,
   PackageOpen,
   PawPrint,
   Pencil,
@@ -39,6 +40,7 @@ import {
   useEditPlayer,
   useEditPlayerTechnologies,
   useHealPal,
+  usePlayerMap,
 } from "../hooks/bridge";
 import { useToast } from "../hooks/useToast";
 import { TechTree } from "../components/TechTree";
@@ -491,6 +493,7 @@ function PlayerEditDrawer({
   const toast = useToast();
   const editPlayer = useEditPlayer();
   const editTech = useEditPlayerTechnologies();
+  const playerMap = usePlayerMap();
 
   const [level, setLevel] = useState(String(detail.level));
   const [exp, setExp] = useState(String(detail.exp));
@@ -560,6 +563,18 @@ function PlayerEditDrawer({
       } else {
         toast.error("Save failed", msg);
       }
+    }
+  };
+
+  const unlockFastTravel = async () => {
+    try {
+      await playerMap.mutateAsync({
+        uid: detail.summary.uid,
+        body: { unlock_all_fast_travel: true },
+      });
+      toast.success("Fast travel unlocked", "All fast-travel points opened — backup saved.");
+    } catch (e) {
+      toast.error("Unlock failed", e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -641,6 +656,19 @@ function PlayerEditDrawer({
               <Input mono type="number" min={0} value={btp} onChange={(e) => setBtp(e.target.value)} />
             </Field>
           </div>
+        </section>
+
+        <section className="ch-formsec">
+          <div className="eyebrow">Map &amp; progression</div>
+          <div className="ch-maprow">
+            <Button variant="ghost" onClick={unlockFastTravel} loading={playerMap.isPending}>
+              <MapPin size={14} /> Unlock all fast travel
+            </Button>
+          </div>
+          <p className="ch-maphint">
+            Full-map reveal isn’t available from the server — the explored-map fog lives in each
+            player’s local <code>LocalData.sav</code>, which isn’t part of the server save.
+          </p>
         </section>
 
         <div className="ch-formactions">

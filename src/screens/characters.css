@@ -1505,6 +1505,23 @@
 .ch-formgrid--3 {
   grid-template-columns: repeat(3, 1fr);
 }
+.ch-maprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ch-maphint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+.ch-maphint code {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--dim);
+}
+
 .ch-formactions {
   display: flex;
   gap: 10px;

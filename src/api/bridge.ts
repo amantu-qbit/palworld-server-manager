@@ -14,6 +14,7 @@ import type {
   EditPlayerTechnologiesBody,
   Guild,
   PlayerDetail,
+  PlayerMapBody,
   PlayerSummary,
   ReferenceCatalog,
   SavFileInfo,
@@ -62,6 +63,8 @@ export interface BridgeApi {
   editPlayer(uid: string, body: EditPlayerBody): Promise<WriteResult>;
   /** Unlock/relock technologies and set tech points (per-player `<UID>.sav`). */
   editPlayerTechnologies(uid: string, body: EditPlayerTechnologiesBody): Promise<WriteResult>;
+  /** Per-player map unlocks (fast travel) in the per-player `<UID>.sav`. */
+  playerMap(uid: string, body: PlayerMapBody): Promise<WriteResult>;
   /** Edit one Pal instance (level, nickname, souls, talents, skills…). */
   editPal(instanceId: string, body: EditPalBody): Promise<WriteResult>;
   /** Fully restore one Pal (revive, cure sickness, refill HP/sanity/stomach). */
@@ -84,6 +87,7 @@ const path = {
   clear: (cid: string) => `/containers/${encodeURIComponent(cid)}/clear`,
   editPlayer: (uid: string) => `/players/${encodeURIComponent(uid)}/edit`,
   technologies: (uid: string) => `/players/${encodeURIComponent(uid)}/technologies`,
+  playerMap: (uid: string) => `/players/${encodeURIComponent(uid)}/map`,
   editGuild: (id: string) => `/guilds/${encodeURIComponent(id)}/edit`,
   editBase: (id: string) => `/bases/${encodeURIComponent(id)}/edit`,
   editPal: (id: string) => `/pals/${encodeURIComponent(id)}/edit`,
@@ -132,6 +136,7 @@ const tauriBridge: BridgeApi = {
   editPlayer: (uid, body) => invoke<WriteResult>("bridge_post", { path: path.editPlayer(uid), body }),
   editPlayerTechnologies: (uid, body) =>
     invoke<WriteResult>("bridge_post", { path: path.technologies(uid), body }),
+  playerMap: (uid, body) => invoke<WriteResult>("bridge_post", { path: path.playerMap(uid), body }),
   editPal: (instanceId, body) =>
     invoke<WriteResult>("bridge_post", { path: path.editPal(instanceId), body }),
   healPal: (instanceId) => invoke<WriteResult>("bridge_post", { path: path.healPal(instanceId) }),
@@ -204,6 +209,7 @@ const httpBridge: BridgeApi = {
   clearContainer: (cid) => call<ContainerWriteResult>(path.clear(cid), "POST"),
   editPlayer: (uid, body) => call<WriteResult>(path.editPlayer(uid), "POST", body),
   editPlayerTechnologies: (uid, body) => call<WriteResult>(path.technologies(uid), "POST", body),
+  playerMap: (uid, body) => call<WriteResult>(path.playerMap(uid), "POST", body),
   editPal: (instanceId, body) => call<WriteResult>(path.editPal(instanceId), "POST", body),
   healPal: (instanceId) => call<WriteResult>(path.healPal(instanceId), "POST"),
   deletePal: (instanceId) => call<WriteResult>(path.deletePal(instanceId), "POST"),

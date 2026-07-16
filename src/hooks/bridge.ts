@@ -8,6 +8,7 @@ import type {
   EditPalBody,
   EditPlayerBody,
   EditPlayerTechnologiesBody,
+  PlayerMapBody,
 } from "../types/bridge";
 
 /**
@@ -182,6 +183,14 @@ export function useDeletePal() {
 export function useClonePal() {
   return useMutation({
     mutationFn: (instanceId: string) => bridgeApi.clonePal(instanceId),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function usePlayerMap() {
+  return useMutation({
+    mutationFn: ({ uid, body }: { uid: string; body: PlayerMapBody }) =>
+      bridgeApi.playerMap(uid, body),
     onSuccess: () => invalidateBridgeData(),
   });
 }
