@@ -37,7 +37,15 @@ fn unconfigured_reports_not_configured() {
     assert!(!status.configured);
     assert!(!status.running);
     assert!(matches!(sup.start(), Err(SupervisorError::NotConfigured)));
-    assert!(matches!(sup.stop(), Err(SupervisorError::NotConfigured)));
+    // `stop` deliberately works without configuration (it only needs a PID,
+    // so an adopted server can be stopped from a fresh bridge): with no
+    // server running at all it reports NotRunning, not NotConfigured.
+    // Guard: skip if a REAL PalServer is running on this machine — the test
+    // must never kill a production server.
+    if !sup.status().running {
+        assert!(matches!(sup.stop(), Err(SupervisorError::NotRunning)));
+    }
+    // `restart` = stop-then-start, so the start half still requires config.
     assert!(matches!(sup.restart(), Err(SupervisorError::NotConfigured)));
 }
 

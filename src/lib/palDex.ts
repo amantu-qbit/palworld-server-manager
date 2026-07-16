@@ -18,10 +18,13 @@ const DEX = dexRaw as Record<string, DexEntry>;
 const ATLAS = atlasRaw as { cols: number; cell: number; keys: string[] };
 const KEY_INDEX = new Map(ATLAS.keys.map((k, i) => [k, i] as const));
 
-/** Full atlas pixel dimensions (square, 22×22 grid of 64px cells). */
+/** Atlas grid metrics. The sheet is NOT square — 630 icons at 22 columns is
+ * 29 rows — so width and height must be derived independently (a square
+ * `backgroundSize` squashes the sheet and shifts every icon). */
 export const ATLAS_COLS = ATLAS.cols;
 export const ATLAS_CELL = ATLAS.cell;
-export const ATLAS_SIZE = ATLAS.cols * ATLAS.cell;
+export const ATLAS_W = ATLAS.cols * ATLAS.cell;
+export const ATLAS_H = Math.ceil(ATLAS.keys.length / ATLAS.cols) * ATLAS.cell;
 
 export interface PalInfo {
   /** Localized display name, e.g. "Jetragon". */

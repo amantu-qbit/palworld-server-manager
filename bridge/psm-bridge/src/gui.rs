@@ -134,12 +134,20 @@ impl eframe::App for BridgeApp {
             // --- Game server ---
             ui.horizontal(|ui| {
                 let (color, text) = if status.running {
+                    let uptime = match status.uptime_secs {
+                        Some(s) => format!("up {s}s"),
+                        None => "uptime unknown".to_string(),
+                    };
+                    let origin = if status.adopted {
+                        " — detected (started before this bridge opened)"
+                    } else {
+                        ""
+                    };
                     (
                         GREEN,
                         format!(
-                            "Server running — PID {}, up {}s",
-                            status.pid.unwrap_or(0),
-                            status.uptime_secs.unwrap_or(0)
+                            "Server running — PID {}, {uptime}{origin}",
+                            status.pid.unwrap_or(0)
                         ),
                     )
                 } else if status.configured {

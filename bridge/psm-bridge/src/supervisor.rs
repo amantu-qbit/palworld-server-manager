@@ -13,14 +13,20 @@
 //! real server). `restart` here is therefore a force restart; the app's
 //! graceful restart orchestrates REST `/shutdown` → wait → `start`.
 
+use std::collections::HashMap;
 use std::process::{Child, Command, Stdio};
 use std::sync::{Mutex, RwLock};
-use std::time::Instant;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
 use thiserror::Error;
 
 use crate::config::ServerProcessConfig;
+
+/// How long a by-name process scan stays fresh. The GUI polls status every
+/// second and every health/write-guard request consults it too — without a
+/// cache each of those spawns `tasklist` (twice).
+const DETECT_TTL: Duration = Duration::from_secs(2);
 
 /// Errors from supervisor operations.
 #[derive(Debug, Error)]
@@ -44,10 +50,15 @@ struct Running {
 }
 
 /// Owns the (optionally) launched server process. Cheap to hold behind an
-/// `Arc`; all mutation goes through the inner `Mutex`.
+/// `Arc`; all mutation goes through the inner `Mutex`es.
 pub struct Supervisor {
     config: RwLock<Option<ServerProcessConfig>>,
     running: Mutex<Option<Running>>,
+    /// TTL cache of the by-name process scan (see [`DETECT_TTL`]).
+    detected: Mutex<Option<(Instant, Vec<u32>)>>,
+    /// OS-reported start time (Unix secs) per adopted PID, `None` cached for
+    /// PIDs whose start time could not be read. Cleared when the PID dies.
+    adopted_starts: Mutex<HashMap<u32, Option<u64>>>,
 }
 
 /// The `GET /v1/server/status` payload.
@@ -55,12 +66,18 @@ pub struct Supervisor {
 pub struct ServerStatus {
     /// Whether `[server_process]` is configured at all.
     pub configured: bool,
-    /// Whether a supervised server process is currently alive.
+    /// Whether a server process is currently alive (launched by us or
+    /// detected by image name).
     pub running: bool,
     /// PID of the running process, if any.
     pub pid: Option<u32>,
-    /// Seconds since the supervised process was started, if running.
+    /// Seconds since the server started, if known. For an adopted process
+    /// this comes from the OS process table.
     pub uptime_secs: Option<u64>,
+    /// True when the running server was NOT launched by this bridge instance
+    /// (started manually, or the bridge was closed/updated and reopened) —
+    /// detected by image name and fully controllable regardless.
+    pub adopted: bool,
 }
 
 impl Supervisor {
@@ -68,7 +85,39 @@ impl Supervisor {
         Self {
             config: RwLock::new(config),
             running: Mutex::new(None),
+            detected: Mutex::new(None),
+            adopted_starts: Mutex::new(HashMap::new()),
         }
+    }
+
+    /// By-name process scan through the TTL cache. `fresh` bypasses (and
+    /// refills) the cache — used by start/stop, where a stale answer could
+    /// double-launch or report a just-killed server as alive.
+    fn detected_pids(&self, fresh: bool) -> Vec<u32> {
+        let mut cache = self.detected.lock().unwrap_or_else(|p| p.into_inner());
+        if !fresh {
+            if let Some((at, pids)) = cache.as_ref() {
+                if at.elapsed() < DETECT_TTL {
+                    return pids.clone();
+                }
+            }
+        }
+        let pids = find_server_pids();
+        *cache = Some((Instant::now(), pids.clone()));
+        pids
+    }
+
+    /// Uptime of an adopted process from its OS-reported start time, queried
+    /// once per PID and cached. `None` when the start time can't be read.
+    fn adopted_uptime(&self, pid: u32) -> Option<u64> {
+        let mut starts = self.adopted_starts.lock().unwrap_or_else(|p| p.into_inner());
+        // Drop entries for PIDs that are no longer the adopted server, so a
+        // recycled PID can't inherit a stale start time.
+        starts.retain(|p, _| *p == pid);
+        let start = *starts.entry(pid).or_insert_with(|| process_start_epoch(pid));
+        let start = start?;
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).ok()?.as_secs();
+        Some(now.saturating_sub(start))
     }
 
     /// Replace the launch configuration; applied on the next `start`.
@@ -122,18 +171,19 @@ impl Supervisor {
         let tracked_uptime = tracked.and(slot.as_ref().map(|r| r.started.elapsed().as_secs()));
         drop(slot);
 
-        let (running, pid, uptime_secs) = match tracked {
-            Some(p) => (true, Some(p), tracked_uptime),
-            None => {
-                let detected = find_server_pids().into_iter().next();
-                (detected.is_some(), detected, None)
-            }
+        let (running, pid, uptime_secs, adopted) = match tracked {
+            Some(p) => (true, Some(p), tracked_uptime, false),
+            None => match self.detected_pids(false).into_iter().next() {
+                Some(p) => (true, Some(p), self.adopted_uptime(p), true),
+                None => (false, None, None, false),
+            },
         };
         ServerStatus {
             configured,
             running,
             pid,
             uptime_secs,
+            adopted,
         }
     }
 
@@ -146,8 +196,9 @@ impl Supervisor {
         }
         // Also refuse if a server is already running that we didn't launch (e.g.
         // started manually, or still alive from before a bridge restart) — a
-        // second launch would fight over the game port.
-        if let Some(pid) = find_server_pids().into_iter().next() {
+        // second launch would fight over the game port. Fresh scan: a stale
+        // cached "none" must not slip a double-launch through.
+        if let Some(pid) = self.detected_pids(true).into_iter().next() {
             return Err(SupervisorError::AlreadyRunning(pid));
         }
 
@@ -179,11 +230,11 @@ impl Supervisor {
         Ok(self.status())
     }
 
-    /// Force-stop the supervised server (kills its whole process tree).
+    /// Force-stop the server (kills its whole process tree). Works for a
+    /// tracked child AND an adopted/detected server — stopping only needs a
+    /// PID, so no `[server_process]` configuration is required (unlike
+    /// `start`, which needs the exe path).
     pub fn stop(&self) -> Result<ServerStatus, SupervisorError> {
-        if !self.is_configured() {
-            return Err(SupervisorError::NotConfigured);
-        }
         let mut slot = self.running.lock().unwrap_or_else(|p| p.into_inner());
         if let Some(pid) = Self::live_pid(&mut slot) {
             kill_tree(pid).map_err(SupervisorError::Stop)?;
@@ -193,19 +244,24 @@ impl Supervisor {
                 let _ = run.child.wait();
             }
             drop(slot);
+            *self.detected.lock().unwrap_or_else(|p| p.into_inner()) = None;
             return Ok(self.status());
         }
         drop(slot);
 
         // No tracked child: stop a detected/adopted server (the launcher already
         // exited, or the server was started outside PSM / before a restart).
-        let pids = find_server_pids();
+        // Fresh scan, and the cache is cleared afterwards so status doesn't
+        // report the just-killed server as alive for the cache TTL.
+        let pids = self.detected_pids(true);
         if pids.is_empty() {
             return Err(SupervisorError::NotRunning);
         }
         for pid in pids {
             kill_tree(pid).map_err(SupervisorError::Stop)?;
         }
+        *self.detected.lock().unwrap_or_else(|p| p.into_inner()) = None;
+        self.adopted_starts.lock().unwrap_or_else(|p| p.into_inner()).clear();
         Ok(self.status())
     }
 
@@ -243,6 +299,37 @@ fn find_server_pids() -> Vec<u32> {
     pids.sort_unstable();
     pids.dedup();
     pids
+}
+
+/// OS-reported start time (Unix seconds) of `pid`, or `None` if unreadable
+/// (process gone, access denied). Windows: one PowerShell query — callers
+/// cache the result per PID, so this does not run per status poll.
+#[cfg(windows)]
+fn process_start_epoch(pid: u32) -> Option<u64> {
+    let out = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            &format!(
+                "(Get-Process -Id {pid} -ErrorAction Stop).StartTime.ToUniversalTime()\
+                 .Subtract([datetime]'1970-01-01').TotalSeconds"
+            ),
+        ])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    String::from_utf8_lossy(&out.stdout)
+        .trim()
+        .parse::<f64>()
+        .ok()
+        .map(|s| s as u64)
+}
+
+#[cfg(not(windows))]
+fn process_start_epoch(_pid: u32) -> Option<u64> {
+    None
 }
 
 /// Parse PIDs from `tasklist /FO CSV /NH` output. Each data row is

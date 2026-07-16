@@ -991,7 +991,7 @@
   height: var(--isz);
   background-image: url(/mapicons/tech-atlas.webp);
   background-repeat: no-repeat;
-  background-size: calc(var(--tcols) * var(--isz)) calc(var(--tcols) * var(--isz));
+  background-size: calc(var(--tcols) * var(--isz)) calc(var(--trows, var(--tcols)) * var(--isz));
   background-position: calc(var(--tcol) * var(--isz) * -1) calc(var(--trow) * var(--isz) * -1);
 }
 .techicon--empty {

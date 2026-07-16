@@ -1,4 +1,4 @@
-import { ATLAS_CELL, ATLAS_SIZE } from "../lib/palDex";
+import { ATLAS_CELL, ATLAS_H, ATLAS_W } from "../lib/palDex";
 
 /**
  * Renders one Pal from the sprite atlas (`public/mapicons/pals-atlas.webp`) as
@@ -23,7 +23,7 @@ export function PalIcon({
         width: size,
         height: size,
         backgroundImage: "url(/mapicons/pals-atlas.webp)",
-        backgroundSize: `${ATLAS_SIZE * scale}px ${ATLAS_SIZE * scale}px`,
+        backgroundSize: `${ATLAS_W * scale}px ${ATLAS_H * scale}px`,
         backgroundPosition: `${-cell.col * ATLAS_CELL * scale}px ${-cell.row * ATLAS_CELL * scale}px`,
       }}
     />

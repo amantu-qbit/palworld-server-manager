@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { TECH_ATLAS_COLS } from "../lib/techDex";
+import { TECH_ATLAS_COLS, TECH_ATLAS_ROWS } from "../lib/techDex";
 
 /**
  * Renders one technology icon from the sprite atlas
@@ -15,7 +15,14 @@ export function TechIcon({ cell }: { cell: { col: number; row: number } | null }
   return (
     <div
       className="techicon"
-      style={{ "--tcol": cell.col, "--trow": cell.row, "--tcols": TECH_ATLAS_COLS } as CSSProperties}
+      style={
+        {
+          "--tcol": cell.col,
+          "--trow": cell.row,
+          "--tcols": TECH_ATLAS_COLS,
+          "--trows": TECH_ATLAS_ROWS,
+        } as CSSProperties
+      }
     />
   );
 }

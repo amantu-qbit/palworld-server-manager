@@ -18,10 +18,15 @@ export interface BridgeHealth {
 export interface ServerStatus {
   /** Whether `[server_process]` is configured in bridge.toml. */
   configured: boolean;
-  /** Whether a supervised server process is currently running. */
+  /** Whether a server process is running (launched by the bridge, or
+   * detected by image name after a bridge restart / external launch). */
   running: boolean;
   pid: number | null;
   uptime_secs: number | null;
+  /** True when the running server wasn't launched by this bridge instance
+   * (detected by name; still fully stoppable/restartable). Optional: older
+   * bridges omit it. */
+  adopted?: boolean;
 }
 
 export interface PlayerSummary {

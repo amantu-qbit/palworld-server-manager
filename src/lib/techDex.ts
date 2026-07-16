@@ -36,7 +36,9 @@ const KEY_INDEX = new Map(ATLAS.keys.map((k, i) => [k, i] as const));
 
 export const TECH_ATLAS_COLS = ATLAS.cols;
 export const TECH_ATLAS_CELL = ATLAS.cell;
-export const TECH_ATLAS_SIZE = ATLAS.cols * ATLAS.cell;
+/** Row count derived from the key list — the sheet is only square by
+ * coincidence today, so height must never be computed from `cols`. */
+export const TECH_ATLAS_ROWS = Math.ceil(ATLAS.keys.length / ATLAS.cols);
 export const TECH_TOTAL = Object.keys(DEX).length;
 export const TECH_POINT_ICON = "/mapicons/tech-point.webp";
 export const ANCIENT_POINT_ICON = "/mapicons/ancient-tech-point.webp";
