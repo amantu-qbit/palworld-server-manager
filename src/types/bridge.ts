@@ -158,10 +158,10 @@ export interface ContainersResponse {
   containers: ContainerInfo[];
 }
 
-/** Minimum success payload of every save write; `backup` is the snapshot path. */
+/** Minimum success payload of every save write; `backup` is the snapshot path (absent for a no-op). */
 export interface WriteResult {
   ok: boolean;
-  backup: string;
+  backup?: string;
 }
 
 /** Container writes echo the updated container back. */

@@ -53,6 +53,8 @@ export interface BridgeApi {
     staticId: string,
     count: number,
   ): Promise<ContainerWriteResult>;
+  /** Remove every occupied slot in one write (a single backup). */
+  clearContainer(cid: string): Promise<ContainerWriteResult>;
   /** Edit player level/EXP/status points (Level.sav). */
   editPlayer(uid: string, body: EditPlayerBody): Promise<WriteResult>;
   /** Unlock/relock technologies and set tech points (per-player `<UID>.sav`). */
@@ -66,6 +68,7 @@ const path = {
   reference: (catalog: string) => `/reference/${encodeURIComponent(catalog)}`,
   resize: (cid: string) => `/containers/${encodeURIComponent(cid)}/resize`,
   slot: (cid: string) => `/containers/${encodeURIComponent(cid)}/slot`,
+  clear: (cid: string) => `/containers/${encodeURIComponent(cid)}/clear`,
   editPlayer: (uid: string) => `/players/${encodeURIComponent(uid)}/edit`,
   technologies: (uid: string) => `/players/${encodeURIComponent(uid)}/technologies`,
   editPal: (id: string) => `/pals/${encodeURIComponent(id)}/edit`,
@@ -107,6 +110,7 @@ const tauriBridge: BridgeApi = {
       path: path.slot(cid),
       body: { slot_index: slotIndex, static_id: staticId, count },
     }),
+  clearContainer: (cid) => invoke<ContainerWriteResult>("bridge_post", { path: path.clear(cid) }),
   editPlayer: (uid, body) => invoke<WriteResult>("bridge_post", { path: path.editPlayer(uid), body }),
   editPlayerTechnologies: (uid, body) =>
     invoke<WriteResult>("bridge_post", { path: path.technologies(uid), body }),
@@ -174,6 +178,7 @@ const httpBridge: BridgeApi = {
       static_id: staticId,
       count,
     }),
+  clearContainer: (cid) => call<ContainerWriteResult>(path.clear(cid), "POST"),
   editPlayer: (uid, body) => call<WriteResult>(path.editPlayer(uid), "POST", body),
   editPlayerTechnologies: (uid, body) => call<WriteResult>(path.technologies(uid), "POST", body),
   editPal: (instanceId, body) => call<WriteResult>(path.editPal(instanceId), "POST", body),

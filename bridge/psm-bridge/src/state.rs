@@ -125,6 +125,16 @@ impl AppState {
         &self.save_dir
     }
 
+    /// Drop the cached decode unconditionally. Called after a save write:
+    /// the `(mtime, size)` key normally self-invalidates, but mtime has
+    /// whole-second granularity, so a write landing in the same second as
+    /// the previous one with an identical byte size would otherwise serve
+    /// stale pre-edit state indefinitely.
+    pub fn invalidate(&self) {
+        let mut guard = self.cached.write().unwrap_or_else(|poisoned| poisoned.into_inner());
+        *guard = None;
+    }
+
     /// Whether `<save_dir>/Level.sav` currently exists on disk. Cheap
     /// existence check (no decode) used for the `/v1/health` response.
     pub fn level_sav_exists(&self) -> bool {

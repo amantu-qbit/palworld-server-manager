@@ -8,26 +8,21 @@ pub mod server;
 pub mod state;
 pub mod supervisor;
 
-/// Install a panic hook that silences `Reader underrun` messages.
+/// Install a panic hook that silences the decoder's *speculative-probe*
+/// panics only.
 ///
-/// The GVAS decoder's speculative probes (e.g. the dynamic-item egg-body
-/// classifier) intentionally parse-and-catch: a rejection panics inside a
-/// `catch_unwind` and is handled as a normal negative result. Every decode
-/// path in this crate runs inside such a quarantine, so these messages are
-/// pure console noise for server operators — several fire on every world
-/// decode. Real (non-speculative) underruns are still surfaced: the caught
-/// panic becomes a `StateError::Decode`/HTTP error either way; only the
-/// stderr spam is suppressed. All other panics print via the default hook.
+/// The GVAS decoder's egg-body classifier intentionally parse-and-catches: a
+/// rejection panics inside a `catch_unwind` and is handled as a normal
+/// negative result — several fire on every world decode, spamming operator
+/// consoles. The probe marks its extent via
+/// [`psm_save::save::containers::speculative_probe_active`], so this hook
+/// suppresses exactly those panics and nothing else: a genuine decode failure
+/// on a corrupt save still prints its full panic message (and still surfaces
+/// as an HTTP error through the `catch_unwind` quarantines either way).
 pub fn install_quiet_panic_hook() {
     let default_hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
-        let msg = info
-            .payload()
-            .downcast_ref::<String>()
-            .map(String::as_str)
-            .or_else(|| info.payload().downcast_ref::<&str>().copied())
-            .unwrap_or("");
-        if msg.starts_with("Reader underrun") {
+        if psm_save::save::containers::speculative_probe_active() {
             return;
         }
         default_hook(info);

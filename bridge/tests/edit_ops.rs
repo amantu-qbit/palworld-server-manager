@@ -329,7 +329,8 @@ fn edit_sav_file_round_trip_with_backup() {
     let (_uid, cid) = player_common_container(&buf);
 
     let receipt = edit_sav_file(&level, |gvas| resize_container(gvas, cid, 77)).unwrap();
-    assert!(receipt.backup.exists());
+    let backup_path = receipt.backup.as_ref().expect("a real edit takes a backup");
+    assert!(backup_path.exists());
     assert!(receipt.bytes_written > 12);
 
     // The edited file re-reads through the full pipeline (now PlZ instead of
@@ -342,7 +343,7 @@ fn edit_sav_file_round_trip_with_backup() {
     assert_eq!(c.slot_num, 77);
 
     // Backup byte-identical to the original fixture.
-    let backup_bytes = std::fs::read(&receipt.backup).unwrap();
+    let backup_bytes = std::fs::read(backup_path).unwrap();
     let original = std::fs::read(src.join("Level.sav")).unwrap();
     assert_eq!(backup_bytes, original);
 
@@ -362,4 +363,211 @@ fn no_op_edit_preserves_buffer_exactly() {
         let out = set_container_slot(&buf, cid, free, "None", 0).unwrap();
         assert_eq!(out, buf);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Regression tests for adversarial-review findings
+// ---------------------------------------------------------------------------
+
+/// Build a copy of the Level buffer with the target container's `SlotNum`
+/// property surgically removed — simulating UE's omit-default-value
+/// serialization, the state that routes `resize_container` through its
+/// insert-SlotNum branch.
+fn strip_slot_num(buf: &[u8], cid: Uuid) -> Vec<u8> {
+    use psm_save::save::edit::locate::{find_in_stream, map_info, read_tag, Cursor};
+    use psm_save::save::edit::plan::{apply as apply_plan, EditPlan};
+    use psm_save::save::gvas::header_len_for_tests;
+
+    let start = header_len_for_tests(buf).unwrap();
+    let mut c = Cursor::new(buf, start);
+    let wsd = find_in_stream(&mut c, "worldSaveData").unwrap().found.unwrap();
+    let mut c = Cursor::new(buf, wsd.value_start);
+    let map = find_in_stream(&mut c, "ItemContainerSaveData").unwrap().found.unwrap();
+    let mut c = Cursor::new(buf, map.value_start);
+    let info = map_info(&mut c).unwrap();
+
+    for _ in 0..info.count {
+        // Key stream: { ID: Guid }.
+        let mut id = Uuid::nil();
+        loop {
+            match read_tag(&mut c).unwrap() {
+                None => break,
+                Some(t) => {
+                    if t.name == "ID" && t.struct_type.as_deref() == Some("Guid") {
+                        id = c.guid().unwrap();
+                    }
+                    c.seek(t.value_end).unwrap();
+                }
+            }
+        }
+        // Value stream.
+        if id == cid {
+            let scan = find_in_stream(&mut c, "SlotNum").unwrap();
+            let t = scan.found.expect("fixture container has SlotNum");
+            let mut plan = EditPlan::default();
+            plan.delete(t.tag_start..t.value_end);
+            plan.scope_u64(wsd.size_field, wsd.value_start..wsd.value_end);
+            plan.scope_u64(map.size_field, map.value_start..map.value_end);
+            return apply_plan(buf, &plan).unwrap();
+        }
+        // Skip the non-matching value stream.
+        loop {
+            match read_tag(&mut c).unwrap() {
+                None => break,
+                Some(t) => c.seek(t.value_end).unwrap(),
+            }
+        }
+    }
+    panic!("container not found");
+}
+
+#[test]
+fn resize_with_missing_slot_num_inserts_before_slots_and_stays_editable() {
+    let buf = level_gvas();
+    let (_uid, cid) = player_common_container(&buf);
+
+    let stripped = strip_slot_num(&buf, cid);
+    // Sanity: the stripped buffer still parses and shows slot_num == 0.
+    let c0 = &containers_of(&stripped)[&cid];
+    assert_eq!(c0.slot_num, 0, "SlotNum removed reads as default 0");
+    assert!(!c0.slots.is_empty(), "slots survive the strip");
+
+    // Shrink to 1 through the insert-SlotNum branch (removes elements too —
+    // the exact combination that used to corrupt the Slots size fields).
+    let out = resize_container(&stripped, cid, 1).unwrap();
+    let c1 = &containers_of(&out)[&cid];
+    assert_eq!(c1.slot_num, 1);
+    assert!(c1.slots.iter().all(|s| s.slot_index < 1));
+
+    // The regression's signature was that the container became permanently
+    // un-editable ("declared size mismatch walking Slots elements") and
+    // SlotNum unreadable via size-driven skips. Both must work now:
+    let again = resize_container(&out, cid, 30).unwrap();
+    let c2 = &containers_of(&again)[&cid];
+    assert_eq!(c2.slot_num, 30);
+    let final_edit = set_container_slot(&again, cid, 2, "Stone", 5).unwrap();
+    assert_eq!(
+        containers_of(&final_edit)[&cid]
+            .slots
+            .iter()
+            .find(|s| s.slot_index == 2)
+            .unwrap()
+            .static_id,
+        "Stone"
+    );
+}
+
+#[test]
+fn clear_container_removes_everything_in_one_edit() {
+    use psm_save::save::edit::ops::clear_container;
+    let buf = level_gvas();
+    let (_uid, cid) = player_common_container(&buf);
+    assert!(!containers_of(&buf)[&cid].slots.is_empty());
+
+    let out = clear_container(&buf, cid).unwrap();
+    let c = &containers_of(&out)[&cid];
+    assert!(c.slots.is_empty());
+    // Slot count preserved — clearing empties, it does not resize.
+    assert_eq!(c.slot_num, containers_of(&buf)[&cid].slot_num);
+
+    // Clearing an already-empty container is a byte-identical no-op.
+    let again = clear_container(&out, cid).unwrap();
+    assert_eq!(again, out);
+}
+
+#[test]
+fn noop_edit_skips_write_and_backup() {
+    let src = fixture_dir();
+    let tmp = std::env::temp_dir().join(format!("psm-noop-test-{}", std::process::id()));
+    std::fs::create_dir_all(&tmp).unwrap();
+    let level = tmp.join("Level.sav");
+    std::fs::copy(src.join("Level.sav"), &level).unwrap();
+    let before = std::fs::read(&level).unwrap();
+
+    let buf = level_gvas();
+    let (_uid, cid) = player_common_container(&buf);
+    let free = {
+        let c = &containers_of(&buf)[&cid];
+        let used: Vec<i32> = c.slots.iter().map(|s| s.slot_index).collect();
+        (0..c.slot_num).find(|i| !used.contains(i))
+    };
+    if let Some(free) = free {
+        let receipt =
+            edit_sav_file(&level, |gvas| set_container_slot(gvas, cid, free, "None", 0)).unwrap();
+        assert!(receipt.backup.is_none(), "no-op must not take a backup");
+        assert_eq!(receipt.bytes_written, 0);
+        assert_eq!(std::fs::read(&level).unwrap(), before, "file untouched");
+        assert!(!tmp.join("psm-backups").exists(), "no backup dir created");
+    }
+    std::fs::remove_dir_all(&tmp).ok();
+}
+
+#[test]
+fn technology_matching_is_case_insensitive() {
+    let dir = fixture_dir();
+    let world = load_world(&dir).unwrap();
+    let uid = &world.players[0].uid;
+    let before = read_player_save(&player_sav_path(&dir, uid)).unwrap();
+    let existing = before
+        .technologies
+        .iter()
+        .find(|t| t.chars().any(|c| c.is_ascii_alphabetic()))
+        .expect("fixture player has technologies")
+        .clone();
+    let flipped: String = existing
+        .chars()
+        .map(|c| {
+            if c.is_ascii_lowercase() {
+                c.to_ascii_uppercase()
+            } else {
+                c.to_ascii_lowercase()
+            }
+        })
+        .collect();
+    assert_ne!(existing, flipped);
+
+    let bytes = std::fs::read(player_sav_path(&dir, uid)).unwrap();
+    let (gvas_bytes, _) = decompress_sav_with_type(&bytes).unwrap();
+
+    // Unlocking a differently-cased duplicate must NOT add a second entry;
+    // relocking with different case MUST remove the stored one.
+    let out = edit_player_technologies(
+        &gvas_bytes,
+        &TechEdits {
+            unlock: vec![flipped.clone()],
+            relock: vec![],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let out = edit_player_technologies(
+        &out,
+        &TechEdits {
+            unlock: vec![],
+            relock: vec![flipped.clone()],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+
+    let tmp = std::env::temp_dir().join(format!("psm-techcase-test-{}", std::process::id()));
+    std::fs::create_dir_all(tmp.join("Players")).unwrap();
+    let sav_name = uid.replace('-', "").to_uppercase();
+    std::fs::write(
+        tmp.join("Players").join(format!("{sav_name}.sav")),
+        pack_sav(&out, 0x31).unwrap(),
+    )
+    .unwrap();
+    let after = read_player_save(&player_sav_path(&tmp, uid)).unwrap();
+    std::fs::remove_dir_all(&tmp).ok();
+
+    assert!(
+        !after.technologies.iter().any(|t| t.eq_ignore_ascii_case(&existing)),
+        "case-flipped relock must remove the stored entry"
+    );
+    assert_eq!(
+        after.technologies.len(),
+        before.technologies.len() - 1,
+        "no duplicate was added by the case-flipped unlock"
+    );
 }

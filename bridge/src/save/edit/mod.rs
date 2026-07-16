@@ -35,15 +35,18 @@ use super::decompress::{decompress_sav_with_type, SaveError};
 /// Receipt of a committed save edit.
 #[derive(Debug, Clone)]
 pub struct EditReceipt {
-    /// Where the pre-edit file was backed up.
-    pub backup: PathBuf,
-    /// Size of the new `.sav` container written.
+    /// Where the pre-edit file was backed up — `None` when the edit turned
+    /// out to be a no-op and the file was left untouched.
+    pub backup: Option<PathBuf>,
+    /// Size of the new `.sav` container written (0 for a no-op).
     pub bytes_written: usize,
 }
 
 /// Read `path`, run `op` over its decompressed GVAS bytes, and commit the
 /// result: re-pack (always zlib `PlZ`, preserving the save-type byte), back up
-/// the original, and atomically replace the file.
+/// the original, and atomically replace the file. An op that returns the
+/// bytes unchanged (e.g. clearing an already-empty slot) skips the write
+/// entirely — no backup churn, no pointless mtime bump.
 pub fn edit_sav_file<F>(path: &Path, op: F) -> Result<EditReceipt, SaveError>
 where
     F: FnOnce(&[u8]) -> Result<Vec<u8>, SaveError>,
@@ -52,12 +55,18 @@ where
         .map_err(|e| SaveError::Io(format!("{}: {e}", path.display())))?;
     let (gvas, save_type) = decompress_sav_with_type(&original)?;
     let new_gvas = op(&gvas)?;
+    if new_gvas == gvas {
+        return Ok(EditReceipt {
+            backup: None,
+            bytes_written: 0,
+        });
+    }
     let packed = write::pack_sav(&new_gvas, save_type)?;
 
     let backup = write::backup_file(path)?;
     write::atomic_replace(path, &packed)?;
     Ok(EditReceipt {
-        backup,
+        backup: Some(backup),
         bytes_written: packed.len(),
     })
 }

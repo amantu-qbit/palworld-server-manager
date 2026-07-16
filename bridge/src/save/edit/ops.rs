@@ -128,8 +128,13 @@ struct ContainerLoc {
     slot_num: i32,
     /// `SlotNum` `IntProperty` value offset (4 bytes), if present.
     slot_num_value: Option<usize>,
-    /// Terminator offset of the container's value stream (insertion point).
-    value_terminator: usize,
+    /// Offset of the `Slots` property's name fstring — where a missing
+    /// `SlotNum` property is inserted. Inserting *before* the Slots tag
+    /// (rather than at the stream terminator) keeps the insert strictly
+    /// outside the Slots size scopes: a boundary insert at a scope's end
+    /// would otherwise be attributed inside it by the plan's inclusive-end
+    /// containment test and inflate the array's two size fields.
+    slots_tag_start: usize,
     slots_scope: (usize, Range<usize>),
     slots_inner_scope: (usize, Range<usize>),
     slots_count_offset: usize,
@@ -237,16 +242,12 @@ fn locate_container(buf: &[u8], container_id: Uuid) -> Result<ContainerLoc, Save
         }
         e.expect_at(slots_tag.value_end, "Slots elements")?;
 
-        // The container value stream's terminator (walk past Slots' end).
-        let mut t = Cursor::new(buf, value_start);
-        let terminator = super::locate::skip_stream(&mut t)?;
-
         return Ok(ContainerLoc {
             wsd_scope: (wsd.size_field, wsd.value_start..wsd.value_end),
             map_scope: (map_tag.size_field, map_tag.value_start..map_tag.value_end),
             slot_num,
             slot_num_value,
-            value_terminator: terminator,
+            slots_tag_start: slots_tag.tag_start,
             slots_scope: (slots_tag.size_field, slots_tag.value_start..slots_tag.value_end),
             slots_inner_scope: (inner.size_field, arr.elems_start..slots_tag.value_end),
             slots_count_offset: arr.count_offset,
@@ -355,8 +356,12 @@ pub fn resize_container(
 
     match loc.slot_num_value {
         Some(off) => plan.patch(off..off + 4, (new_slot_num as i32).to_le_bytes().to_vec()),
+        // Missing SlotNum: insert it just before the Slots property — never at
+        // the stream terminator, which can coincide with the Slots scopes' end
+        // boundary and be miscounted into the array's size fields (see
+        // `ContainerLoc::slots_tag_start`).
         None => plan.insert(
-            loc.value_terminator,
+            loc.slots_tag_start,
             enc::int_prop("SlotNum", new_slot_num as i32),
         ),
     }
@@ -496,6 +501,41 @@ pub fn set_container_slot(
                     s.static_id, s.count
                 )));
             }
+        }
+        Ok(())
+    })?;
+    Ok(out)
+}
+
+/// Remove every occupied slot entry from a container in one write — a bulk
+/// clear takes one backup instead of one per stack — and remove the orphaned
+/// dynamic items. Clearing an already-empty container returns the buffer
+/// unchanged.
+pub fn clear_container(buf: &[u8], container_id: Uuid) -> Result<Vec<u8>, SaveError> {
+    let loc = locate_container(buf, container_id)?;
+    let mut plan = EditPlan::default();
+    let mut orphans = Vec::new();
+    let mut removed = 0i64;
+    for e in &loc.elements {
+        if e.slot_index.is_some() {
+            plan.delete(e.range.clone());
+            removed += 1;
+            if !is_nil(e.local_id) {
+                orphans.push(e.local_id);
+            }
+        }
+    }
+    if removed == 0 {
+        return Ok(buf.to_vec());
+    }
+    plan.count(loc.slots_count_offset, -removed);
+    container_scopes(&mut plan, &loc, true);
+    remove_dynamic_items(buf, &mut plan, &orphans)?;
+
+    let out = apply(buf, &plan)?;
+    validate_container(&out, container_id, |c| {
+        if !c.slots.is_empty() {
+            return Err(edit_err("post-edit container still has occupied slots"));
         }
         Ok(())
     })?;
@@ -954,13 +994,18 @@ pub fn edit_player_technologies(buf: &[u8], edits: &TechEdits) -> Result<Vec<u8>
             }
             _ => Vec::new(),
         };
+        // The game stores technology names in inconsistent case (e.g. the
+        // catalog's `Workbench` may be `workbench` on disk), so membership
+        // tests must be case-insensitive or a relock silently misses and an
+        // unlock duplicates.
+        let contains_ci = |list: &[String], t: &str| list.iter().any(|x| x.eq_ignore_ascii_case(t));
         let mut list = existing.clone();
         for add in &edits.unlock {
-            if !list.contains(add) {
+            if !contains_ci(&list, add) {
                 list.push(add.clone());
             }
         }
-        list.retain(|t| !edits.relock.contains(t));
+        list.retain(|t| !contains_ci(&edits.relock, t));
 
         match find_in_body(buf, body, "UnlockedRecipeTechnologyNames")? {
             Some(t) => {
@@ -1008,10 +1053,10 @@ pub fn edit_player_technologies(buf: &[u8], edits: &TechEdits) -> Result<Vec<u8>
         .ok_or_else(|| edit_err("post-edit parse lost SaveData"))?;
     if let Some(want) = new_list {
         let got: Vec<String> = match sd.get_child("UnlockedRecipeTechnologyNames") {
-            Some(Property::Array { value, .. }) => match value {
-                super::super::props::ArrayValue::Names(v) => v.clone(),
-                _ => Vec::new(),
-            },
+            Some(Property::Array {
+                value: super::super::props::ArrayValue::Names(v),
+                ..
+            }) => v.clone(),
             _ => Vec::new(),
         };
         if got != want {

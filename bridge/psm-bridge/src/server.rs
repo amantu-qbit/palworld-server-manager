@@ -71,6 +71,7 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/containers", get(list_containers))
         .route("/v1/containers/{id}/resize", post(container_resize))
         .route("/v1/containers/{id}/slot", post(container_slot))
+        .route("/v1/containers/{id}/clear", post(container_clear))
         .route("/v1/reference/{catalog}", get(reference_catalog))
         .route("/v1/server/status", get(server_status))
         .route("/v1/server/start", post(server_start))
@@ -392,7 +393,13 @@ async fn server_status(State(state): State<ServerState>) -> Response {
 }
 
 /// `POST /v1/server/start` — launch the configured server if not already running.
+///
+/// Takes the save-write lock first, so a start cannot slip into the window
+/// between a write handler's guard check and its file replacement (and vice
+/// versa: an in-flight edit finishes before the game server boots and reads
+/// the save).
 async fn server_start(State(state): State<ServerState>) -> Response {
+    let _no_writes_in_flight = state.write_lock.lock().await;
     run_supervised(state.supervisor.clone(), Supervisor::start).await
 }
 
@@ -480,9 +487,12 @@ struct ContainersResponse {
     containers: Vec<ContainerInfo>,
 }
 
+/// Accessor picking one bag's container id off a player's id set.
+type BagIdAccessor = fn(&PlayerContainerIds) -> &String;
+
 /// The five player-bag kinds, in display order, with their
 /// `PlayerContainerIds` accessor.
-const BAG_KINDS: [(&str, &str, fn(&PlayerContainerIds) -> &String); 5] = [
+const BAG_KINDS: [(&str, &str, BagIdAccessor); 5] = [
     ("common", "Inventory", |c| &c.common),
     ("essential", "Key Items", |c| &c.essential),
     ("weapon_loadout", "Weapons", |c| &c.weapon_loadout),
@@ -525,8 +535,10 @@ async fn collect_containers(state: &ServerState) -> Result<Vec<ContainerInfo>, R
     for p in &bundle.world.players {
         let save = match state.app.player_save(&p.uid).await {
             Ok(s) => s,
-            Err(StateError::Load(SaveError::Io(_))) => continue,
-            Err(e) => return Err(internal_error(e)),
+            // A missing, truncated, or corrupt per-player save must not fail
+            // the whole listing — skip that player's bags; everyone else's
+            // containers stay reachable.
+            Err(_) => continue,
         };
         for (kind, label, id_of) in BAG_KINDS {
             let Ok(cid) = Uuid::parse_str(id_of(&save.containers)) else {
@@ -597,7 +609,12 @@ fn write_guard(state: &ServerState) -> Option<Response> {
 /// `catch_unwind` quarantine as every other GVAS codec path, mapping errors
 /// to HTTP responses. Holds the state's write lock for the whole
 /// read-edit-backup-replace sequence so concurrent write requests are
-/// strictly sequential (each sees the previous write's result).
+/// strictly sequential (each sees the previous write's result). The
+/// server-running guard is re-checked *under the lock* — the handler's
+/// earlier `write_guard` sample races a concurrent `/v1/server/start`
+/// (which also takes this lock) — and the decode cache is explicitly
+/// invalidated after a successful write, because the `(mtime, size)` cache
+/// key alone cannot distinguish a same-second, same-size rewrite.
 async fn run_edit<F>(
     state: &ServerState,
     op: F,
@@ -606,10 +623,23 @@ where
     F: FnOnce() -> Result<psm_save::save::edit::EditReceipt, SaveError> + Send + 'static,
 {
     let _serialized = state.write_lock.lock().await;
+    if state.supervisor.status().running {
+        return Err((
+            StatusCode::CONFLICT,
+            Json(ErrorDetailResponse {
+                error: "server_running",
+                detail: "the server was started while this edit was queued".to_string(),
+            }),
+        )
+            .into_response());
+    }
     let outcome =
         tokio::task::spawn_blocking(move || std::panic::catch_unwind(AssertUnwindSafe(op))).await;
     match outcome {
-        Ok(Ok(Ok(receipt))) => Ok(receipt),
+        Ok(Ok(Ok(receipt))) => {
+            state.app.invalidate();
+            Ok(receipt)
+        }
         Ok(Ok(Err(SaveError::Io(e)))) => Err(internal_error(e)),
         Ok(Ok(Err(e))) => Err(unprocessable(e)),
         Ok(Err(_panic)) => Err(unprocessable("save could not be edited")),
@@ -621,7 +651,10 @@ where
 #[derive(Serialize)]
 struct WriteResponse {
     ok: bool,
-    backup: String,
+    /// Backup path; absent when the request was a no-op and no file was
+    /// touched.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    backup: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     container: Option<ContainerInfo>,
 }
@@ -629,7 +662,7 @@ struct WriteResponse {
 fn write_ok(receipt: &psm_save::save::edit::EditReceipt, container: Option<ContainerInfo>) -> Response {
     Json(WriteResponse {
         ok: true,
-        backup: receipt.backup.display().to_string(),
+        backup: receipt.backup.as_ref().map(|b| b.display().to_string()),
         container,
     })
     .into_response()
@@ -740,6 +773,39 @@ async fn container_slot(
     write_ok(&receipt, container)
 }
 
+/// `POST /v1/containers/{id}/clear` — remove every occupied slot in one
+/// write (one backup, instead of one per stack).
+async fn container_clear(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Ok(cid) = Uuid::parse_str(&id) else {
+        return not_found();
+    };
+    match state.app.bundle().await {
+        Ok(b) if b.item_containers.contains_key(&cid) => {}
+        Ok(_) => return not_found(),
+        Err(e) => return internal_error(e),
+    }
+
+    let path = state.app.save_dir().join("Level.sav");
+    let receipt = match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::clear_container(gvas, cid)
+        })
+    })
+    .await
+    {
+        Ok(r) => r,
+        Err(resp) => return resp,
+    };
+    let container = refreshed_container(&state, cid).await;
+    write_ok(&receipt, container)
+}
+
 #[derive(serde::Deserialize, Default)]
 struct PlayerEditBody {
     level: Option<u8>,
@@ -765,7 +831,7 @@ async fn player_edit(
         Ok(_) => return not_found(),
         Err(e) => return internal_error(e),
     }
-    if let Err(resp) = validate_character_edit(body.level, body.exp, &None) {
+    if let Some(resp) = validate_character_edit(body.level, body.exp, &None) {
         return resp;
     }
     if let Some(resp) = validate_points(&body.status_points).or(validate_points(&body.ext_status_points)) {
@@ -833,14 +899,20 @@ async fn pal_edit(
         Ok(_) => return not_found(),
         Err(e) => return internal_error(e),
     }
-    if let Err(resp) = validate_character_edit(body.level, body.exp, &body.nickname) {
+    if let Some(resp) = validate_character_edit(body.level, body.exp, &body.nickname) {
         return resp;
     }
-    for list in [&body.passive_skills, &body.active_skills, &body.learned_skills] {
-        if let Some(l) = list {
-            if l.len() > 64 || l.iter().any(|s| s.len() > 128) {
-                return unprocessable("skill list too long");
-            }
+    // On-disk condenser Rank is 1-based (1 = uncondensed, 5 = 4 stars);
+    // 0 is not a value the game writes.
+    if body.rank.is_some_and(|r| !(1..=5).contains(&r)) {
+        return unprocessable("rank out of range (1..=5; 1 = no condenser stars)");
+    }
+    for l in [&body.passive_skills, &body.active_skills, &body.learned_skills]
+        .into_iter()
+        .flatten()
+    {
+        if l.len() > 64 || l.iter().any(|s| s.len() > 128) {
+            return unprocessable("skill list too long");
         }
     }
 
@@ -941,22 +1013,23 @@ async fn player_technologies(
     }
 }
 
-/// Shared 422 validation for level/exp/nickname edits.
+/// Shared 422 validation for level/exp/nickname edits; `Some(response)` on
+/// the first violation.
 fn validate_character_edit(
     level: Option<u8>,
     exp: Option<i64>,
     nickname: &Option<String>,
-) -> Result<(), Response> {
+) -> Option<Response> {
     if level.is_some_and(|l| !(1..=100).contains(&l)) {
-        return Err(unprocessable("level out of range (1..=100)"));
+        return Some(unprocessable("level out of range (1..=100)"));
     }
     if exp.is_some_and(|e| e < 0) {
-        return Err(unprocessable("exp must be non-negative"));
+        return Some(unprocessable("exp must be non-negative"));
     }
     if nickname.as_ref().is_some_and(|n| n.chars().count() > 64) {
-        return Err(unprocessable("nickname too long (max 64 chars)"));
+        return Some(unprocessable("nickname too long (max 64 chars)"));
     }
-    Ok(())
+    None
 }
 
 /// 422 for absurd status-point values.

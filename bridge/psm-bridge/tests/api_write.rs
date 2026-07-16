@@ -329,3 +329,24 @@ async fn invalid_targets_and_values() {
 
     std::fs::remove_dir_all(&dir).ok();
 }
+
+#[tokio::test]
+async fn clear_container_end_to_end() {
+    let dir = temp_world("clear");
+    let app = make_router_at(&dir, true);
+    let cid = common_container_id(&app).await;
+
+    let (status, json) =
+        request(&app, "POST", &format!("/v1/containers/{cid}/clear"), None).await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    assert_eq!(json["container"]["used"], 0);
+    assert!(json["backup"].is_string(), "a real clear takes one backup");
+
+    // Clearing again is a no-op: still ok, but no file write and no backup.
+    let (status, json) =
+        request(&app, "POST", &format!("/v1/containers/{cid}/clear"), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(json.get("backup").is_none() || json["backup"].is_null());
+
+    std::fs::remove_dir_all(&dir).ok();
+}

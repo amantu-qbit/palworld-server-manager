@@ -186,15 +186,14 @@ function ContainerPane({
   }, [c.slots]);
 
   const runClear = async (occ: ItemContainerSlot[]) => {
+    // One bulk request: a single save write and a single backup, instead of
+    // one per stack (which could churn old backups out of the keep window).
     setClearing({ done: 0, total: occ.length });
     try {
-      for (let i = 0; i < occ.length; i++) {
-        await bridgeApi.setContainerSlot(c.id, occ[i].slot_index, "None", 0);
-        setClearing({ done: i + 1, total: occ.length });
-      }
+      await bridgeApi.clearContainer(c.id);
       toast.success("Container cleared", `${occ.length} stacks removed — backup saved.`);
     } catch (e) {
-      toast.error("Clear stopped partway", e instanceof Error ? e.message : String(e));
+      toast.error("Clear failed", e instanceof Error ? e.message : String(e));
     } finally {
       setClearing(null);
       invalidateBridgeData();
@@ -514,8 +513,10 @@ function ResizeDialog({
     }
   }, [open, c.slot_num]);
 
+  // A cleared field is "no value yet", never 0 — Number("") === 0 would
+  // otherwise arm the confirm button to shrink the container to nothing.
   const num = Number(val);
-  const valid = Number.isInteger(num) && num >= 0 && num <= 9999;
+  const valid = val.trim() !== "" && Number.isInteger(num) && num >= 0 && num <= 9999;
   const doomed = useMemo(
     () => (valid ? slotsDeletedByResize(c.slots, num) : []),
     [valid, c.slots, num],

@@ -55,6 +55,9 @@ const genderSymbol = (g: string) => {
 const ivColor = (v: number) => (v >= 90 ? "#3ad19a" : v >= 60 ? "#e6b450" : "#7c8494");
 
 const clampInt = (v: unknown, min: number, max: number, fallback = min) => {
+  // A cleared <input> yields "" and Number("") === 0 — that must mean "keep
+  // the original", never "write 0/min to the save".
+  if (typeof v === "string" && v.trim() === "") return fallback;
   const n = Math.trunc(Number(v));
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
 };
@@ -517,9 +520,13 @@ function PlayerEditDrawer({
       onClose();
       return;
     }
+    // Two independent writes (Level.sav stats + per-player .sav points) — a
+    // failure part-way must say exactly what committed, not a blanket error.
+    let statsSaved = false;
     try {
       if (Object.keys(body).length) {
         await editPlayer.mutateAsync({ uid: detail.summary.uid, body });
+        statsSaved = true;
       }
       if (techChanged) {
         await editTech.mutateAsync({
@@ -530,7 +537,12 @@ function PlayerEditDrawer({
       toast.success("Character updated", "Backup saved before the change.");
       onClose();
     } catch (e) {
-      toast.error("Save failed", e instanceof Error ? e.message : String(e));
+      const msg = e instanceof Error ? e.message : String(e);
+      if (statsSaved) {
+        toast.error("Stats saved, but technology points failed", msg);
+      } else {
+        toast.error("Save failed", msg);
+      }
     }
   };
 
@@ -892,9 +904,10 @@ function PalEditForm({
       </section>
 
       <section className="ch-formsec">
-        <div className="eyebrow">Condenser rank (0–5)</div>
+        {/* On-disk Rank is 1-based: 1 = no stars, 5 = 4 stars (max). */}
+        <div className="eyebrow">Condenser (1 = no stars, 5 = 4 stars)</div>
         <div className="ch-steprow">
-          <Stepper label="Rank" v={rank} min={0} max={5} onChange={setRank} />
+          <Stepper label="Rank" v={Math.max(1, rank)} min={1} max={5} onChange={setRank} />
         </div>
       </section>
 
@@ -1130,7 +1143,7 @@ function InventoryView({
   itemName: (id: string) => string;
 }) {
   const groups = inventory
-    .map((c) => ({ c, filled: c.slots.filter((s) => s.static_id) }))
+    .map((c) => ({ c, filled: c.slots.filter((s) => s.static_id && s.static_id !== "None") }))
     .filter((g) => g.filled.length > 0);
 
   if (groups.length === 0) {
