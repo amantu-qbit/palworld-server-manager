@@ -34,12 +34,15 @@ use crate::state::{AppState, StateError};
 use crate::supervisor::{ServerStatus, Supervisor, SupervisorError};
 
 /// Combined router state: the decoded-save cache plus the configured auth
-/// token. Cheap to clone — both fields are `Arc`s.
+/// token. Cheap to clone — the fields are `Arc`s or `Copy`.
 #[derive(Clone)]
 struct ServerState {
     app: Arc<AppState>,
     token: Arc<String>,
     supervisor: Arc<Supervisor>,
+    /// The `[safety] allow_writes` config value at bind time. Save-write
+    /// endpoints 403 when false; `/v1/health` reports it.
+    allow_writes: bool,
 }
 
 /// SECURITY: EVERY endpoint route MUST be added inside this function.
@@ -56,7 +59,13 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/players/{id}", get(player_detail))
         .route("/v1/players/{id}/pals", get(player_pals))
         .route("/v1/players/{id}/inventory", get(player_inventory))
+        .route("/v1/players/{id}/edit", post(player_edit))
+        .route("/v1/players/{id}/technologies", post(player_technologies))
+        .route("/v1/pals/{id}/edit", post(pal_edit))
         .route("/v1/guilds", get(list_guilds))
+        .route("/v1/containers", get(list_containers))
+        .route("/v1/containers/{id}/resize", post(container_resize))
+        .route("/v1/containers/{id}/slot", post(container_slot))
         .route("/v1/reference/{catalog}", get(reference_catalog))
         .route("/v1/server/status", get(server_status))
         .route("/v1/server/start", post(server_start))
@@ -71,11 +80,17 @@ fn app_routes() -> Router<ServerState> {
 /// Currently exposes `GET /v1/health`. Every route registered in
 /// [`app_routes`] is wrapped in a Bearer-auth layer (see [`auth`]) that
 /// requires the `Authorization` header to equal `Bearer {token}`.
-pub fn router(state: Arc<AppState>, token: Arc<String>, supervisor: Arc<Supervisor>) -> Router {
+pub fn router(
+    state: Arc<AppState>,
+    token: Arc<String>,
+    supervisor: Arc<Supervisor>,
+    allow_writes: bool,
+) -> Router {
     let server_state = ServerState {
         app: state,
         token,
         supervisor,
+        allow_writes,
     };
 
     app_routes()
@@ -92,16 +107,25 @@ struct HealthResponse {
     capabilities: &'static [&'static str],
     save_detected: bool,
     writes_enabled: bool,
+    /// True when the game server process is detected — save writes are
+    /// blocked while it runs (the game holds the save in memory and would
+    /// overwrite any edit on its next autosave).
+    server_running: bool,
 }
 
-/// `GET /v1/health` — reports server version, capabilities, and whether a
-/// save file is currently detected. Writes are always disabled in Phase 1b.
+/// `GET /v1/health` — server version, capabilities, whether a save file is
+/// detected, and whether save writes are currently possible.
 async fn health(State(state): State<ServerState>) -> impl IntoResponse {
     Json(HealthResponse {
         version: env!("CARGO_PKG_VERSION"),
-        capabilities: &["read"],
+        capabilities: if state.allow_writes {
+            &["read", "write"]
+        } else {
+            &["read"]
+        },
         save_detected: state.app.level_sav_exists(),
-        writes_enabled: false,
+        writes_enabled: state.allow_writes,
+        server_running: state.supervisor.status().running,
     })
 }
 
@@ -413,6 +437,524 @@ fn supervisor_result(result: Result<ServerStatus, SupervisorError>) -> Response 
                 .into_response()
         }
     }
+}
+
+// --- Containers + save writes (Phase 2) --------------------------------------
+//
+// Save-write requests run through a fixed guard ladder — 403 unless
+// `allow_writes` is configured on, 409 while the game server process is
+// running (it holds the save in memory; an edit would be overwritten by its
+// next autosave, or worse interleave with one), 404 for unknown targets,
+// 422 for invalid values — and every successful write returns the path of the
+// timestamped backup taken before the file was replaced. The mtime/size cache
+// key in `AppState` makes the post-write re-read decode fresh state
+// automatically.
+
+/// One labeled item container: a player inventory bag or a guild chest.
+#[derive(Serialize)]
+struct ContainerInfo {
+    id: String,
+    kind: &'static str,
+    label: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    owner_uid: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    owner_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    guild_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    guild_name: Option<String>,
+    slot_num: i32,
+    used: usize,
+    slots: Vec<psm_save::save::model::ItemContainerSlot>,
+}
+
+#[derive(Serialize)]
+struct ContainersResponse {
+    containers: Vec<ContainerInfo>,
+}
+
+/// The five player-bag kinds, in display order, with their
+/// `PlayerContainerIds` accessor.
+const BAG_KINDS: [(&str, &str, fn(&PlayerContainerIds) -> &String); 5] = [
+    ("common", "Inventory", |c| &c.common),
+    ("essential", "Key Items", |c| &c.essential),
+    ("weapon_loadout", "Weapons", |c| &c.weapon_loadout),
+    ("player_equip_armor", "Armor", |c| &c.player_equip_armor),
+    ("food_equip", "Food", |c| &c.food_equip),
+];
+
+fn container_info_from(
+    bundle: &WorldBundle,
+    id: Uuid,
+    kind: &'static str,
+    label: &'static str,
+) -> Option<ContainerInfo> {
+    let c = bundle.item_containers.get(&id)?;
+    let used = c
+        .slots
+        .iter()
+        .filter(|s| !s.static_id.is_empty() && s.static_id != "None")
+        .count();
+    Some(ContainerInfo {
+        id: id.to_string(),
+        kind,
+        label,
+        owner_uid: None,
+        owner_name: None,
+        guild_id: None,
+        guild_name: None,
+        slot_num: c.slot_num,
+        used,
+        slots: c.slots.clone(),
+    })
+}
+
+/// Every labeled container in the world: each player's five bags plus each
+/// guild's chest. Players whose per-player `.sav` is missing are skipped.
+async fn collect_containers(state: &ServerState) -> Result<Vec<ContainerInfo>, Response> {
+    let bundle = state.app.bundle().await.map_err(internal_error)?;
+    let mut out = Vec::new();
+
+    for p in &bundle.world.players {
+        let save = match state.app.player_save(&p.uid).await {
+            Ok(s) => s,
+            Err(StateError::Load(SaveError::Io(_))) => continue,
+            Err(e) => return Err(internal_error(e)),
+        };
+        for (kind, label, id_of) in BAG_KINDS {
+            let Ok(cid) = Uuid::parse_str(id_of(&save.containers)) else {
+                continue;
+            };
+            if let Some(mut info) = container_info_from(&bundle, cid, kind, label) {
+                info.owner_uid = Some(p.uid.clone());
+                info.owner_name = Some(p.nickname.clone());
+                out.push(info);
+            }
+        }
+    }
+
+    for g in &bundle.world.guilds {
+        let Ok(gid) = Uuid::parse_str(&g.id) else {
+            continue;
+        };
+        let Some(cid) = bundle.guild_chests.get(&gid) else {
+            continue;
+        };
+        if let Some(mut info) = container_info_from(&bundle, *cid, "guild_chest", "Guild Chest") {
+            info.guild_id = Some(g.id.clone());
+            info.guild_name = Some(g.name.clone());
+            out.push(info);
+        }
+    }
+    Ok(out)
+}
+
+/// `GET /v1/containers` — every labeled item container (player bags + guild
+/// chests) with resolved slots.
+async fn list_containers(State(state): State<ServerState>) -> Response {
+    match collect_containers(&state).await {
+        Ok(containers) => Json(ContainersResponse { containers }).into_response(),
+        Err(resp) => resp,
+    }
+}
+
+/// The 403/409 guard ladder every save-write endpoint runs first.
+fn write_guard(state: &ServerState) -> Option<Response> {
+    if !state.allow_writes {
+        return Some(
+            (
+                StatusCode::FORBIDDEN,
+                Json(ErrorResponse {
+                    error: "writes_disabled",
+                }),
+            )
+                .into_response(),
+        );
+    }
+    if state.supervisor.status().running {
+        return Some(
+            (
+                StatusCode::CONFLICT,
+                Json(ErrorDetailResponse {
+                    error: "server_running",
+                    detail: "stop the server before editing saves".to_string(),
+                }),
+            )
+                .into_response(),
+        );
+    }
+    None
+}
+
+/// Run a blocking save edit off the async executor with the same
+/// `catch_unwind` quarantine as every other GVAS codec path, mapping errors
+/// to HTTP responses.
+async fn run_edit<F>(op: F) -> Result<psm_save::save::edit::EditReceipt, Response>
+where
+    F: FnOnce() -> Result<psm_save::save::edit::EditReceipt, SaveError> + Send + 'static,
+{
+    let outcome =
+        tokio::task::spawn_blocking(move || std::panic::catch_unwind(AssertUnwindSafe(op))).await;
+    match outcome {
+        Ok(Ok(Ok(receipt))) => Ok(receipt),
+        Ok(Ok(Err(SaveError::Io(e)))) => Err(internal_error(e)),
+        Ok(Ok(Err(e))) => Err(unprocessable(e)),
+        Ok(Err(_panic)) => Err(unprocessable("save could not be edited")),
+        Err(_join) => Err(internal_error("edit task failed")),
+    }
+}
+
+/// Successful-write response shell.
+#[derive(Serialize)]
+struct WriteResponse {
+    ok: bool,
+    backup: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    container: Option<ContainerInfo>,
+}
+
+fn write_ok(receipt: &psm_save::save::edit::EditReceipt, container: Option<ContainerInfo>) -> Response {
+    Json(WriteResponse {
+        ok: true,
+        backup: receipt.backup.display().to_string(),
+        container,
+    })
+    .into_response()
+}
+
+/// Re-read the (self-invalidated) bundle and rebuild one container's info,
+/// preserving its labeling from a pre-write snapshot.
+async fn refreshed_container(
+    state: &ServerState,
+    cid: Uuid,
+) -> Option<ContainerInfo> {
+    let all = collect_containers(state).await.ok()?;
+    all.into_iter().find(|c| c.id == cid.to_string())
+}
+
+#[derive(serde::Deserialize)]
+struct ResizeBody {
+    slot_num: u32,
+}
+
+/// `POST /v1/containers/{id}/resize` — change a container's slot count
+/// (upstream PR #299 semantics; shrinking deletes out-of-range slots).
+async fn container_resize(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<ResizeBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Ok(cid) = Uuid::parse_str(&id) else {
+        return not_found();
+    };
+    if body.slot_num > 9999 {
+        return unprocessable("slot_num out of range (0..=9999)");
+    }
+    match state.app.bundle().await {
+        Ok(b) if b.item_containers.contains_key(&cid) => {}
+        Ok(_) => return not_found(),
+        Err(e) => return internal_error(e),
+    }
+
+    let path = state.app.save_dir().join("Level.sav");
+    let n = body.slot_num;
+    let receipt = match run_edit(move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::resize_container(gvas, cid, n)
+        })
+    })
+    .await
+    {
+        Ok(r) => r,
+        Err(resp) => return resp,
+    };
+    let container = refreshed_container(&state, cid).await;
+    write_ok(&receipt, container)
+}
+
+#[derive(serde::Deserialize)]
+struct SlotBody {
+    slot_index: i32,
+    static_id: String,
+    count: i32,
+}
+
+/// `POST /v1/containers/{id}/slot` — set or clear one slot (static items;
+/// `static_id: "None"` or `count: 0` clears).
+async fn container_slot(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<SlotBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Ok(cid) = Uuid::parse_str(&id) else {
+        return not_found();
+    };
+    if body.count < 0 || body.count > 9999 {
+        return unprocessable("count out of range (0..=9999)");
+    }
+    if body.static_id.len() > 128 {
+        return unprocessable("static_id too long");
+    }
+    match state.app.bundle().await {
+        Ok(b) if b.item_containers.contains_key(&cid) => {}
+        Ok(_) => return not_found(),
+        Err(e) => return internal_error(e),
+    }
+
+    let path = state.app.save_dir().join("Level.sav");
+    let SlotBody {
+        slot_index,
+        static_id,
+        count,
+    } = body;
+    let receipt = match run_edit(move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::set_container_slot(gvas, cid, slot_index, &static_id, count)
+        })
+    })
+    .await
+    {
+        Ok(r) => r,
+        Err(resp) => return resp,
+    };
+    let container = refreshed_container(&state, cid).await;
+    write_ok(&receipt, container)
+}
+
+#[derive(serde::Deserialize, Default)]
+struct PlayerEditBody {
+    level: Option<u8>,
+    exp: Option<i64>,
+    status_points: Option<BTreeMap<String, i32>>,
+    ext_status_points: Option<BTreeMap<String, i32>>,
+}
+
+/// `POST /v1/players/{id}/edit` — level/exp/status-point edits in `Level.sav`.
+async fn player_edit(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<PlayerEditBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Some(uid_str) = canonical_uid(&id) else {
+        return not_found();
+    };
+    match state.app.bundle().await {
+        Ok(b) if b.world.players.iter().any(|p| p.uid == uid_str) => {}
+        Ok(_) => return not_found(),
+        Err(e) => return internal_error(e),
+    }
+    if let Err(resp) = validate_character_edit(body.level, body.exp, &None) {
+        return resp;
+    }
+    if let Some(resp) = validate_points(&body.status_points).or(validate_points(&body.ext_status_points)) {
+        return resp;
+    }
+
+    let uid = Uuid::parse_str(&uid_str).expect("canonical uid parses");
+    let edits = psm_save::save::edit::ops::CharacterEdits {
+        level: body.level,
+        exp: body.exp,
+        status_points: body.status_points,
+        ext_status_points: body.ext_status_points,
+        ..Default::default()
+    };
+    let path = state.app.save_dir().join("Level.sav");
+    match run_edit(move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::edit_character(
+                gvas,
+                psm_save::save::edit::ops::CharTarget::Player(uid),
+                &edits,
+            )
+        })
+    })
+    .await
+    {
+        Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+#[derive(serde::Deserialize, Default)]
+struct PalEditBody {
+    level: Option<u8>,
+    exp: Option<i64>,
+    nickname: Option<String>,
+    passive_skills: Option<Vec<String>>,
+    active_skills: Option<Vec<String>>,
+    learned_skills: Option<Vec<String>>,
+    rank: Option<u8>,
+    rank_hp: Option<u8>,
+    rank_attack: Option<u8>,
+    rank_defense: Option<u8>,
+    rank_craftspeed: Option<u8>,
+    talent_hp: Option<u8>,
+    talent_shot: Option<u8>,
+    talent_defense: Option<u8>,
+}
+
+/// `POST /v1/pals/{id}/edit` — pal edits in `Level.sav`, keyed by pal
+/// instance id.
+async fn pal_edit(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<PalEditBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Some(iid_str) = canonical_uid(&id) else {
+        return not_found();
+    };
+    match state.app.bundle().await {
+        Ok(b) if b.world.pals.iter().any(|p| p.instance_id == iid_str) => {}
+        Ok(_) => return not_found(),
+        Err(e) => return internal_error(e),
+    }
+    if let Err(resp) = validate_character_edit(body.level, body.exp, &body.nickname) {
+        return resp;
+    }
+    for list in [&body.passive_skills, &body.active_skills, &body.learned_skills] {
+        if let Some(l) = list {
+            if l.len() > 64 || l.iter().any(|s| s.len() > 128) {
+                return unprocessable("skill list too long");
+            }
+        }
+    }
+
+    let iid = Uuid::parse_str(&iid_str).expect("canonical uid parses");
+    let edits = psm_save::save::edit::ops::CharacterEdits {
+        level: body.level,
+        exp: body.exp,
+        nickname: body.nickname,
+        passive_skills: body.passive_skills,
+        active_skills: body.active_skills,
+        learned_skills: body.learned_skills,
+        rank: body.rank,
+        rank_hp: body.rank_hp,
+        rank_attack: body.rank_attack,
+        rank_defense: body.rank_defense,
+        rank_craftspeed: body.rank_craftspeed,
+        talent_hp: body.talent_hp,
+        talent_shot: body.talent_shot,
+        talent_defense: body.talent_defense,
+        ..Default::default()
+    };
+    let path = state.app.save_dir().join("Level.sav");
+    match run_edit(move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::edit_character(
+                gvas,
+                psm_save::save::edit::ops::CharTarget::Instance(iid),
+                &edits,
+            )
+        })
+    })
+    .await
+    {
+        Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+#[derive(serde::Deserialize, Default)]
+struct TechBody {
+    #[serde(default)]
+    unlock: Vec<String>,
+    #[serde(default)]
+    relock: Vec<String>,
+    technology_point: Option<i32>,
+    boss_technology_point: Option<i32>,
+}
+
+/// `POST /v1/players/{id}/technologies` — unlock/relock technologies and set
+/// technology points in the per-player `<UID>.sav`.
+async fn player_technologies(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<TechBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let Some(uid_str) = canonical_uid(&id) else {
+        return not_found();
+    };
+    if body.unlock.len() > 1000
+        || body.relock.len() > 1000
+        || body.unlock.iter().chain(&body.relock).any(|s| s.len() > 128)
+    {
+        return unprocessable("technology list too long");
+    }
+    if body.technology_point.is_some_and(|v| !(0..=100_000).contains(&v))
+        || body.boss_technology_point.is_some_and(|v| !(0..=100_000).contains(&v))
+    {
+        return unprocessable("technology points out of range");
+    }
+
+    let sav = state
+        .app
+        .save_dir()
+        .join("Players")
+        .join(format!("{}.sav", uid_str.replace('-', "").to_uppercase()));
+    if !sav.is_file() {
+        return not_found();
+    }
+
+    let edits = psm_save::save::edit::ops::TechEdits {
+        unlock: body.unlock,
+        relock: body.relock,
+        technology_point: body.technology_point,
+        boss_technology_point: body.boss_technology_point,
+    };
+    match run_edit(move || {
+        psm_save::save::edit::edit_sav_file(&sav, |gvas| {
+            psm_save::save::edit::ops::edit_player_technologies(gvas, &edits)
+        })
+    })
+    .await
+    {
+        Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+/// Shared 422 validation for level/exp/nickname edits.
+fn validate_character_edit(
+    level: Option<u8>,
+    exp: Option<i64>,
+    nickname: &Option<String>,
+) -> Result<(), Response> {
+    if level.is_some_and(|l| !(1..=100).contains(&l)) {
+        return Err(unprocessable("level out of range (1..=100)"));
+    }
+    if exp.is_some_and(|e| e < 0) {
+        return Err(unprocessable("exp must be non-negative"));
+    }
+    if nickname.as_ref().is_some_and(|n| n.chars().count() > 64) {
+        return Err(unprocessable("nickname too long (max 64 chars)"));
+    }
+    Ok(())
+}
+
+/// 422 for absurd status-point values.
+fn validate_points(points: &Option<BTreeMap<String, i32>>) -> Option<Response> {
+    if let Some(p) = points {
+        if p.len() > 64 || p.values().any(|v| !(0..=100_000).contains(v)) {
+            return Some(unprocessable("status points out of range"));
+        }
+    }
+    None
 }
 
 // ---- Debug: raw GVAS tree viewer (read-only) ----

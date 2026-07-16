@@ -92,7 +92,9 @@ async fn serve_loop(runtime: Arc<Runtime>) {
 
         let app = Arc::new(AppState::new(runtime.save_dir()));
         let token = Arc::new(runtime.token());
-        let router = server::router(app, token, runtime.supervisor.clone());
+        // `allow_writes` is sampled per bind; toggling it in the GUI fires
+        // `reconfigure`, which re-binds with the new value.
+        let router = server::router(app, token, runtime.supervisor.clone(), runtime.allow_writes());
 
         let shutdown_rt = runtime.clone();
         let shutdown = async move { shutdown_rt.reconfigure.notified().await };

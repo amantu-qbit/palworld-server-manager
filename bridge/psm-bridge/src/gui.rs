@@ -234,7 +234,10 @@ impl eframe::App for BridgeApp {
                     ui.end_row();
                 });
 
-            ui.checkbox(&mut self.allow_writes, "Allow save edits (reserved for a future feature)");
+            ui.checkbox(
+                &mut self.allow_writes,
+                "Allow save edits (containers, players, pals — blocked while the server runs; a timestamped backup is taken before every write)",
+            );
             ui.add_space(6.0);
 
             ui.horizontal(|ui| {

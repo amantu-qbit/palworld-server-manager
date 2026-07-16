@@ -39,6 +39,8 @@ pub struct WorldBundle {
     pub item_containers: HashMap<Uuid, ItemContainer>,
     /// `DynamicItemSaveData`, decoded and keyed by `local_id`.
     pub dynamic_items: HashMap<Uuid, DynamicItem>,
+    /// `GuildExtraSaveDataMap`, reduced to guild-id → guild-chest container id.
+    pub guild_chests: HashMap<Uuid, Uuid>,
 }
 
 /// Load a save directory's `Level.sav` into a [`World`].
@@ -78,7 +80,7 @@ pub fn load_world(dir: &Path) -> Result<World, SaveError> {
 /// fixture doesn't fail to load just because it has no items.
 pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> {
     let gvas = parse_level_sav(dir)?;
-    let (world, players) = build_world(&gvas)?;
+    let (mut world, players) = build_world(&gvas)?;
 
     let world_save_data = gvas
         .root
@@ -93,12 +95,32 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
         Some(prop) => containers::decode_item_containers(prop, &dynamic_items)?,
         None => HashMap::new(),
     };
+    let guild_chests = match world_save_data.get_child("GuildExtraSaveDataMap") {
+        Some(prop) => guild::decode_guild_chests(prop)?,
+        None => HashMap::new(),
+    };
+
+    // Back-fill each guild's chest with its resolved container so `/v1/guilds`
+    // consumers see it without a second lookup.
+    for g in &mut world.guilds {
+        let Ok(gid) = Uuid::parse_str(&g.id) else {
+            continue;
+        };
+        if let Some(cid) = guild_chests.get(&gid) {
+            if let Some(container) = item_containers.get(cid) {
+                let mut chest = container.clone();
+                chest.container_type = "GuildChest".to_string();
+                g.guild_chest = Some(chest);
+            }
+        }
+    }
 
     Ok(WorldBundle {
         world,
         players,
         item_containers,
         dynamic_items,
+        guild_chests,
     })
 }
 
