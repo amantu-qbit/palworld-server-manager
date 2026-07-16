@@ -3,6 +3,7 @@ import { isTauri } from "./index";
 import type { Connection } from "../types/api";
 import type {
   BridgeHealth,
+  CloneResult,
   ContainerInfo,
   ContainersResponse,
   ContainerWriteResult,
@@ -61,6 +62,12 @@ export interface BridgeApi {
   editPlayerTechnologies(uid: string, body: EditPlayerTechnologiesBody): Promise<WriteResult>;
   /** Edit one Pal instance (level, nickname, souls, talents, skills…). */
   editPal(instanceId: string, body: EditPalBody): Promise<WriteResult>;
+  /** Fully restore one Pal (revive, cure sickness, refill HP/sanity/stomach). */
+  healPal(instanceId: string): Promise<WriteResult>;
+  /** Permanently remove one Pal (and its box slot) from the save. */
+  deletePal(instanceId: string): Promise<WriteResult>;
+  /** Duplicate one Pal into the owner's pal box; returns the copy's id. */
+  clonePal(instanceId: string): Promise<CloneResult>;
 }
 
 const path = {
@@ -72,6 +79,9 @@ const path = {
   editPlayer: (uid: string) => `/players/${encodeURIComponent(uid)}/edit`,
   technologies: (uid: string) => `/players/${encodeURIComponent(uid)}/technologies`,
   editPal: (id: string) => `/pals/${encodeURIComponent(id)}/edit`,
+  healPal: (id: string) => `/pals/${encodeURIComponent(id)}/heal`,
+  deletePal: (id: string) => `/pals/${encodeURIComponent(id)}/delete`,
+  clonePal: (id: string) => `/pals/${encodeURIComponent(id)}/clone`,
   savTree: (file: string, sub = "", page?: number, depth?: number) => {
     const q = new URLSearchParams({ file });
     if (sub) q.set("path", sub);
@@ -116,6 +126,9 @@ const tauriBridge: BridgeApi = {
     invoke<WriteResult>("bridge_post", { path: path.technologies(uid), body }),
   editPal: (instanceId, body) =>
     invoke<WriteResult>("bridge_post", { path: path.editPal(instanceId), body }),
+  healPal: (instanceId) => invoke<WriteResult>("bridge_post", { path: path.healPal(instanceId) }),
+  deletePal: (instanceId) => invoke<WriteResult>("bridge_post", { path: path.deletePal(instanceId) }),
+  clonePal: (instanceId) => invoke<CloneResult>("bridge_post", { path: path.clonePal(instanceId) }),
 };
 
 let conn: Connection | null = null;
@@ -182,6 +195,9 @@ const httpBridge: BridgeApi = {
   editPlayer: (uid, body) => call<WriteResult>(path.editPlayer(uid), "POST", body),
   editPlayerTechnologies: (uid, body) => call<WriteResult>(path.technologies(uid), "POST", body),
   editPal: (instanceId, body) => call<WriteResult>(path.editPal(instanceId), "POST", body),
+  healPal: (instanceId) => call<WriteResult>(path.healPal(instanceId), "POST"),
+  deletePal: (instanceId) => call<WriteResult>(path.deletePal(instanceId), "POST"),
+  clonePal: (instanceId) => call<CloneResult>(path.clonePal(instanceId), "POST"),
 };
 
 export const bridgeApi: BridgeApi = isTauri() ? tauriBridge : httpBridge;

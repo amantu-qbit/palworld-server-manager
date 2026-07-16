@@ -174,6 +174,11 @@ export interface ContainerWriteResult extends WriteResult {
   container: ContainerInfo;
 }
 
+/** `POST /v1/pals/{id}/clone` echoes the new copy's instance id. */
+export interface CloneResult extends WriteResult {
+  instance_id: string;
+}
+
 /** `POST /v1/players/{uid}/edit` body — all fields optional.
  *  `status_points` / `ext_status_points` keys must be the exact on-disk names
  *  previously returned by `GET /v1/players/{uid}` (often Japanese). */
@@ -209,6 +214,10 @@ export interface EditPalBody {
   talent_hp?: number;
   talent_shot?: number;
   talent_defense?: number;
+  gender?: "Male" | "Female";
+  /** `EPalWorkSuitability::…` code → rank 0..=5. Existing codes are updated
+   *  in place; codes the pal doesn't have yet are added. */
+  work_suitability?: Record<string, number>;
 }
 
 /** id → display-name map from `GET /v1/reference/{catalog}`. */

@@ -1514,3 +1514,47 @@
   box-shadow: inset 0 0 0 1px var(--line);
   border-radius: 6px;
 }
+
+/* ================================================================== *
+ *  Tier-2 pal actions: heal / clone / delete + gender & work editing
+ * ================================================================== */
+
+/* Heal icon button beside the edit toggle (view mode only). */
+.ch-modalheal:hover:not(:disabled) {
+  color: var(--good);
+  background: var(--good-soft);
+}
+.ch-modalheal:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* View-mode footer (clone / delete) under a hairline. */
+.ch-modalfoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* Gender segmented pair in the edit form. */
+.ch-gender {
+  display: flex;
+  gap: 8px;
+}
+.ch-gender .btn.is-on {
+  color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+
+/* Work-suitability steppers: grid keeps the long labels lined up. */
+.ch-workedit {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 10px;
+}
+.ch-workedit .ch-step b {
+  flex: 1;
+}

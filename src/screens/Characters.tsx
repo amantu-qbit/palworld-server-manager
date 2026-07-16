@@ -3,11 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Copy,
   Cpu,
+  HeartPulse,
   PackageOpen,
   PawPrint,
   Pencil,
   Plus,
   Search,
+  Trash2,
   TriangleAlert,
   Users,
   X,
@@ -28,9 +30,12 @@ import {
   useBridgePlayerDetail,
   useBridgePlayers,
   useBridgeReference,
+  useClonePal,
+  useDeletePal,
   useEditPal,
   useEditPlayer,
   useEditPlayerTechnologies,
+  useHealPal,
 } from "../hooks/bridge";
 import { useToast } from "../hooks/useToast";
 import { TechTree } from "../components/TechTree";
@@ -197,6 +202,12 @@ function PlayerPanel({
 
   const groups = useMemo(() => groupPals(d), [d]);
 
+  // `selectedPal` is a click-time snapshot; writes (heal, edit) refetch the
+  // detail, so resolve the modal's pal from fresh data whenever it's there.
+  const modalPal = selectedPal
+    ? (d?.pals.find((p) => p.instance_id === selectedPal.instance_id) ?? selectedPal)
+    : null;
+
   return (
     <>
       <header className="ch-head">
@@ -259,9 +270,9 @@ function PlayerPanel({
         </>
       ) : null}
 
-      {selectedPal && (
+      {modalPal && (
         <PalDetailModal
-          pal={selectedPal}
+          pal={modalPal}
           onClose={() => setSelectedPal(null)}
           skillName={skillName}
           passiveName={passiveName}
@@ -659,6 +670,12 @@ function PalDetailModal({
   onCopy: (text: string) => void;
 }) {
   const [edit, setEdit] = useState(false);
+  const [confirm, setConfirm] = useState<ConfirmSpec | null>(null);
+  const toast = useToast();
+  const healPal = useHealPal();
+  const clonePal = useClonePal();
+  const deletePal = useDeletePal();
+  const pending = healPal.isPending || clonePal.isPending || deletePal.isPending;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -667,6 +684,48 @@ function PalDetailModal({
   }, [onClose]);
 
   const info = palInfo(pal.character_id);
+  const displayName = pal.nickname || info.name;
+
+  const heal = async () => {
+    try {
+      const res = await healPal.mutateAsync(pal.instance_id);
+      toast.success("Pal healed", res.backup ? "Backup saved before the change." : undefined);
+    } catch (e) {
+      toast.error("Heal failed", e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const askClone = () =>
+    setConfirm({
+      title: `Clone ${displayName}?`,
+      body: "A copy is placed in the owner's Pal Box.",
+      confirmText: "Clone",
+      onConfirm: async () => {
+        try {
+          await clonePal.mutateAsync(pal.instance_id);
+          toast.success("Pal cloned", "A copy was placed in the owner's Pal Box.");
+        } catch (e) {
+          toast.error("Clone failed", e instanceof Error ? e.message : String(e));
+        }
+      },
+    });
+
+  const askDelete = () =>
+    setConfirm({
+      title: `Delete ${displayName}?`,
+      body: "This permanently removes the pal from the save.",
+      confirmText: "Delete",
+      danger: true,
+      onConfirm: async () => {
+        try {
+          const res = await deletePal.mutateAsync(pal.instance_id);
+          toast.success("Pal deleted", res.backup ? "Backup saved before the change." : undefined);
+          onClose();
+        } catch (e) {
+          toast.error("Delete failed", e instanceof Error ? e.message : String(e));
+        }
+      },
+    });
   const accent = info.elements.length ? elementColor(info.elements[0]) : "#5a6070";
   const prog = levelProgress(pal.exp, pal.level, true);
   const souls = [
@@ -681,6 +740,17 @@ function PalDetailModal({
     <div className="ch-modal" onClick={onClose}>
       <div className="ch-modalcard" onClick={(e) => e.stopPropagation()}>
         <div className="ch-modaltools">
+          {canEdit && !edit && (
+            <button
+              className="ch-modalclose ch-modalheal"
+              onClick={heal}
+              disabled={pending}
+              title="Heal Pal"
+              aria-label="Heal Pal"
+            >
+              <HeartPulse size={14} />
+            </button>
+          )}
           {canEdit && (
             <button
               className={`ch-modalclose ch-modaledit${edit ? " is-on" : ""}`}
@@ -787,8 +857,21 @@ function PalDetailModal({
                 </div>
               </section>
             )}
+
+            {canEdit && (
+              <div className="ch-modalfoot">
+                <Button size="sm" variant="ghost" onClick={askClone} disabled={pending} loading={clonePal.isPending}>
+                  <Copy size={13} /> Clone
+                </Button>
+                <Button size="sm" variant="danger" onClick={askDelete} disabled={pending} loading={deletePal.isPending}>
+                  <Trash2 size={13} /> Delete
+                </Button>
+              </div>
+            )}
           </>
         )}
+
+        <ConfirmDialog spec={confirm} onClose={() => setConfirm(null)} />
       </div>
     </div>
   );
@@ -830,6 +913,15 @@ function PalEditForm({
   const [talDef, setTalDef] = useState(String(pal.talent_defense));
   const [passives, setPassives] = useState<string[]>(pal.passive_skills);
   const [actives, setActives] = useState<string[]>(pal.active_skills);
+  // The save stores gender as an enum-ish string ("EPalGenderType::Female");
+  // the edit endpoint takes the plain word. Check "female" first — it contains "male".
+  const initialGender: "Male" | "Female" | null = pal.gender.toLowerCase().includes("female")
+    ? "Female"
+    : pal.gender.toLowerCase().includes("male")
+      ? "Male"
+      : null;
+  const [gender, setGender] = useState(initialGender);
+  const [work, setWork] = useState<Record<string, number>>(() => ({ ...pal.work_suitability }));
 
   const onLevel = (v: string) => {
     setLevel(v);
@@ -857,6 +949,12 @@ function PalEditForm({
     if (tDef !== pal.talent_defense) body.talent_defense = tDef;
     if (!sameList(passives, pal.passive_skills)) body.passive_skills = passives;
     if (!sameList(actives, pal.active_skills)) body.active_skills = actives;
+    if (gender && gender !== initialGender) body.gender = gender;
+    const ws: Record<string, number> = {};
+    for (const [code, v] of Object.entries(work)) {
+      if (v !== (pal.work_suitability[code] ?? 0)) ws[code] = v;
+    }
+    if (Object.keys(ws).length) body.work_suitability = ws;
 
     if (!Object.keys(body).length) {
       onCancel();
@@ -894,6 +992,23 @@ function PalEditForm({
       </Field>
 
       <section className="ch-formsec">
+        <div className="eyebrow">Gender</div>
+        <div className="ch-gender">
+          {(["Male", "Female"] as const).map((g) => (
+            <button
+              key={g}
+              type="button"
+              className={`btn btn--sm${gender === g ? " is-on" : ""}`}
+              aria-pressed={gender === g}
+              onClick={() => setGender(g)}
+            >
+              {g === "Male" ? "♂" : "♀"} {g}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="ch-formsec">
         <div className="eyebrow">Souls (0–20)</div>
         <div className="ch-steprow">
           <Stepper label="HP" v={soulHp} min={0} max={20} onChange={setSoulHp} />
@@ -925,6 +1040,24 @@ function PalEditForm({
           </Field>
         </div>
       </section>
+
+      {Object.keys(work).length > 0 && (
+        <section className="ch-formsec">
+          <div className="eyebrow">Work suitability (0–5)</div>
+          <div className="ch-workedit">
+            {Object.entries(work).map(([code, v]) => (
+              <Stepper
+                key={code}
+                label={workLabel(code)}
+                v={v}
+                min={0}
+                max={5}
+                onChange={(n) => setWork((w) => ({ ...w, [code]: n }))}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       <SkillSlots
         label="Passive skills"

@@ -162,3 +162,24 @@ export function useEditPal() {
     onSuccess: () => invalidateBridgeData(),
   });
 }
+
+export function useHealPal() {
+  return useMutation({
+    mutationFn: (instanceId: string) => bridgeApi.healPal(instanceId),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useDeletePal() {
+  return useMutation({
+    mutationFn: (instanceId: string) => bridgeApi.deletePal(instanceId),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useClonePal() {
+  return useMutation({
+    mutationFn: (instanceId: string) => bridgeApi.clonePal(instanceId),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
