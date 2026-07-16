@@ -88,6 +88,15 @@ pub fn parse_gvas(raw: &[u8], skip: &SkipSet) -> Result<Gvas, SaveError> {
     Ok(Gvas { header, root })
 }
 
+/// Byte length of the GVAS envelope header — the offset at which the root
+/// property stream begins. Used by [`super::edit`] to position its locator
+/// without re-implementing the header layout.
+pub(crate) fn header_len(raw: &[u8]) -> Result<usize, SaveError> {
+    let mut r = Reader::new(raw);
+    read_header(&mut r)?;
+    Ok(r.pos())
+}
+
 /// Consume the GVAS envelope header (`GvasHeader.read`), advancing the cursor to
 /// the start of the root property set. Only the file-type tag is validated;
 /// version/engine fields are read to advance the cursor but not asserted, so a

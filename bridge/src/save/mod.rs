@@ -1,8 +1,9 @@
-//! Save-directory decoding (read-only).
+//! Save-directory decoding, plus surgical save editing in [`edit`].
 pub mod character;
 pub mod containers;
 pub mod debug;
 pub mod decompress;
+pub mod edit;
 pub mod guild;
 pub mod gvas;
 pub mod model;
