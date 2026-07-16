@@ -43,6 +43,11 @@ struct ServerState {
     /// The `[safety] allow_writes` config value at bind time. Save-write
     /// endpoints 403 when false; `/v1/health` reports it.
     allow_writes: bool,
+    /// Serializes save-file writes. Two concurrent write requests would
+    /// otherwise read the same original bytes, race the shared `.psm-tmp`
+    /// path, and last-write-wins away one of the edits; holding this across
+    /// the whole read-edit-backup-replace sequence makes writes sequential.
+    write_lock: Arc<tokio::sync::Mutex<()>>,
 }
 
 /// SECURITY: EVERY endpoint route MUST be added inside this function.
@@ -91,6 +96,7 @@ pub fn router(
         token,
         supervisor,
         allow_writes,
+        write_lock: Arc::new(tokio::sync::Mutex::new(())),
     };
 
     app_routes()
@@ -589,11 +595,17 @@ fn write_guard(state: &ServerState) -> Option<Response> {
 
 /// Run a blocking save edit off the async executor with the same
 /// `catch_unwind` quarantine as every other GVAS codec path, mapping errors
-/// to HTTP responses.
-async fn run_edit<F>(op: F) -> Result<psm_save::save::edit::EditReceipt, Response>
+/// to HTTP responses. Holds the state's write lock for the whole
+/// read-edit-backup-replace sequence so concurrent write requests are
+/// strictly sequential (each sees the previous write's result).
+async fn run_edit<F>(
+    state: &ServerState,
+    op: F,
+) -> Result<psm_save::save::edit::EditReceipt, Response>
 where
     F: FnOnce() -> Result<psm_save::save::edit::EditReceipt, SaveError> + Send + 'static,
 {
+    let _serialized = state.write_lock.lock().await;
     let outcome =
         tokio::task::spawn_blocking(move || std::panic::catch_unwind(AssertUnwindSafe(op))).await;
     match outcome {
@@ -662,7 +674,7 @@ async fn container_resize(
 
     let path = state.app.save_dir().join("Level.sav");
     let n = body.slot_num;
-    let receipt = match run_edit(move || {
+    let receipt = match run_edit(&state, move || {
         psm_save::save::edit::edit_sav_file(&path, |gvas| {
             psm_save::save::edit::ops::resize_container(gvas, cid, n)
         })
@@ -714,7 +726,7 @@ async fn container_slot(
         static_id,
         count,
     } = body;
-    let receipt = match run_edit(move || {
+    let receipt = match run_edit(&state, move || {
         psm_save::save::edit::edit_sav_file(&path, |gvas| {
             psm_save::save::edit::ops::set_container_slot(gvas, cid, slot_index, &static_id, count)
         })
@@ -769,7 +781,7 @@ async fn player_edit(
         ..Default::default()
     };
     let path = state.app.save_dir().join("Level.sav");
-    match run_edit(move || {
+    match run_edit(&state, move || {
         psm_save::save::edit::edit_sav_file(&path, |gvas| {
             psm_save::save::edit::ops::edit_character(
                 gvas,
@@ -851,7 +863,7 @@ async fn pal_edit(
         ..Default::default()
     };
     let path = state.app.save_dir().join("Level.sav");
-    match run_edit(move || {
+    match run_edit(&state, move || {
         psm_save::save::edit::edit_sav_file(&path, |gvas| {
             psm_save::save::edit::ops::edit_character(
                 gvas,
@@ -917,7 +929,7 @@ async fn player_technologies(
         technology_point: body.technology_point,
         boss_technology_point: body.boss_technology_point,
     };
-    match run_edit(move || {
+    match run_edit(&state, move || {
         psm_save::save::edit::edit_sav_file(&sav, |gvas| {
             psm_save::save::edit::ops::edit_player_technologies(gvas, &edits)
         })
