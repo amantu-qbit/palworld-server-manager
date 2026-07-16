@@ -6,11 +6,30 @@ import { EmptyState } from "../components/EmptyState";
 import { Skeleton } from "../components/Skeleton";
 import { WorldMapView } from "../components/WorldMapView";
 import { useGameData, usePlayers } from "../hooks/queries";
+import { useBridge, useBridgeGuilds } from "../hooks/bridge";
 import type { Actor } from "../types/api";
 
 export function WorldMap() {
   const gd = useGameData();
   const playersQ = usePlayers();
+  const bridge = useBridge();
+  // Real base camps from the save (when the bridge is available) → accurate
+  // build-area circles on the map, instead of the base-pal approximation.
+  const guildsQ = useBridgeGuilds(bridge.available);
+  const bases = useMemo(
+    () =>
+      (guildsQ.data ?? []).flatMap((g) =>
+        g.bases
+          .filter((b) => b.position && b.area_range > 0)
+          .map((b) => ({
+            x: (b.position as [number, number, number])[0],
+            y: (b.position as [number, number, number])[1],
+            area_range: b.area_range,
+            guild: g.name?.trim() || "Guild",
+          })),
+      ),
+    [guildsQ.data],
+  );
 
   const snapshot = gd.data ?? null;
   // When /game-data is unavailable (GameData API off), fall back to plotting the
@@ -76,7 +95,7 @@ export function WorldMap() {
             <Skeleton style={{ width: "100%", height: "100%", borderRadius: "var(--r-lg)" }} />
           </div>
         ) : (
-          <WorldMapView actors={actors} onlineKeys={onlineKeys} fallback={fallback} />
+          <WorldMapView actors={actors} onlineKeys={onlineKeys} fallback={fallback} bases={bases} />
         )}
       </div>
     </>

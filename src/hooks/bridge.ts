@@ -57,10 +57,11 @@ export function useBridgePlayerDetail(uid: string | null) {
   });
 }
 
-export function useBridgeGuilds() {
+export function useBridgeGuilds(enabled = true) {
   return useQuery({
     queryKey: ["bridge", "guilds"],
     queryFn: () => bridgeApi.guilds(),
+    enabled,
     staleTime: 30_000,
   });
 }

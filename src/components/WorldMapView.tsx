@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Layers, Locate, Maximize2, Minimize2, Minus, Plus, Search, TriangleAlert, X } from "lucide-react";
 import type { Actor } from "../types/api";
-import { DEFAULT_MAP_AREA, MAP_AREAS, MAP_AREA_ORDER, worldToGameCoords } from "../lib/mapProject";
+import {
+  cmPerPx,
+  DEFAULT_MAP_AREA,
+  MAP_AREAS,
+  MAP_AREA_ORDER,
+  projectWorld,
+  worldToGameCoords,
+} from "../lib/mapProject";
 import type { MapArea } from "../lib/mapProject";
 import {
   actorToMarker,
@@ -50,6 +57,10 @@ interface Props {
   /** Keys (userId + lowercased names) of currently-connected players. */
   onlineKeys: Set<string>;
   fallback: boolean;
+  /** Real base camps decoded from the save (bridge): world position + build
+   *  radius, for accurate area circles. When absent, an approximation from
+   *  clustered base Pals is used instead. */
+  bases?: { x: number; y: number; area_range: number; guild: string }[];
 }
 
 function drawPalCircle(
@@ -267,7 +278,7 @@ function drawLabel(ctx: CanvasRenderingContext2D, text: string, x: number, y: nu
   ctx.textBaseline = "alphabetic";
 }
 
-export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
+export function WorldMapView({ actors, onlineKeys, fallback, bases }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -379,9 +390,21 @@ export function WorldMapView({ actors, onlineKeys, fallback }: Props) {
     [selectedId, allMarkers],
   );
 
-  // Approximate base-camp footprints: group each guild's Base Pals into camps by
-  // proximity (the API has no base boundary), then a blob per camp of 3+ Pals.
+  // Base-camp footprints. Preferred: exact circles from the save (bridge) — each
+  // base's real world position and `area_range` build radius. Fallback (no
+  // bridge / no base data): approximate by grouping each guild's Base Pals into
+  // camps by proximity (the live API has no base boundary), one blob per camp.
   const baseAreas = useMemo(() => {
+    if (bases && bases.length) {
+      const exact: { u: number; v: number; ru: number; color: string }[] = [];
+      for (const b of bases) {
+        const { area: ba, u, v } = projectWorld(b.x, b.y);
+        if (ba !== area) continue;
+        // area_range (world cm) → radius in UV units for this area's texture.
+        exact.push({ u, v, ru: b.area_range / cmPerPx(area) / MAP_PX, color: guildColor(b.guild) });
+      }
+      if (exact.length) return exact;
+    }
     const byGuild = new Map<string, MapMarker[]>();
     for (const m of areaMarkers) {
       if (m.kind !== "basepal" || !m.actor?.GuildName) continue;
