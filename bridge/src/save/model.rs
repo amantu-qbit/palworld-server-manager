@@ -230,10 +230,13 @@ pub struct Guild {
 pub struct Base {
     /// Base ID.
     pub id: String,
-    /// Base name.
+    /// Base name (player-assigned; often empty → the game shows a default).
     pub name: String,
-    /// Area range (radius or coverage level).
-    pub area_range: i32,
+    /// Build-area radius (base camp `area_range`; vanilla default 3500.0).
+    /// Decoded from `BaseCampSaveData`; `0.0` when that decode was unavailable.
+    pub area_range: f64,
+    /// World position (transform translation x/y/z), when the base camp decoded.
+    pub position: Option<[f64; 3]>,
     /// Storage container IDs at this base.
     pub storage_containers: Vec<String>,
     /// Pal instance IDs stationed here.

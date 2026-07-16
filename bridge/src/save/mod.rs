@@ -1,4 +1,5 @@
 //! Save-directory decoding, plus surgical save editing in [`edit`].
+pub mod base_camp;
 pub mod character;
 pub mod containers;
 pub mod debug;
@@ -99,6 +100,10 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
         Some(prop) => guild::decode_guild_chests(prop)?,
         None => HashMap::new(),
     };
+    let base_camps = match world_save_data.get_child("BaseCampSaveData") {
+        Some(prop) => base_camp::decode_base_camps(prop)?,
+        None => HashMap::new(),
+    };
 
     // Back-fill each guild's chest with its resolved container so `/v1/guilds`
     // consumers see it without a second lookup.
@@ -111,6 +116,18 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
                 let mut chest = container.clone();
                 chest.container_type = "GuildChest".to_string();
                 g.guild_chest = Some(chest);
+            }
+        }
+        // Back-fill each base's name/area_range/position from BaseCampSaveData
+        // (the guild only carries base ids; the camp data lives in a separate
+        // map keyed by the same id).
+        for b in &mut g.bases {
+            if let Ok(bid) = Uuid::parse_str(&b.id) {
+                if let Some(info) = base_camps.get(&bid) {
+                    b.name = info.name.clone();
+                    b.area_range = info.area_range as f64;
+                    b.position = Some(info.position);
+                }
             }
         }
     }
