@@ -106,22 +106,32 @@ fn unquote(token: &str) -> (String, bool) {
     }
 }
 
+/// Characters that would break out of a value's slot if written unquoted — a
+/// bare value containing any of these could inject or corrupt other entries.
+const TUPLE_DELIMS: [char; 5] = [',', '(', ')', '"', '='];
+
 /// Format a caller's logical value back into an on-disk token. `was_quoted`
 /// carries the original entry's shape; a brand-new key is quoted unless it looks
-/// like a number or bool. Internal quotes are stripped (Palworld tokens don't
-/// escape them) so the tuple can't be broken.
+/// like a number or bool. A value that would break the tuple if left bare is
+/// force-quoted, and internal quotes are stripped (Palworld tokens don't escape
+/// them), so no caller-supplied value can ever inject a second entry.
 fn to_token(value: &str, was_quoted: Option<bool>) -> String {
+    let has_delim = value.contains(TUPLE_DELIMS);
     let quoted = match was_quoted {
-        Some(q) => q,
-        None => !(value == "True"
-            || value == "False"
-            || value.parse::<f64>().is_ok()),
+        Some(q) => q || has_delim,
+        None => has_delim || !(value == "True" || value == "False" || value.parse::<f64>().is_ok()),
     };
     if quoted {
         format!("\"{}\"", value.replace('"', ""))
     } else {
         value.to_string()
     }
+}
+
+/// Whether `key` is a safe OptionSettings identifier (letters, digits, `_`).
+/// Anything else could break the tuple when serialized, so it is rejected.
+pub fn is_valid_key(key: &str) -> bool {
+    !key.is_empty() && key.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
 /// Parse the OptionSettings entries from raw file text.
@@ -272,6 +282,34 @@ mod tests {
         let out = apply(SAMPLE, &ch).unwrap();
         assert!(out.contains("bIsUseBackupSaveData=True")); // bool → bare
         assert!(out.contains("Region=\"eu\"")); // non-numeric/bool → quoted
+    }
+
+    #[test]
+    fn bare_value_with_delimiters_is_force_quoted_not_injected() {
+        // A numeric (bare) key whose value smuggles a comma + `Key=Value` must not
+        // break out of its slot and inject a second setting.
+        let mut ch = BTreeMap::new();
+        ch.insert("DayTimeSpeedRate".to_string(), "1,bIsPvP=True".to_string());
+        let out = apply(SAMPLE, &ch).unwrap();
+        let re = parse(&out).unwrap();
+        // The payload stayed inside one quoted value; DayTimeSpeedRate is a single entry.
+        assert_eq!(re.iter().filter(|e| e.key == "DayTimeSpeedRate").count(), 1);
+        assert_eq!(
+            re.iter().find(|e| e.key == "DayTimeSpeedRate").unwrap().value,
+            "1,bIsPvP=True"
+        );
+        // bIsPvP was NOT flipped by an injected key.
+        assert_eq!(re.iter().find(|e| e.key == "bIsPvP").unwrap().value, "False");
+    }
+
+    #[test]
+    fn is_valid_key_rejects_tuple_breakers() {
+        assert!(is_valid_key("bIsPvP"));
+        assert!(is_valid_key("ExpRate"));
+        assert!(!is_valid_key("X,bIsPvP"));
+        assert!(!is_valid_key("X=Y"));
+        assert!(!is_valid_key("bad)key"));
+        assert!(!is_valid_key(""));
     }
 
     #[test]

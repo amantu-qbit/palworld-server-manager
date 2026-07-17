@@ -721,10 +721,10 @@ async fn settings_ini_edit(
         return unprocessable("no settings changes requested");
     }
     if body.changes.len() > 300
-        || body.changes.keys().any(|k| k.is_empty() || k.len() > 64)
+        || body.changes.keys().any(|k| !settings_ini::is_valid_key(k) || k.len() > 64)
         || body.changes.values().any(|v| v.len() > 1024)
     {
-        return unprocessable("settings change payload out of bounds");
+        return unprocessable("invalid or out-of-bounds settings change (keys must be identifiers)");
     }
     let Some(path) = state.settings_ini.clone() else {
         return unprocessable("PalWorldSettings.ini location is not configured");
