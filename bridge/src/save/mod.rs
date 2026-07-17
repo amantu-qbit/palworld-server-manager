@@ -105,6 +105,19 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
         None => HashMap::new(),
     };
 
+    // Group pals by their container id so each base can list the pals stationed
+    // there — a pal belongs to a base iff its `storage_id` equals the base's
+    // worker `CharacterContainer` id (decoded from `WorkerDirector`).
+    let mut pals_by_container: HashMap<String, Vec<String>> = HashMap::new();
+    for p in &world.pals {
+        if !p.storage_id.is_empty() {
+            pals_by_container
+                .entry(p.storage_id.clone())
+                .or_default()
+                .push(p.instance_id.clone());
+        }
+    }
+
     // Back-fill each guild's chest with its resolved container so `/v1/guilds`
     // consumers see it without a second lookup.
     for g in &mut world.guilds {
@@ -127,6 +140,11 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
                     b.name = info.name.clone();
                     b.area_range = info.area_range as f64;
                     b.position = Some(info.position);
+                    if let Some(wcid) = info.worker_container_id {
+                        if let Some(ids) = pals_by_container.get(&wcid.to_string()) {
+                            b.pals = ids.clone();
+                        }
+                    }
                 }
             }
         }

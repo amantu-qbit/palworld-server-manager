@@ -374,6 +374,74 @@ async fn fast_travel_unlock_end_to_end() {
 }
 
 #[tokio::test]
+async fn base_pal_batch_ops_end_to_end() {
+    let dir = temp_world("basepals");
+    let app = make_router_at(&dir, true);
+
+    // Find a base with pals stationed at it (Base.pals is back-filled from each
+    // pal's storage_id == the base's WorkerDirector container id).
+    let (_, guilds) = request(&app, "GET", "/v1/guilds", None).await;
+    let mut base_with_pals: Option<String> = None;
+    for g in guilds.as_array().unwrap() {
+        for b in g["bases"].as_array().cloned().unwrap_or_default() {
+            let n = b["pals"].as_array().map(|a| a.len()).unwrap_or(0);
+            eprintln!("[base_pals] base {} name={} pals={}", b["id"], b["name"], n);
+            if n > 0 {
+                base_with_pals = Some(b["id"].as_str().unwrap().to_string());
+            }
+        }
+    }
+
+    let Some(bid) = base_with_pals else {
+        eprintln!("[base_pals] world1 has no base-stationed pals — batch write not exercised");
+        return;
+    };
+
+    // Heal all pals at the base (one write).
+    let (status, json) = request(
+        &app,
+        "POST",
+        &format!("/v1/bases/{bid}/pals/heal"),
+        Some(serde_json::json!({})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+    assert_eq!(json["ok"], true);
+
+    // Max work affinity for all pals at the base (all 13 suitabilities → 5).
+    let ws = serde_json::json!({ "work_suitability": {
+        "EmitFlame": 5, "Watering": 5, "Seeding": 5, "GenerateElectricity": 5,
+        "Handcraft": 5, "Collection": 5, "Deforest": 5, "Mining": 5,
+        "OilExtraction": 5, "ProductMedicine": 5, "Cool": 5, "Transport": 5,
+        "MonsterFarm": 5
+    }});
+    let (status, json) = request(&app, "POST", &format!("/v1/bases/{bid}/pals/edit"), Some(ws)).await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+
+    // Level all pals at the base to 30.
+    let (status, json) = request(
+        &app,
+        "POST",
+        &format!("/v1/bases/{bid}/pals/edit"),
+        Some(serde_json::json!({ "level": 30, "exp": 0 })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{json}");
+
+    // An empty edit is rejected.
+    let (status, _) = request(
+        &app,
+        "POST",
+        &format!("/v1/bases/{bid}/pals/edit"),
+        Some(serde_json::json!({})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[tokio::test]
 async fn slot_set_and_clear_end_to_end() {
     let dir = temp_world("slot");
     let app = make_router_at(&dir, true);

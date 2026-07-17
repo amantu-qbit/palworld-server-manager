@@ -49,6 +49,10 @@ pub struct BaseCampInfo {
     /// The owning guild id (`group_id_belong_to`) — a cross-check against the
     /// map that references this base.
     pub group_id_belong_to: Uuid,
+    /// The base's worker (pal) `CharacterContainer` id, from the `WorkerDirector`
+    /// blob. A pal is stationed at this base iff its `storage_id` equals this.
+    /// `None` when the `WorkerDirector` couldn't be read.
+    pub worker_container_id: Option<Uuid>,
 }
 
 /// Decode `BaseCampSaveData` (a `MapProperty` keyed by base id) into a
@@ -76,11 +80,38 @@ pub fn decode_base_camps(map: &Property) -> Result<HashMap<Uuid, BaseCampInfo>, 
         else {
             continue;
         };
-        if let Some(info) = decode_base_camp_bytes(raw) {
+        if let Some(mut info) = decode_base_camp_bytes(raw) {
+            // The base's worker-pal container id lives in a sibling
+            // `WorkerDirector` property, not the base-camp RawData blob.
+            info.worker_container_id = worker_container_id(&entry.value);
             out.insert(base_id, info);
         }
     }
     Ok(out)
+}
+
+/// The base's worker `CharacterContainer` id from its `WorkerDirector.RawData`
+/// blob — a fixed 118-byte layout whose `container_id` GUID sits at offset 98
+/// (`id:guid(16) | spawn_transform:FTransform(80) | current_order:u8 |
+/// current_battle:u8 | container_id:guid(16) | trailing(4)`). Ports
+/// palworld-save-pal's `palbin::worker_director_container_id`. `None` (and the
+/// nil GUID) mean "no resolvable worker container".
+fn worker_container_id(value: &Property) -> Option<Uuid> {
+    let raw = value
+        .get_child("WorkerDirector")
+        .and_then(|w| w.get_child("RawData"))
+        .and_then(Property::as_bytes)?;
+    worker_container_id_from_blob(raw)
+}
+
+/// The container GUID at offset 98 of a `WorkerDirector.RawData` blob, or `None`
+/// if the blob is too short or the id is nil. Split out for direct testing.
+fn worker_container_id_from_blob(raw: &[u8]) -> Option<Uuid> {
+    if raw.len() < 98 + 16 {
+        return None;
+    }
+    let id = Reader::new(&raw[98..]).guid();
+    (id != Uuid::nil()).then_some(id)
 }
 
 /// Decode the prefix of a base-camp `RawData` blob through `group_id_belong_to`.
@@ -119,6 +150,8 @@ fn decode_base_camp_bytes(bytes: &[u8]) -> Option<BaseCampInfo> {
         area_range,
         position: [x, y, z],
         group_id_belong_to,
+        // Filled in by `decode_base_camps` from the sibling WorkerDirector.
+        worker_container_id: None,
     })
 }
 
@@ -193,5 +226,20 @@ mod tests {
         let mut blob = vec![0u8; 16];
         blob.extend(fstr("x"));
         assert!(decode_base_camp_bytes(&blob).is_none());
+    }
+
+    #[test]
+    fn worker_container_id_reads_offset_98_guid() {
+        // A 118-byte WorkerDirector blob with a recognizable container guid at
+        // offset 98 (on-disk word A `30 19 2F 8C` → canonical 8c2f1930-…, the
+        // same LE→BE swap the pal `storage_id` uses, so the two compare equal).
+        let mut blob = vec![0u8; 118];
+        blob[98..98 + 4].copy_from_slice(&[0x30, 0x19, 0x2F, 0x8C]);
+        let want = Uuid::parse_str("8c2f1930-0000-0000-0000-000000000000").unwrap();
+        assert_eq!(worker_container_id_from_blob(&blob), Some(want));
+
+        // A nil id → None; a blob too short to reach offset 98 → None.
+        assert_eq!(worker_container_id_from_blob(&[0u8; 118]), None);
+        assert_eq!(worker_container_id_from_blob(&[0u8; 100]), None);
     }
 }

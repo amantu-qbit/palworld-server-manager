@@ -1740,7 +1740,42 @@ pub struct HealValues {
 pub fn heal_pal(buf: &[u8], instance_id: Uuid, heal: &HealValues) -> Result<Vec<u8>, SaveError> {
     let loc = locate_character_entry(buf, CharTarget::Instance(instance_id))?;
     let mut plan = EditPlan::default();
-    character_scopes(&mut plan, &loc);
+    plan_heal(buf, &loc, heal, &mut plan)?;
+    let out = apply(buf, &plan)?;
+    validate_heals(&out, &[(instance_id, *heal)])?;
+    Ok(out)
+}
+
+/// Heal many pals in one write (a single backup) — the batch form of
+/// [`heal_pal`], used for "heal all base pals". Each pair is a pal instance id
+/// and its computed [`HealValues`] (HP is species/level-specific). The shared
+/// `worldSaveData`/map size scopes registered per pal dedup in [`apply`].
+pub fn batch_heal(buf: &[u8], heals: &[(Uuid, HealValues)]) -> Result<Vec<u8>, SaveError> {
+    if heals.is_empty() {
+        return Ok(buf.to_vec());
+    }
+    let mut plan = EditPlan::default();
+    for (iid, heal) in heals {
+        let loc = locate_character_entry(buf, CharTarget::Instance(*iid))?;
+        plan_heal(buf, &loc, heal, &mut plan)?;
+    }
+    let out = apply(buf, &plan)?;
+    validate_heals(&out, heals)?;
+    Ok(out)
+}
+
+/// Plan a full heal for one located character into `plan` (shared by
+/// [`heal_pal`] and [`batch_heal`]): remove the sick/faint state properties,
+/// reset sanity + stomach, and — when `hp` is given — set HP to the computed
+/// maximum. Ports `palworld-save-pal pal.py::heal` plus our `hp = max_hp`
+/// revive step.
+fn plan_heal(
+    buf: &[u8],
+    loc: &CharEntryLoc,
+    heal: &HealValues,
+    plan: &mut EditPlan,
+) -> Result<(), SaveError> {
+    character_scopes(plan, loc);
 
     let mut c = Cursor::new(buf, loc.blob.start);
     let sp = find_in_stream(&mut c, "SaveParameter")?
@@ -1751,15 +1786,16 @@ pub fn heal_pal(buf: &[u8], instance_id: Uuid, heal: &HealValues) -> Result<Vec<
     let body = sp.value_start;
 
     // The sick/faint state properties upstream's heal removes (PAL_SICK_TYPES
-    // minus SanityValue, which is reset below instead of removed).
+    // minus SanityValue, which is reset below instead of removed). `WorkerSick`
+    // is the one that makes a "depressed"/incapacitated base worker resume work.
     for sick in ["PalReviveTimer", "PhysicalHealth", "WorkerSick", "HungerType"] {
         if let Some(t) = find_in_body(buf, body, sick)? {
             plan.delete(t.tag_start..t.value_end);
         }
     }
 
-    plan_float_field(buf, body, "SanityValue", heal.sanity, &mut plan)?;
-    plan_float_field(buf, body, "FullStomach", heal.stomach, &mut plan)?;
+    plan_float_field(buf, body, "SanityValue", heal.sanity, plan)?;
+    plan_float_field(buf, body, "FullStomach", heal.stomach, plan)?;
 
     if let Some(hp) = heal.hp {
         match find_in_body(buf, body, "Hp")? {
@@ -1777,13 +1813,62 @@ pub fn heal_pal(buf: &[u8], instance_id: Uuid, heal: &HealValues) -> Result<Vec<
             Some(t) => {
                 plan.patch(t.tag_start..t.value_end, enc::fixed_point64_prop("Hp", hp));
             }
-            None => insert_at_terminator(buf, body, enc::fixed_point64_prop("Hp", hp), &mut plan)?,
+            None => insert_at_terminator(buf, body, enc::fixed_point64_prop("Hp", hp), plan)?,
         }
     }
+    Ok(())
+}
 
+/// Re-parse the edited buffer once and verify every healed pal's sanity/HP.
+fn validate_heals(new_buf: &[u8], heals: &[(Uuid, HealValues)]) -> Result<(), SaveError> {
+    let gvas = parse_gvas(new_buf, &default_skip_set())?;
+    let map = gvas
+        .root
+        .get("worldSaveData")
+        .and_then(|w| w.get_child("CharacterSaveParameterMap"))
+        .ok_or_else(|| edit_err("post-edit parse lost CharacterSaveParameterMap"))?;
+    let (_, pals) = decode_characters(map)?;
+    for (iid, heal) in heals {
+        let p = pals
+            .iter()
+            .find(|p| p.instance_id == iid.to_string())
+            .ok_or_else(|| edit_err("post-edit parse lost a healed pal"))?;
+        if p.sanity != heal.sanity as i32 {
+            return Err(edit_err(format!(
+                "post-heal sanity {} != {}",
+                p.sanity, heal.sanity
+            )));
+        }
+        if let Some(hp) = heal.hp {
+            if i64::from(p.hp) != hp && p.hp != i32::MAX {
+                return Err(edit_err(format!("post-heal hp {} != {hp}", p.hp)));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Apply the same `edits` to many characters in one write (a single backup) —
+/// the batch form of [`edit_character`], used for "level all / max
+/// work-affinity all base pals". Each pal is located and planned into a shared
+/// [`EditPlan`]; the duplicated `worldSaveData`/map scopes dedup in [`apply`].
+pub fn batch_edit_characters(
+    buf: &[u8],
+    targets: &[Uuid],
+    edits: &CharacterEdits,
+) -> Result<Vec<u8>, SaveError> {
+    if targets.is_empty() {
+        return Ok(buf.to_vec());
+    }
+    let mut plan = EditPlan::default();
+    for &iid in targets {
+        let loc = locate_character_entry(buf, CharTarget::Instance(iid))?;
+        character_scopes(&mut plan, &loc);
+        plan_save_parameter_edits(buf, loc.blob.clone(), edits, &mut plan)?;
+    }
     let out = apply(buf, &plan)?;
 
-    // Validate through the production decoder.
+    // Re-parse once and verify the level/exp/work-suitability of each pal.
     let gvas = parse_gvas(&out, &default_skip_set())?;
     let map = gvas
         .root
@@ -1791,16 +1876,30 @@ pub fn heal_pal(buf: &[u8], instance_id: Uuid, heal: &HealValues) -> Result<Vec<
         .and_then(|w| w.get_child("CharacterSaveParameterMap"))
         .ok_or_else(|| edit_err("post-edit parse lost CharacterSaveParameterMap"))?;
     let (_, pals) = decode_characters(map)?;
-    let p = pals
-        .iter()
-        .find(|p| p.instance_id == instance_id.to_string())
-        .ok_or_else(|| edit_err("post-edit parse lost the pal"))?;
-    if p.sanity != heal.sanity as i32 {
-        return Err(edit_err(format!("post-heal sanity {} != {}", p.sanity, heal.sanity)));
-    }
-    if let Some(hp) = heal.hp {
-        if i64::from(p.hp) != hp && p.hp != i32::MAX {
-            return Err(edit_err(format!("post-heal hp {} != {hp}", p.hp)));
+    for &iid in targets {
+        let p = pals
+            .iter()
+            .find(|p| p.instance_id == iid.to_string())
+            .ok_or_else(|| edit_err("post-edit parse lost an edited pal"))?;
+        if let Some(want) = edits.level {
+            if p.level != want as i32 {
+                return Err(edit_err(format!("post-edit level {} != {want}", p.level)));
+            }
+        }
+        if let Some(want) = edits.exp {
+            if p.exp != want {
+                return Err(edit_err(format!("post-edit exp {} != {want}", p.exp)));
+            }
+        }
+        if let Some(want) = &edits.work_suitability {
+            for (code, rank) in want {
+                if p.work_suitability.get(code) != Some(rank) {
+                    return Err(edit_err(format!(
+                        "post-edit work suitability {code} = {:?} != {rank}",
+                        p.work_suitability.get(code)
+                    )));
+                }
+            }
         }
     }
     Ok(out)

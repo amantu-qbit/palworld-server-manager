@@ -74,6 +74,8 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/guilds", get(list_guilds))
         .route("/v1/guilds/{id}/edit", post(guild_edit))
         .route("/v1/bases/{id}/edit", post(base_edit))
+        .route("/v1/bases/{id}/pals/heal", post(base_pals_heal))
+        .route("/v1/bases/{id}/pals/edit", post(base_pals_edit))
         .route("/v1/containers", get(list_containers))
         .route("/v1/containers/{id}/resize", post(container_resize))
         .route("/v1/containers/{id}/slot", post(container_slot))
@@ -1126,6 +1128,150 @@ async fn pal_heal(State(state): State<ServerState>, Path(id): Path<String>) -> R
     match run_edit(&state, move || {
         psm_save::save::edit::edit_sav_file(&path, |gvas| {
             psm_save::save::edit::ops::heal_pal(gvas, iid, &heal)
+        })
+    })
+    .await
+    {
+        Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+/// Resolve a base (by id, across all guilds) to the full [`Pal`]s stationed at
+/// it (its worker container's pals, back-filled in `Base.pals`). 404 if the base
+/// id is invalid or not found.
+async fn base_pals(state: &ServerState, base_id: &str) -> Result<Vec<Pal>, Response> {
+    let Ok(bid) = Uuid::parse_str(base_id) else {
+        return Err(not_found());
+    };
+    let bundle = state.app.bundle().await.map_err(internal_error)?;
+    let base = bundle
+        .world
+        .guilds
+        .iter()
+        .flat_map(|g| &g.bases)
+        .find(|b| Uuid::parse_str(&b.id).is_ok_and(|x| x == bid))
+        .ok_or_else(not_found)?;
+    let ids: std::collections::HashSet<&str> = base.pals.iter().map(String::as_str).collect();
+    Ok(bundle
+        .world
+        .pals
+        .iter()
+        .filter(|p| ids.contains(p.instance_id.as_str()))
+        .cloned()
+        .collect())
+}
+
+/// `POST /v1/bases/{id}/pals/heal` — fully restore every pal stationed at the
+/// base in one write (revive, clear WorkerSick etc., sanity 100, stomach + HP
+/// to each pal's species max). No-op-safe if the base has no pals.
+async fn base_pals_heal(State(state): State<ServerState>, Path(id): Path<String>) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    let pals = match base_pals(&state, &id).await {
+        Ok(p) => p,
+        Err(resp) => return resp,
+    };
+    let heals: Vec<(Uuid, psm_save::save::edit::ops::HealValues)> = pals
+        .iter()
+        .filter_map(|pal| {
+            let iid = Uuid::parse_str(&pal.instance_id).ok()?;
+            let stats = pal_stats().for_character_id(&pal.character_id);
+            let heal = psm_save::save::edit::ops::HealValues {
+                hp: stats.map(|s| {
+                    psm_save::save::reference::max_hp(
+                        s,
+                        pal.level,
+                        pal.talent_hp,
+                        pal.rank,
+                        pal.rank_hp,
+                        pal.is_boss || pal.is_lucky,
+                    )
+                }),
+                stomach: stats.map(|s| s.stomach as f32).filter(|s| *s > 0.0).unwrap_or(150.0),
+                sanity: 100.0,
+            };
+            Some((iid, heal))
+        })
+        .collect();
+    if heals.is_empty() {
+        return unprocessable("this base has no pals to heal");
+    }
+
+    let path = state.app.save_dir().join("Level.sav");
+    match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::batch_heal(gvas, &heals)
+        })
+    })
+    .await
+    {
+        Ok(receipt) => write_ok(&receipt, None),
+        Err(resp) => resp,
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct BasePalsEditBody {
+    #[serde(default)]
+    level: Option<u8>,
+    #[serde(default)]
+    exp: Option<i64>,
+    /// Work-suitability (`work affinity`) ranks to set on every base pal, e.g.
+    /// `{ Handcraft: 5, Mining: 5, ... }`. Ranks are 0..=5 (our app convention).
+    #[serde(default)]
+    work_suitability: Option<std::collections::BTreeMap<String, i32>>,
+}
+
+/// `POST /v1/bases/{id}/pals/edit` — apply the same edits (level/EXP and/or work
+/// suitability) to every pal stationed at the base in one write. Used for "level
+/// all" and "max work affinity" on a base.
+async fn base_pals_edit(
+    State(state): State<ServerState>,
+    Path(id): Path<String>,
+    Json(body): Json<BasePalsEditBody>,
+) -> Response {
+    if let Some(resp) = write_guard(&state) {
+        return resp;
+    }
+    if body.level.is_some_and(|l| !(1..=100).contains(&l)) {
+        return unprocessable("level out of range (1..=100)");
+    }
+    if body.exp.is_some_and(|e| e < 0) {
+        return unprocessable("exp must be non-negative");
+    }
+    if let Some(ws) = &body.work_suitability {
+        if ws.len() > 32 || ws.keys().any(|k| k.len() > 64) || ws.values().any(|v| !(0..=5).contains(v)) {
+            return unprocessable("work suitability ranks out of range (0..=5)");
+        }
+    }
+    if body.level.is_none() && body.exp.is_none() && body.work_suitability.is_none() {
+        return unprocessable("no pal edits requested");
+    }
+
+    let pals = match base_pals(&state, &id).await {
+        Ok(p) => p,
+        Err(resp) => return resp,
+    };
+    let targets: Vec<Uuid> = pals
+        .iter()
+        .filter_map(|p| Uuid::parse_str(&p.instance_id).ok())
+        .collect();
+    if targets.is_empty() {
+        return unprocessable("this base has no pals to edit");
+    }
+
+    let edits = psm_save::save::edit::ops::CharacterEdits {
+        level: body.level,
+        exp: body.exp,
+        work_suitability: body.work_suitability,
+        ..Default::default()
+    };
+    let path = state.app.save_dir().join("Level.sav");
+    match run_edit(&state, move || {
+        psm_save::save::edit::edit_sav_file(&path, |gvas| {
+            psm_save::save::edit::ops::batch_edit_characters(gvas, &targets, &edits)
         })
     })
     .await
