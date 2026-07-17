@@ -362,7 +362,7 @@ function PalCard({ pal, onClick }: { pal: Pal; onClick: () => void }) {
 function IvBar({ label, v }: { label: string; v: number }) {
   const pct = Math.min(100, Math.max(0, v));
   return (
-    <div className="iv" title={`${label} IV: ${v}`}>
+    <div className="pal-iv" title={`${label} IV: ${v}`}>
       <span className="iv__l">{label}</span>
       <span className="iv__bar">
         <i style={{ width: `${pct}%`, background: ivColor(pct) }} />
