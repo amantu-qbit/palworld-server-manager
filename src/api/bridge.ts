@@ -8,6 +8,7 @@ import type {
   ContainersResponse,
   ContainerWriteResult,
   EditBaseBody,
+  EditBasePalsBody,
   EditGuildBody,
   EditPalBody,
   EditPlayerBody,
@@ -77,6 +78,10 @@ export interface BridgeApi {
   editGuild(id: string, body: EditGuildBody): Promise<WriteResult>;
   /** Edit a base camp's build-area radius and/or name (Level.sav BaseCampSaveData). */
   editBase(id: string, body: EditBaseBody): Promise<WriteResult>;
+  /** Heal every pal stationed at a base in one write. */
+  healBasePals(baseId: string): Promise<WriteResult>;
+  /** Apply the same edit (level/EXP and/or work suitability) to every base pal. */
+  editBasePals(baseId: string, body: EditBasePalsBody): Promise<WriteResult>;
 }
 
 const path = {
@@ -90,6 +95,8 @@ const path = {
   playerMap: (uid: string) => `/players/${encodeURIComponent(uid)}/map`,
   editGuild: (id: string) => `/guilds/${encodeURIComponent(id)}/edit`,
   editBase: (id: string) => `/bases/${encodeURIComponent(id)}/edit`,
+  basePalsHeal: (id: string) => `/bases/${encodeURIComponent(id)}/pals/heal`,
+  basePalsEdit: (id: string) => `/bases/${encodeURIComponent(id)}/pals/edit`,
   editPal: (id: string) => `/pals/${encodeURIComponent(id)}/edit`,
   healPal: (id: string) => `/pals/${encodeURIComponent(id)}/heal`,
   deletePal: (id: string) => `/pals/${encodeURIComponent(id)}/delete`,
@@ -144,6 +151,9 @@ const tauriBridge: BridgeApi = {
   clonePal: (instanceId) => invoke<CloneResult>("bridge_post", { path: path.clonePal(instanceId) }),
   editGuild: (id, body) => invoke<WriteResult>("bridge_post", { path: path.editGuild(id), body }),
   editBase: (id, body) => invoke<WriteResult>("bridge_post", { path: path.editBase(id), body }),
+  healBasePals: (id) => invoke<WriteResult>("bridge_post", { path: path.basePalsHeal(id) }),
+  editBasePals: (id, body) =>
+    invoke<WriteResult>("bridge_post", { path: path.basePalsEdit(id), body }),
 };
 
 let conn: Connection | null = null;
@@ -216,6 +226,8 @@ const httpBridge: BridgeApi = {
   clonePal: (instanceId) => call<CloneResult>(path.clonePal(instanceId), "POST"),
   editGuild: (id, body) => call<WriteResult>(path.editGuild(id), "POST", body),
   editBase: (id, body) => call<WriteResult>(path.editBase(id), "POST", body),
+  healBasePals: (id) => call<WriteResult>(path.basePalsHeal(id), "POST"),
+  editBasePals: (id, body) => call<WriteResult>(path.basePalsEdit(id), "POST", body),
 };
 
 export const bridgeApi: BridgeApi = isTauri() ? tauriBridge : httpBridge;

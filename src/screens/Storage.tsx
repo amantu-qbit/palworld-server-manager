@@ -265,6 +265,14 @@ export function ContainerPane({
             <span className="st-chip st-chip--dim">
               {c.used}/{c.slot_num} slots
             </span>
+            {c.default_slot_num != null && c.slot_num !== c.default_slot_num && (
+              <span
+                className="st-chip st-chip--resized"
+                title={`Vanilla default is ${c.default_slot_num} slots`}
+              >
+                Resized · default {c.default_slot_num}
+              </span>
+            )}
           </div>
         </div>
         <div className="st-tools">
@@ -595,6 +603,20 @@ function ResizeDialog({
             <p className="st-resize__sub">
               {containerLabel(c)} currently has <b>{c.slot_num}</b> slots ({c.used} used).
             </p>
+            {c.default_slot_num != null && (
+              <p className="st-resize__default">
+                Vanilla default: <b>{c.default_slot_num}</b>
+                {c.slot_num !== c.default_slot_num && (
+                  <button
+                    type="button"
+                    className="st-resize__reset"
+                    onClick={() => setVal(String(c.default_slot_num))}
+                  >
+                    Reset to default
+                  </button>
+                )}
+              </p>
+            )}
 
             <Field label="Slots" hint="0–9999 — growing keeps items; shrinking deletes overflow">
               <Input

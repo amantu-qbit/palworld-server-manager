@@ -1,7 +1,16 @@
 import "./guilds.css";
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
-import { Castle, Save, TriangleAlert, Users } from "lucide-react";
+import {
+  Castle,
+  ChevronsUp,
+  HeartPulse,
+  PawPrint,
+  Save,
+  Sparkles,
+  TriangleAlert,
+  Users,
+} from "lucide-react";
 import { TopBar } from "../components/TopBar";
 import { Button } from "../components/Button";
 import { EmptyState } from "../components/EmptyState";
@@ -13,16 +22,13 @@ import {
   useBridgeContainers,
   useBridgeGuilds,
   useEditBase,
+  useEditBasePals,
   useEditGuild,
+  useHealBasePals,
 } from "../hooks/bridge";
 import { useToast } from "../hooks/useToast";
-import type {
-  Base,
-  ContainerInfo,
-  EditBaseBody,
-  EditGuildBody,
-  Guild,
-} from "../types/bridge";
+import { EXP_TABLE } from "../lib/expTable";
+import type { Base, ContainerInfo, EditBaseBody, EditGuildBody, Guild } from "../types/bridge";
 
 const AREA_MIN = 1750;
 const AREA_MAX = 35000;
@@ -31,9 +37,28 @@ const AREA_DEFAULT = 3500;
 const LVL_MIN = 1;
 const LVL_MAX = 30;
 
+/** The 13 Palworld work suitabilities (bare EPalWorkSuitability suffixes). */
+const WORK_SUITABILITIES = [
+  "EmitFlame",
+  "Watering",
+  "Seeding",
+  "GenerateElectricity",
+  "Handcraft",
+  "Collection",
+  "Deforest",
+  "Mining",
+  "OilExtraction",
+  "ProductMedicine",
+  "Cool",
+  "Transport",
+  "MonsterFarm",
+];
+const MAX_WORK_RANK = 5;
+
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const guildName = (g: Guild) => g.name?.trim() || "Unnamed Guild";
 const clampArea = (n: number) => Math.min(AREA_MAX, Math.max(AREA_MIN, n));
+const plural = (n: number, s: string) => `${n} ${s}${n === 1 ? "" : "s"}`;
 
 export function Guilds() {
   const bridge = useBridge();
@@ -49,14 +74,15 @@ export function Guilds() {
   }, [guilds, selectedId]);
 
   const selected = guilds.find((g) => g.id === selectedId) ?? null;
-  // The guild chest as a labeled container (from /v1/containers), so we can
-  // reuse Storage's ContainerPane verbatim for the chest editor.
-  const chest = useMemo(
-    () =>
-      (containersQ.data ?? []).find(
-        (c) => c.kind === "guild_chest" && c.guild_id === selectedId,
-      ) ?? null,
+  // The selected guild's chest + base-storage containers (from /v1/containers),
+  // so we can reuse Storage's ContainerPane verbatim for every storage editor.
+  const guildContainers = useMemo(
+    () => (containersQ.data ?? []).filter((c) => c.guild_id === selectedId),
     [containersQ.data, selectedId],
+  );
+  const chest = useMemo(
+    () => guildContainers.find((c) => c.kind === "guild_chest") ?? null,
+    [guildContainers],
   );
 
   return (
@@ -98,7 +124,7 @@ export function Guilds() {
                   <span className="gl-grow__name">{guildName(g)}</span>
                   <span className="gl-grow__meta">
                     <Users size={11} /> {g.players.length} · Lv {g.base_camp_level} ·{" "}
-                    {g.bases.length} base{g.bases.length === 1 ? "" : "s"}
+                    {plural(g.bases.length, "base")}
                   </span>
                 </button>
               ))}
@@ -110,6 +136,7 @@ export function Guilds() {
                   key={selected.id}
                   guild={selected}
                   chest={chest}
+                  containers={guildContainers}
                   writesEnabled={bridge.writesEnabled}
                   serverRunning={bridge.serverRunning}
                 />
@@ -130,11 +157,13 @@ export function Guilds() {
 function GuildDetail({
   guild,
   chest,
+  containers,
   writesEnabled,
   serverRunning,
 }: {
   guild: Guild;
   chest: ContainerInfo | null;
+  containers: ContainerInfo[];
   writesEnabled: boolean;
   serverRunning: boolean;
 }) {
@@ -172,13 +201,9 @@ function GuildDetail({
           <h2>{guildName(guild)}</h2>
         </div>
         <div className="gl-head__meta">
-          <span className="gl-chip">
-            {guild.players.length} member{guild.players.length === 1 ? "" : "s"}
-          </span>
+          <span className="gl-chip">{plural(guild.players.length, "member")}</span>
           <span className="gl-chip gl-chip--dim">Lv {guild.base_camp_level}</span>
-          <span className="gl-chip gl-chip--dim">
-            {guild.bases.length} base{guild.bases.length === 1 ? "" : "s"}
-          </span>
+          <span className="gl-chip gl-chip--dim">{plural(guild.bases.length, "base")}</span>
         </div>
       </header>
 
@@ -224,10 +249,20 @@ function GuildDetail({
 
       {guild.bases.length > 0 && (
         <section className="gl-bases">
-          <div className="gl-card__title">Base camps · build area &amp; name</div>
-          <div className="gl-basegrid">
+          <div className="gl-card__title">Base camps · area, pals &amp; storage</div>
+          <div className="gl-basestack">
             {guild.bases.map((b, i) => (
-              <BaseCard key={b.id} base={b} index={i} canEdit={canEdit} />
+              <BaseSection
+                key={b.id}
+                base={b}
+                index={i}
+                canEdit={canEdit}
+                writesEnabled={writesEnabled}
+                serverRunning={serverRunning}
+                storages={containers.filter(
+                  (c) => c.kind === "base_storage" && b.storage_containers.includes(c.id),
+                )}
+              />
             ))}
           </div>
         </section>
@@ -238,28 +273,42 @@ function GuildDetail({
         {chest ? (
           <ContainerPane c={chest} writesEnabled={writesEnabled} serverRunning={serverRunning} />
         ) : (
-          <div className="gl-chest__empty">
-            This guild has no chest container in the save yet.
-          </div>
+          <div className="gl-chest__empty">This guild has no chest container in the save yet.</div>
         )}
       </section>
     </div>
   );
 }
 
-function BaseCard({ base, index, canEdit }: { base: Base; index: number; canEdit: boolean }) {
+function BaseSection({
+  base,
+  index,
+  canEdit,
+  storages,
+  writesEnabled,
+  serverRunning,
+}: {
+  base: Base;
+  index: number;
+  canEdit: boolean;
+  storages: ContainerInfo[];
+  writesEnabled: boolean;
+  serverRunning: boolean;
+}) {
   const toast = useToast();
   const editBase = useEditBase();
 
   const decodedArea = base.area_range > 0 ? Math.round(base.area_range) : AREA_DEFAULT;
   const [name, setName] = useState(base.name);
   const [area, setArea] = useState(decodedArea);
+  const [storeIdx, setStoreIdx] = useState(0);
   useEffect(() => {
     setName(base.name);
     setArea(base.area_range > 0 ? Math.round(base.area_range) : AREA_DEFAULT);
   }, [base.id, base.name, base.area_range]);
 
   const dirty = name !== base.name || area !== decodedArea;
+  const store = storages[Math.min(storeIdx, Math.max(0, storages.length - 1))] ?? null;
 
   const save = async () => {
     const body: EditBaseBody = {};
@@ -284,26 +333,29 @@ function BaseCard({ base, index, canEdit }: { base: Base; index: number; canEdit
           </span>
         )}
       </div>
-      <Field label="Base name">
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+
+      <div className="gl-baseform">
+        <Field label="Base name">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={!canEdit}
+            maxLength={64}
+            placeholder="Unnamed base"
+          />
+        </Field>
+        <SliderField
+          label="Build area radius"
+          min={AREA_MIN}
+          max={AREA_MAX}
+          step={AREA_STEP}
+          value={clampArea(area)}
+          onChange={setArea}
           disabled={!canEdit}
-          maxLength={64}
-          placeholder="Unnamed base"
+          display={area.toLocaleString()}
+          hint="Vanilla default 3,500"
         />
-      </Field>
-      <SliderField
-        label="Build area radius"
-        min={AREA_MIN}
-        max={AREA_MAX}
-        step={AREA_STEP}
-        value={clampArea(area)}
-        onChange={setArea}
-        disabled={!canEdit}
-        display={area.toLocaleString()}
-        hint="Vanilla default 3,500"
-      />
+      </div>
       {canEdit && (
         <div className="gl-actions">
           <Button
@@ -315,6 +367,128 @@ function BaseCard({ base, index, canEdit }: { base: Base; index: number; canEdit
           >
             <Save size={13} /> Save base
           </Button>
+        </div>
+      )}
+
+      <div className="gl-subhead">Stationed pals</div>
+      <BasePalControls base={base} canEdit={canEdit} />
+
+      <div className="gl-subhead">Storage · {plural(storages.length, "chest")}</div>
+      {storages.length > 0 ? (
+        <>
+          {storages.length > 1 && (
+            <div className="gl-storetabs" role="tablist">
+              {storages.map((s, i) => (
+                <button
+                  key={s.id}
+                  role="tab"
+                  aria-selected={i === storeIdx}
+                  className={i === storeIdx ? "is-on" : ""}
+                  onClick={() => setStoreIdx(i)}
+                >
+                  Chest {i + 1}
+                  <span>
+                    {s.used}/{s.slot_num}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+          {store && (
+            <ContainerPane
+              key={store.id}
+              c={store}
+              writesEnabled={writesEnabled}
+              serverRunning={serverRunning}
+            />
+          )}
+        </>
+      ) : (
+        <div className="gl-chest__empty">No built storage chests at this base.</div>
+      )}
+    </div>
+  );
+}
+
+function BasePalControls({ base, canEdit }: { base: Base; canEdit: boolean }) {
+  const toast = useToast();
+  const healAll = useHealBasePals();
+  const editAll = useEditBasePals();
+  const [level, setLevel] = useState("50");
+
+  const count = base.pals.length;
+  if (count === 0) {
+    return <p className="gl-nopals">No pals are stationed at this base.</p>;
+  }
+
+  const busy = healAll.isPending || editAll.isPending;
+
+  const heal = async () => {
+    try {
+      await healAll.mutateAsync(base.id);
+      toast.success("Base pals healed", `${plural(count, "pal")} restored — backup saved.`);
+    } catch (e) {
+      toast.error("Heal failed", errMsg(e));
+    }
+  };
+
+  const levelAll = async () => {
+    const lv = Math.min(100, Math.max(1, Math.trunc(Number(level)) || 1));
+    // Pals use their own EXP curve (palTotal), which caps below the player max.
+    const exp = EXP_TABLE.palTotal[Math.min(lv, EXP_TABLE.palTotal.length) - 1] ?? 0;
+    try {
+      await editAll.mutateAsync({ id: base.id, body: { level: lv, exp } });
+      toast.success("Base pals leveled", `${plural(count, "pal")} set to level ${lv}.`);
+    } catch (e) {
+      toast.error("Level failed", errMsg(e));
+    }
+  };
+
+  const maxWork = async () => {
+    const work_suitability = Object.fromEntries(WORK_SUITABILITIES.map((k) => [k, MAX_WORK_RANK]));
+    try {
+      await editAll.mutateAsync({ id: base.id, body: { work_suitability } });
+      toast.success("Work affinity maxed", `All work suitabilities +${MAX_WORK_RANK} on ${plural(count, "pal")}.`);
+    } catch (e) {
+      toast.error("Update failed", errMsg(e));
+    }
+  };
+
+  return (
+    <div className="gl-palops">
+      <span className="gl-palops__count">
+        <PawPrint size={13} /> {plural(count, "pal")} stationed
+      </span>
+      {canEdit && (
+        <div className="gl-palops__btns">
+          <Button size="sm" variant="ghost" onClick={heal} loading={healAll.isPending} disabled={busy}>
+            <HeartPulse size={13} /> Heal all
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={maxWork}
+            loading={editAll.isPending}
+            disabled={busy}
+            title="Set every work suitability to +5 on all base pals"
+          >
+            <Sparkles size={13} /> Max work affinity
+          </Button>
+          <div className="gl-levelall">
+            <Input
+              mono
+              type="number"
+              min={1}
+              max={100}
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+              disabled={busy}
+              aria-label="Level to apply to all base pals"
+            />
+            <Button size="sm" variant="ghost" onClick={levelAll} loading={editAll.isPending} disabled={busy}>
+              <ChevronsUp size={13} /> Level all
+            </Button>
+          </div>
         </div>
       )}
     </div>

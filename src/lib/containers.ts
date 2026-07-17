@@ -6,7 +6,10 @@
 import type { ContainerInfo, ContainerKind, ItemContainerSlot } from "../types/bridge";
 
 /** Display label + rail order for each player bag kind. */
-const BAG: Record<Exclude<ContainerKind, "guild_chest">, { label: string; order: number }> = {
+const BAG: Record<
+  Exclude<ContainerKind, "guild_chest" | "base_storage">,
+  { label: string; order: number }
+> = {
   common: { label: "Inventory", order: 0 },
   essential: { label: "Key Items", order: 1 },
   weapon_loadout: { label: "Weapons", order: 2 },
@@ -14,17 +17,22 @@ const BAG: Record<Exclude<ContainerKind, "guild_chest">, { label: string; order:
   food_equip: { label: "Food", order: 4 },
 };
 
-/** Rail label for a container ("Guild Chest — <guild>" for chests). */
+/** Rail/header label for a container. */
 export function containerLabel(c: ContainerInfo): string {
   if (c.kind === "guild_chest") {
     return c.guild_name ? `Guild Chest — ${c.guild_name}` : "Guild Chest";
+  }
+  if (c.kind === "base_storage") {
+    return c.guild_name ? `Base Storage — ${c.guild_name}` : "Base Storage";
   }
   return BAG[c.kind]?.label ?? c.label;
 }
 
 /** Who a container belongs to, for header chips ("PlayerName" / guild name). */
 export function containerOwner(c: ContainerInfo): string {
-  if (c.kind === "guild_chest") return c.guild_name ?? "Unknown guild";
+  if (c.kind === "guild_chest" || c.kind === "base_storage") {
+    return c.guild_name ?? "Unknown guild";
+  }
   return c.owner_name ?? "Unknown player";
 }
 
@@ -47,6 +55,10 @@ export function groupContainers(containers: ContainerInfo[]): ContainerGroup[] {
       guilds.push(c);
       continue;
     }
+    // Base-storage chests are edited in the Guilds screen, not the player rail.
+    if (c.kind === "base_storage") {
+      continue;
+    }
     const key = c.owner_uid ?? c.owner_name ?? c.id;
     let g = players.get(key);
     if (!g) {
@@ -56,7 +68,7 @@ export function groupContainers(containers: ContainerInfo[]): ContainerGroup[] {
     g.containers.push(c);
   }
   const order = (c: ContainerInfo) =>
-    c.kind === "guild_chest" ? 99 : (BAG[c.kind]?.order ?? 98);
+    c.kind === "guild_chest" || c.kind === "base_storage" ? 99 : (BAG[c.kind]?.order ?? 98);
   const groups = [...players.values()].sort((a, b) => a.title.localeCompare(b.title));
   for (const g of groups) g.containers.sort((a, b) => order(a) - order(b));
   guilds.sort((a, b) => (a.guild_name ?? "").localeCompare(b.guild_name ?? ""));

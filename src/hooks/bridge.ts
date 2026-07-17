@@ -4,6 +4,7 @@ import { queryClient } from "./queries";
 import { useConnection } from "../store/connection";
 import type {
   EditBaseBody,
+  EditBasePalsBody,
   EditGuildBody,
   EditPalBody,
   EditPlayerBody,
@@ -207,6 +208,21 @@ export function useEditGuild() {
 export function useEditBase() {
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: EditBaseBody }) => bridgeApi.editBase(id, body),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useHealBasePals() {
+  return useMutation({
+    mutationFn: (baseId: string) => bridgeApi.healBasePals(baseId),
+    onSuccess: () => invalidateBridgeData(),
+  });
+}
+
+export function useEditBasePals() {
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: EditBasePalsBody }) =>
+      bridgeApi.editBasePals(id, body),
     onSuccess: () => invalidateBridgeData(),
   });
 }

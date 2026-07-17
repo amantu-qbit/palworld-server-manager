@@ -146,9 +146,10 @@ export type ContainerKind =
   | "weapon_loadout"
   | "player_equip_armor"
   | "food_equip"
-  | "guild_chest";
+  | "guild_chest"
+  | "base_storage";
 
-/** One labeled container (player bag or guild chest) from `GET /v1/containers`. */
+/** One labeled container (player bag, guild chest, or base storage chest). */
 export interface ContainerInfo {
   id: string;
   kind: ContainerKind;
@@ -158,6 +159,9 @@ export interface ContainerInfo {
   guild_id: string | null;
   guild_name: string | null;
   slot_num: number;
+  /** Vanilla default slot count for this kind, when reliably known (so the UI
+   *  can flag a container resized off its default). Absent when it varies. */
+  default_slot_num?: number;
   used: number;
   slots: ItemContainerSlot[];
 }
@@ -185,6 +189,14 @@ export interface CloneResult extends WriteResult {
 /** `POST /v1/players/{id}/map` body — per-player map/progression unlocks. */
 export interface PlayerMapBody {
   unlock_all_fast_travel?: boolean;
+}
+
+/** `POST /v1/bases/{id}/pals/edit` body — same edit applied to every base pal. */
+export interface EditBasePalsBody {
+  level?: number;
+  exp?: number;
+  /** Work-suitability ranks (0–5) to set on every base pal. */
+  work_suitability?: Record<string, number>;
 }
 
 /** `POST /v1/guilds/{id}/edit` body — set guild name and/or base-camp level. */
