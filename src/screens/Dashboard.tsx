@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowUpRight, Clock, Megaphone, Power, Save, Timer, TriangleAlert, Users, Zap } from "lucide-react";
 import { TopBar } from "../components/TopBar";
 import { Gauge } from "../components/Gauge";
@@ -14,12 +14,7 @@ import { formatMs, formatUptime } from "../lib/format";
 import { api } from "../api";
 import { useToast } from "../hooks/useToast";
 import { useNav } from "../store/nav";
-
-interface Hist {
-  fps: number[];
-  players: number[];
-  frame: number[];
-}
+import { useRecentMetrics } from "../store/metricsHistory";
 
 export function Dashboard() {
   const info = useInfo();
@@ -29,26 +24,20 @@ export function Dashboard() {
   const toast = useToast();
   const { navigate } = useNav();
   const [confirm, setConfirm] = useState<ConfirmSpec | null>(null);
-  const [hist, setHist] = useState<Hist>({ fps: [], players: [], frame: [] });
 
   const m = metrics.data;
 
-  useEffect(() => {
-    if (!m) return;
-    setHist((h) => {
-      if (h.fps.length === 0) {
-        const seed = (base: number, amp: number) =>
-          Array.from({ length: 12 }, (_, i) => Math.round((base + Math.sin(i / 2) * amp) * 10) / 10);
-        return { fps: seed(m.serverfps, 2), players: seed(m.currentplayernum, 1), frame: seed(m.serverframetime, 1) };
-      }
-      const push = (a: number[], v: number) => [...a, v].slice(-24);
-      return {
-        fps: push(h.fps, m.serverfps),
-        players: push(h.players, m.currentplayernum),
-        frame: push(h.frame, m.serverframetime),
-      };
-    });
-  }, [m]);
+  // Real recent samples (persisted app-wide by MetricsRecorder) — no synthetic
+  // seed. The last ~24 feed the small sparklines; the Trends screen shows more.
+  const recent = useRecentMetrics();
+  const hist = useMemo(() => {
+    const tail = recent.slice(-24);
+    return {
+      fps: tail.map((r) => r.fps),
+      players: tail.map((r) => r.players),
+      frame: tail.map((r) => r.frame),
+    };
+  }, [recent]);
 
   const s = settings.data;
   const healthy = (m?.serverfps ?? 0) >= 45;

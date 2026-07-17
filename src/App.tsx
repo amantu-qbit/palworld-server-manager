@@ -6,6 +6,7 @@ import {
   Castle,
   Heart,
   LayoutDashboard,
+  LineChart,
   Loader2,
   PawPrint,
   Power,
@@ -25,6 +26,7 @@ import { Dashboard } from "./screens/Dashboard";
 import { Players } from "./screens/Players";
 import { WorldMap } from "./screens/WorldMap";
 import { Console } from "./screens/Console";
+import { Trends } from "./screens/Trends";
 import { Settings } from "./screens/Settings";
 import { BanManager } from "./screens/BanManager";
 import { Characters } from "./screens/Characters";
@@ -34,11 +36,13 @@ import { ServerControl } from "./screens/ServerControl";
 import { RawSave } from "./screens/RawSave";
 import { Support } from "./screens/Support";
 import { UpdateBanner } from "./components/UpdateBanner";
+import { MetricsRecorder } from "./components/MetricsRecorder";
 
 const NAV: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, group: "Overview" },
   { id: "players", label: "Players", icon: Users, group: "Overview" },
   { id: "map", label: "World Map", icon: Radar, group: "Overview" },
+  { id: "trends", label: "Trends", icon: LineChart, group: "Overview" },
   { id: "console", label: "Console", icon: SquareTerminal, group: "Control" },
   { id: "settings", label: "Settings", icon: SlidersHorizontal, group: "Control" },
   { id: "bans", label: "Ban Manager", icon: ShieldBan, group: "Control" },
@@ -49,6 +53,7 @@ const SCREENS: Record<string, ComponentType> = {
   dashboard: Dashboard,
   players: Players,
   map: WorldMap,
+  trends: Trends,
   console: Console,
   settings: Settings,
   bans: BanManager,
@@ -127,6 +132,7 @@ export function App() {
           onToggleCollapse={toggleCollapse}
         />
         <div className="main">
+          <MetricsRecorder />
           <UpdateBanner />
           <Screen />
         </div>
