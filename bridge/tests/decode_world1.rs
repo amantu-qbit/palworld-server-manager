@@ -217,6 +217,8 @@ fn load_world_with_containers_matches_load_world_and_has_item_containers() {
             b.name = String::new();
             b.area_range = 0.0;
             b.position = None;
+            b.storage_containers = Vec::new();
+            b.pals = Vec::new();
         }
     }
     assert_eq!(
@@ -237,6 +239,17 @@ fn load_world_with_containers_matches_load_world_and_has_item_containers() {
             .flat_map(|g| &g.bases)
             .any(|b| b.area_range > 0.0 && b.position.is_some()),
         "world1's base camp is enriched with a decoded area_range + position"
+    );
+    // Base ground-storage containers are discovered from MapObjectSaveData
+    // (world1's base has several built chests).
+    assert!(
+        bundle
+            .world
+            .guilds
+            .iter()
+            .flat_map(|g| &g.bases)
+            .any(|b| !b.storage_containers.is_empty()),
+        "world1's base has decoded storage containers"
     );
 
     assert!(

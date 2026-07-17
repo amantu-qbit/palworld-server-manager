@@ -486,8 +486,30 @@ struct ContainerInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     guild_name: Option<String>,
     slot_num: i32,
+    /// The container type's vanilla default slot count, when reliably known — so
+    /// the UI can flag a container that's been resized off its default and show
+    /// what that default was. `None` for types whose default varies (base
+    /// storage chests differ by tier) or isn't reliably known.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    default_slot_num: Option<i32>,
     used: usize,
     slots: Vec<psm_save::save::model::ItemContainerSlot>,
+}
+
+/// The vanilla default slot count for a labeled container kind, when it's a
+/// reliable single value. Player-bag values are the established game defaults;
+/// the guild chest is 54 (per the wiki). `essential` (key items) and
+/// `base_storage` (chest tier varies) have no single default, so they return
+/// `None` and the UI makes no "resized" claim for them.
+fn default_slots(kind: &str) -> Option<i32> {
+    match kind {
+        "common" => Some(42),
+        "weapon_loadout" => Some(4),
+        "player_equip_armor" => Some(2),
+        "food_equip" => Some(3),
+        "guild_chest" => Some(54),
+        _ => None,
+    }
 }
 
 #[derive(Serialize)]
@@ -529,6 +551,7 @@ fn container_info_from(
         guild_id: None,
         guild_name: None,
         slot_num: c.slot_num,
+        default_slot_num: default_slots(kind),
         used,
         slots: c.slots.clone(),
     })
@@ -564,13 +587,31 @@ async fn collect_containers(state: &ServerState) -> Result<Vec<ContainerInfo>, R
         let Ok(gid) = Uuid::parse_str(&g.id) else {
             continue;
         };
-        let Some(cid) = bundle.guild_chests.get(&gid) else {
-            continue;
-        };
-        if let Some(mut info) = container_info_from(&bundle, *cid, "guild_chest", "Guild Chest") {
-            info.guild_id = Some(g.id.clone());
-            info.guild_name = Some(g.name.clone());
-            out.push(info);
+        if let Some(cid) = bundle.guild_chests.get(&gid) {
+            if let Some(mut info) = container_info_from(&bundle, *cid, "guild_chest", "Guild Chest") {
+                info.guild_id = Some(g.id.clone());
+                info.guild_name = Some(g.name.clone());
+                out.push(info);
+            }
+        }
+        // Built storage chests at each of the guild's bases. The frontend maps
+        // these back to a base by matching the id against `base.storage_containers`.
+        for b in &g.bases {
+            for cid_str in &b.storage_containers {
+                let Ok(cid) = Uuid::parse_str(cid_str) else {
+                    continue;
+                };
+                if out.iter().any(|c| c.id == *cid_str) {
+                    continue; // never list the same container twice
+                }
+                if let Some(mut info) =
+                    container_info_from(&bundle, cid, "base_storage", "Base Storage")
+                {
+                    info.guild_id = Some(g.id.clone());
+                    info.guild_name = Some(g.name.clone());
+                    out.push(info);
+                }
+            }
         }
     }
     Ok(out)

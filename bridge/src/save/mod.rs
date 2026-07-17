@@ -7,6 +7,7 @@ pub mod decompress;
 pub mod edit;
 pub mod guild;
 pub mod gvas;
+pub mod map_object;
 pub mod model;
 pub mod props;
 pub mod reader;
@@ -104,6 +105,12 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
         Some(prop) => base_camp::decode_base_camps(prop)?,
         None => HashMap::new(),
     };
+    // Each base's built storage chests: map objects tied to the base whose
+    // ItemContainer module points at an item container.
+    let base_storage = match world_save_data.get_child("MapObjectSaveData") {
+        Some(prop) => map_object::decode_base_storage(prop),
+        None => HashMap::new(),
+    };
 
     // Group pals by their container id so each base can list the pals stationed
     // there — a pal belongs to a base iff its `storage_id` equals the base's
@@ -145,6 +152,9 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
                             b.pals = ids.clone();
                         }
                     }
+                }
+                if let Some(cids) = base_storage.get(&bid) {
+                    b.storage_containers = cids.iter().map(Uuid::to_string).collect();
                 }
             }
         }
