@@ -1326,6 +1326,73 @@
   font-size: 13px;
   color: #f5c85a;
 }
+
+/* Computed combat-stat grid (HP/Attack/Defense/Work Speed) — accent-tinted. */
+.ch-modalgrid--stats {
+  margin-bottom: 8px;
+}
+.ch-modalgrid--stats .ch-mstat {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, var(--line));
+  padding: 10px 8px;
+}
+.ch-modalgrid--stats .ch-mstat__v {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Talent / IV sliders (game-style: label + range + numeric readout). */
+.ch-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.ch-ivslider {
+  display: grid;
+  grid-template-columns: 56px 1fr 52px;
+  align-items: center;
+  gap: 10px;
+}
+.ch-ivslider__l {
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.ch-ivslider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--accent) var(--pct, 0%),
+    var(--surface-2, rgba(255, 255, 255, 0.06)) var(--pct, 0%)
+  );
+  cursor: pointer;
+}
+.ch-ivslider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  cursor: pointer;
+}
+.ch-ivslider__n {
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  background: var(--surface-0, #090909);
+  box-shadow: var(--inset);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  text-align: center;
+}
 .ch-chips {
   display: flex;
   flex-wrap: wrap;

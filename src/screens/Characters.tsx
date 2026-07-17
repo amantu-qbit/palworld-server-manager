@@ -55,6 +55,7 @@ import {
   resolveStats,
 } from "../lib/playerStats";
 import type { ResolvedStat } from "../lib/playerStats";
+import { computePalStats } from "../lib/palStats";
 import { itemWeight } from "../lib/itemMeta";
 import { EXP_TABLE, LEVEL_CAP, MAX_LEVEL, levelProgress } from "../lib/expTable";
 import { DISABLED_PASSIVES, passiveRank, passiveRankColor } from "../lib/skillMeta";
@@ -837,6 +838,21 @@ function PalDetailModal({
     ["Craft", pal.rank_craftspeed],
   ] as const;
   const work = Object.entries(pal.work_suitability).filter(([, r]) => r > 0);
+  const stats = computePalStats({
+    characterId: pal.character_id,
+    level: pal.level,
+    talentHp: pal.talent_hp,
+    talentShot: pal.talent_shot,
+    talentDefense: pal.talent_defense,
+    rankHp: pal.rank_hp,
+    rankAttack: pal.rank_attack,
+    rankDefense: pal.rank_defense,
+    rankCraftspeed: pal.rank_craftspeed,
+    rank: pal.rank,
+    passiveSkills: pal.passive_skills,
+    isBoss: pal.is_boss,
+    isLucky: pal.is_lucky,
+  });
 
   return (
     <div className="ch-modal" onClick={onClose}>
@@ -912,8 +928,15 @@ function PalDetailModal({
           />
         ) : (
           <>
+            {stats && (
+              <div className="ch-modalgrid ch-modalgrid--stats">
+                <ModalStat label="HP" value={stats.hp.toLocaleString()} />
+                <ModalStat label="Attack" value={stats.attack.toLocaleString()} />
+                <ModalStat label="Defense" value={stats.defense.toLocaleString()} />
+                <ModalStat label="Work Speed" value={stats.workSpeed} />
+              </div>
+            )}
             <div className="ch-modalgrid">
-              <ModalStat label="HP" value={`${pal.hp}${pal.max_hp ? ` / ${pal.max_hp}` : ""}`} />
               <ModalStat label="Sanity" value={pal.sanity} />
               <ModalStat label="Hunger" value={pal.stomach} />
               <ModalStat label="Friendship" value={pal.friendship_point} />
@@ -1071,8 +1094,32 @@ function PalEditForm({
     }
   };
 
+  const liveStats = computePalStats({
+    characterId: pal.character_id,
+    level: clampInt(level, 1, MAX_LEVEL, pal.level),
+    talentHp: clampInt(talHp, 0, 100, pal.talent_hp),
+    talentShot: clampInt(talShot, 0, 100, pal.talent_shot),
+    talentDefense: clampInt(talDef, 0, 100, pal.talent_defense),
+    rankHp: soulHp,
+    rankAttack: soulAtk,
+    rankDefense: soulDef,
+    rankCraftspeed: soulCraft,
+    rank,
+    passiveSkills: passives,
+    isBoss: pal.is_boss,
+    isLucky: pal.is_lucky,
+  });
+
   return (
     <div className="ch-form">
+      {liveStats && (
+        <div className="ch-modalgrid ch-modalgrid--stats">
+          <ModalStat label="HP" value={liveStats.hp.toLocaleString()} />
+          <ModalStat label="Attack" value={liveStats.attack.toLocaleString()} />
+          <ModalStat label="Defense" value={liveStats.defense.toLocaleString()} />
+          <ModalStat label="Work Speed" value={liveStats.workSpeed} />
+        </div>
+      )}
       <div className="ch-formrow">
         <Field label="Level" hint={`Cap ${LEVEL_CAP}; up to ${MAX_LEVEL} accepted`}>
           <Input mono type="number" min={1} max={MAX_LEVEL} value={level} onChange={(e) => onLevel(e.target.value)} />
@@ -1129,17 +1176,11 @@ function PalEditForm({
       </section>
 
       <section className="ch-formsec">
-        <div className="eyebrow">Talents (0–100)</div>
-        <div className="ch-formgrid ch-formgrid--3">
-          <Field label="HP">
-            <Input mono type="number" min={0} max={100} value={talHp} onChange={(e) => setTalHp(e.target.value)} />
-          </Field>
-          <Field label="Attack">
-            <Input mono type="number" min={0} max={100} value={talShot} onChange={(e) => setTalShot(e.target.value)} />
-          </Field>
-          <Field label="Defense">
-            <Input mono type="number" min={0} max={100} value={talDef} onChange={(e) => setTalDef(e.target.value)} />
-          </Field>
+        <div className="eyebrow">Talents / IVs (0–100)</div>
+        <div className="ch-sliders">
+          <IvSlider label="HP" value={talHp} onChange={setTalHp} />
+          <IvSlider label="Attack" value={talShot} onChange={setTalShot} />
+          <IvSlider label="Defense" value={talDef} onChange={setTalDef} />
         </div>
       </section>
 
@@ -1228,6 +1269,42 @@ function Stepper({
           +
         </button>
       </div>
+    </div>
+  );
+}
+
+/** A 0–100 talent/IV slider with an editable numeric readout (game-style). */
+function IvSlider({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const n = Math.min(100, Math.max(0, Math.round(Number(value) || 0)));
+  return (
+    <div className="ch-ivslider">
+      <span className="ch-ivslider__l">{label}</span>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={n}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={`${label} IV`}
+        style={{ ["--pct" as string]: `${n}%` }}
+      />
+      <input
+        className="ch-ivslider__n"
+        type="number"
+        min={0}
+        max={100}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={`${label} IV value`}
+      />
     </div>
   );
 }
