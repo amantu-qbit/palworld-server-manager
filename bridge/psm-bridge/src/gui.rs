@@ -74,9 +74,10 @@ impl BridgeApp {
         }
         let save_dir = self.save_dir.trim().replace('\\', "/");
         let settings_ini = self.settings_ini.trim().replace('\\', "/");
+        // Empty stays None (persisted as unset) so the router keeps auto-deriving
+        // from save_dir; only an explicit path is saved.
         let settings_ini = if settings_ini.is_empty() {
-            // Empty → derive from the save dir's layout (same as config load).
-            crate::config::derive_settings_ini(&PathBuf::from(&save_dir))
+            None
         } else {
             Some(PathBuf::from(settings_ini))
         };

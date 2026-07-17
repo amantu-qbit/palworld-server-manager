@@ -116,6 +116,11 @@ const TUPLE_DELIMS: [char; 5] = [',', '(', ')', '"', '='];
 /// force-quoted, and internal quotes are stripped (Palworld tokens don't escape
 /// them), so no caller-supplied value can ever inject a second entry.
 fn to_token(value: &str, was_quoted: Option<bool>) -> String {
+    // Strip control characters first: OptionSettings is one physical line, so an
+    // embedded newline/CR would split it and drop every later key on the game's
+    // next startup. (The endpoint also rejects these; this is defense in depth.)
+    let value: String = value.chars().filter(|c| !c.is_control()).collect();
+    let value = value.as_str();
     let has_delim = value.contains(TUPLE_DELIMS);
     let quoted = match was_quoted {
         Some(q) => q || has_delim,
@@ -299,6 +304,20 @@ mod tests {
             "1,bIsPvP=True"
         );
         // bIsPvP was NOT flipped by an injected key.
+        assert_eq!(re.iter().find(|e| e.key == "bIsPvP").unwrap().value, "False");
+    }
+
+    #[test]
+    fn newline_in_value_cannot_split_the_line() {
+        // A single-line tuple must never gain a physical newline (which would drop
+        // every later key on the game's next startup).
+        let mut ch = BTreeMap::new();
+        ch.insert("ServerName".to_string(), "Foo\nbIsPvP=True".to_string());
+        let out = apply(SAMPLE, &ch).unwrap();
+        assert_eq!(out.lines().filter(|l| l.contains("OptionSettings=(")).count(), 1);
+        assert!(!out.contains("Foo\nbIsPvP"));
+        let re = parse(&out).unwrap();
+        assert_eq!(re.iter().find(|e| e.key == "ServerName").unwrap().value, "FoobIsPvP=True");
         assert_eq!(re.iter().find(|e| e.key == "bIsPvP").unwrap().value, "False");
     }
 

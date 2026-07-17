@@ -95,12 +95,17 @@ async fn serve_loop(runtime: Arc<Runtime>) {
         let token = Arc::new(runtime.token());
         // `allow_writes` is sampled per bind; toggling it in the GUI fires
         // `reconfigure`, which re-binds with the new value.
+        // Explicit ini path, or a fallback derived from the CURRENT save dir —
+        // computed here on each (re)bind so it always tracks save_dir.
+        let settings_ini = runtime
+            .settings_ini()
+            .or_else(|| config::derive_settings_ini(&runtime.save_dir()));
         let router = server::router(
             app,
             token,
             runtime.supervisor.clone(),
             runtime.allow_writes(),
-            runtime.settings_ini(),
+            settings_ini,
         );
 
         let shutdown_rt = runtime.clone();

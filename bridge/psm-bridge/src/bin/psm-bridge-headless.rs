@@ -33,7 +33,10 @@ async fn main() {
         .and_then(|p| p.parse().ok())
         .unwrap_or(8213);
     let allow_writes = std::env::var("PSM_ALLOW_WRITES").is_ok_and(|v| v == "1");
-    let settings_ini = std::env::var("PSM_SETTINGS_INI").ok().map(PathBuf::from);
+    let settings_ini = std::env::var("PSM_SETTINGS_INI")
+        .ok()
+        .map(PathBuf::from)
+        .or_else(|| psm_bridge::config::derive_settings_ini(&PathBuf::from(&save_dir)));
 
     let state = Arc::new(AppState::new(PathBuf::from(&save_dir)));
     let router = server::router(

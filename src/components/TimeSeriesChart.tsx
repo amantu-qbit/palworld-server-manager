@@ -195,7 +195,11 @@ export function TimeSeriesChart({
 
         {/* Area + line, per gap-free segment */}
         {segments.map((seg, i) => {
-          if (seg.length < 2) return null;
+          // A segment isolated by gaps on both sides is a single sample — draw it
+          // as a dot so an all-isolated window still shows its data (not a blank).
+          if (seg.length === 1) {
+            return <circle key={i} cx={xOf(seg[0].t)} cy={yOf(seg[0].v)} r="2.5" fill={stroke} />;
+          }
           const line = seg.map((p) => `${xOf(p.t).toFixed(1)},${yOf(p.v).toFixed(1)}`).join(" ");
           const area = `${xOf(seg[0].t).toFixed(1)},${M.top + ih} ${line} ${xOf(
             seg[seg.length - 1].t,

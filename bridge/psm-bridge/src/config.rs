@@ -164,12 +164,10 @@ fn resolve(raw: RawConfig, cli_port: Option<u16>, env_port: Option<String>) -> C
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(DEFAULT_SAVE_DIR));
 
-    // Explicit config wins; otherwise derive from the save dir's layout.
-    let settings_ini = paths
-        .settings_ini
-        .filter(|s| !s.is_empty())
-        .map(PathBuf::from)
-        .or_else(|| derive_settings_ini(&save_dir));
+    // Only the EXPLICIT path is stored; a derived fallback is computed at
+    // use-time (router build) so it always tracks the current save_dir and is
+    // never frozen into bridge.toml.
+    let settings_ini = paths.settings_ini.filter(|s| !s.is_empty()).map(PathBuf::from);
 
     let allow_writes = safety.allow_writes.unwrap_or(false);
 
