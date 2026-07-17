@@ -28,6 +28,7 @@ pub struct Runtime {
     port: RwLock<u16>,
     token: RwLock<String>,
     save_dir: RwLock<PathBuf>,
+    settings_ini: RwLock<Option<PathBuf>>,
     allow_writes: RwLock<bool>,
     config_path: PathBuf,
     log: Mutex<VecDeque<String>>,
@@ -43,6 +44,7 @@ impl Runtime {
             port: RwLock::new(config.port),
             token: RwLock::new(config.token),
             save_dir: RwLock::new(config.save_dir),
+            settings_ini: RwLock::new(config.settings_ini),
             allow_writes: RwLock::new(config.allow_writes),
             config_path,
             log: Mutex::new(VecDeque::new()),
@@ -63,6 +65,9 @@ impl Runtime {
     pub fn save_dir(&self) -> PathBuf {
         self.save_dir.read().unwrap_or_else(|p| p.into_inner()).clone()
     }
+    pub fn settings_ini(&self) -> Option<PathBuf> {
+        self.settings_ini.read().unwrap_or_else(|p| p.into_inner()).clone()
+    }
     pub fn allow_writes(&self) -> bool {
         *self.allow_writes.read().unwrap_or_else(|p| p.into_inner())
     }
@@ -74,6 +79,7 @@ impl Runtime {
             port: self.port(),
             token: self.token(),
             save_dir: self.save_dir(),
+            settings_ini: self.settings_ini(),
             allow_writes: self.allow_writes(),
             server_process: self.supervisor.config_snapshot(),
         }
@@ -86,6 +92,7 @@ impl Runtime {
         *self.port.write().unwrap_or_else(|p| p.into_inner()) = new.port;
         *self.token.write().unwrap_or_else(|p| p.into_inner()) = new.token.clone();
         *self.save_dir.write().unwrap_or_else(|p| p.into_inner()) = new.save_dir.clone();
+        *self.settings_ini.write().unwrap_or_else(|p| p.into_inner()) = new.settings_ini.clone();
         *self.allow_writes.write().unwrap_or_else(|p| p.into_inner()) = new.allow_writes;
         self.supervisor.set_config(new.server_process.clone());
         config::write(&new, &self.config_path).map_err(|e| e.to_string())?;

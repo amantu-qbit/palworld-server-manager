@@ -226,3 +226,22 @@ export function useEditBasePals() {
     onSuccess: () => invalidateBridgeData(),
   });
 }
+
+export function useSettingsIni(enabled = true) {
+  return useQuery({
+    queryKey: ["bridge", "settingsIni"],
+    queryFn: () => bridgeApi.settingsIni(),
+    enabled,
+    retry: 0,
+    staleTime: 10_000,
+  });
+}
+
+export function useWriteSettingsIni() {
+  return useMutation({
+    mutationFn: (changes: Record<string, string>) => bridgeApi.writeSettingsIni(changes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bridge", "settingsIni"] });
+    },
+  });
+}

@@ -94,3 +94,153 @@
   width: 14px;
   height: 14px;
 }
+
+/* ---- Editable settings (via the bridge) ---- */
+.set-note__path {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  word-break: break-all;
+}
+.set-locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-size: 12px;
+  color: #e0a15a;
+  white-space: nowrap;
+}
+.set-ro {
+  color: var(--dim);
+}
+.set-row__val--edit {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.set-row__warn {
+  margin-left: 5px;
+  vertical-align: -1px;
+  color: #e0a15a;
+}
+
+/* toggle switch */
+.set-switch {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+  transition: background var(--dur) var(--ease);
+  flex: none;
+}
+.set-switch.is-on {
+  background: var(--accent);
+}
+.set-switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0a0c10;
+  transition: transform var(--dur) var(--ease);
+}
+.set-switch.is-on .set-switch__knob {
+  transform: translateX(18px);
+}
+.set-switch.is-dirty {
+  box-shadow: 0 0 0 2px rgba(52, 211, 234, 0.3);
+}
+
+/* text / number inputs */
+.set-inputwrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.set-input {
+  width: 200px;
+  max-width: 46vw;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  text-align: right;
+  transition: box-shadow var(--dur) var(--ease);
+}
+.set-input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.set-input.is-dirty {
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 234, 0.5);
+}
+.set-reveal {
+  position: absolute;
+  right: 6px;
+  color: var(--faint);
+  display: flex;
+}
+.set-reveal:hover {
+  color: var(--text);
+}
+
+/* advanced (network/auth) */
+.set-adv__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.set-adv__title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #e0a15a;
+}
+.set-adv__toggle {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--faint);
+}
+.set-adv__warn {
+  margin: 8px 0 4px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--faint);
+}
+
+/* sticky save bar */
+.set-savebar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  background: rgba(14, 17, 22, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 234, 0.28), 0 -6px 20px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+}
+.set-savebar__count {
+  font-size: 12.5px;
+  color: var(--text);
+}
+.set-savebar__flag {
+  color: #e0a15a;
+}
+.set-savebar__actions {
+  display: flex;
+  gap: 8px;
+}

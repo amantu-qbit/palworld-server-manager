@@ -21,6 +21,8 @@ import type {
   SavFileInfo,
   SavTreeResponse,
   ServerStatus,
+  SettingsIni,
+  SettingsIniWriteResult,
   WriteResult,
 } from "../types/bridge";
 
@@ -78,6 +80,10 @@ export interface BridgeApi {
   editGuild(id: string, body: EditGuildBody): Promise<WriteResult>;
   /** Edit a base camp's build-area radius and/or name (Level.sav BaseCampSaveData). */
   editBase(id: string, body: EditBaseBody): Promise<WriteResult>;
+  /** Read the editable PalWorldSettings.ini (OptionSettings entries). */
+  settingsIni(): Promise<SettingsIni>;
+  /** Write changed OptionSettings keys back to PalWorldSettings.ini. */
+  writeSettingsIni(changes: Record<string, string>): Promise<SettingsIniWriteResult>;
   /** Heal every pal stationed at a base in one write. */
   healBasePals(baseId: string): Promise<WriteResult>;
   /** Apply the same edit (level/EXP and/or work suitability) to every base pal. */
@@ -154,6 +160,9 @@ const tauriBridge: BridgeApi = {
   healBasePals: (id) => invoke<WriteResult>("bridge_post", { path: path.basePalsHeal(id) }),
   editBasePals: (id, body) =>
     invoke<WriteResult>("bridge_post", { path: path.basePalsEdit(id), body }),
+  settingsIni: () => invoke<SettingsIni>("bridge_get", { path: "/settings/ini" }),
+  writeSettingsIni: (changes) =>
+    invoke<SettingsIniWriteResult>("bridge_post", { path: "/settings/ini/edit", body: { changes } }),
 };
 
 let conn: Connection | null = null;
@@ -228,6 +237,9 @@ const httpBridge: BridgeApi = {
   editBase: (id, body) => call<WriteResult>(path.editBase(id), "POST", body),
   healBasePals: (id) => call<WriteResult>(path.basePalsHeal(id), "POST"),
   editBasePals: (id, body) => call<WriteResult>(path.basePalsEdit(id), "POST", body),
+  settingsIni: () => call<SettingsIni>("/settings/ini"),
+  writeSettingsIni: (changes) =>
+    call<SettingsIniWriteResult>("/settings/ini/edit", "POST", { changes }),
 };
 
 export const bridgeApi: BridgeApi = isTauri() ? tauriBridge : httpBridge;

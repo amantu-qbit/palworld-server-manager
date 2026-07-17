@@ -17,6 +17,9 @@ pub struct Config {
     pub port: u16,
     pub token: String,
     pub save_dir: PathBuf,
+    /// Path to `PalWorldSettings.ini`. Resolved from `[paths] settings_ini`, or
+    /// derived from `save_dir` when unset. `None` if it can't be located.
+    pub settings_ini: Option<PathBuf>,
     pub allow_writes: bool,
     /// Process-supervision config; `None` unless `[server_process]` (with an
     /// `exe`) is set, in which case the server-control endpoints are enabled.
@@ -89,6 +92,7 @@ struct RawAuth {
 #[derive(Debug, Default, Deserialize)]
 struct RawPaths {
     save_dir: Option<String>,
+    settings_ini: Option<String>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -160,6 +164,13 @@ fn resolve(raw: RawConfig, cli_port: Option<u16>, env_port: Option<String>) -> C
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(DEFAULT_SAVE_DIR));
 
+    // Explicit config wins; otherwise derive from the save dir's layout.
+    let settings_ini = paths
+        .settings_ini
+        .filter(|s| !s.is_empty())
+        .map(PathBuf::from)
+        .or_else(|| derive_settings_ini(&save_dir));
+
     let allow_writes = safety.allow_writes.unwrap_or(false);
 
     Config {
@@ -167,9 +178,37 @@ fn resolve(raw: RawConfig, cli_port: Option<u16>, env_port: Option<String>) -> C
         port,
         token,
         save_dir,
+        settings_ini,
         allow_writes,
         server_process,
     }
+}
+
+/// Best-effort derivation of the `PalWorldSettings.ini` path from a save dir.
+///
+/// A dedicated-server save dir is `…/Pal/Saved/SaveGames/<id>/<world>`, and the
+/// live config sits at `…/Pal/Saved/Config/<Platform>Server/PalWorldSettings.ini`.
+/// Walks up to the `Saved` ancestor and prefers whichever platform folder
+/// actually contains the file, falling back to this host's platform.
+pub fn derive_settings_ini(save_dir: &Path) -> Option<PathBuf> {
+    let mut cur = Some(save_dir);
+    let mut saved: Option<&Path> = None;
+    while let Some(c) = cur {
+        if c.file_name().and_then(|s| s.to_str()) == Some("Saved") {
+            saved = Some(c);
+            break;
+        }
+        cur = c.parent();
+    }
+    let saved = saved?;
+    for platform in ["WindowsServer", "LinuxServer"] {
+        let candidate = saved.join("Config").join(platform).join("PalWorldSettings.ini");
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+    }
+    let platform = if cfg!(windows) { "WindowsServer" } else { "LinuxServer" };
+    Some(saved.join("Config").join(platform).join("PalWorldSettings.ini"))
 }
 
 /// Generate a random token of 64 hex characters (two concatenated UUIDv4s in
@@ -214,6 +253,8 @@ struct WritableAuth {
 #[derive(Serialize)]
 struct WritablePaths {
     save_dir: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    settings_ini: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -246,6 +287,7 @@ pub fn write(config: &Config, path: &Path) -> Result<(), ConfigError> {
         },
         paths: WritablePaths {
             save_dir: norm_path(&config.save_dir),
+            settings_ini: config.settings_ini.as_ref().map(|p| norm_path(p)),
         },
         safety: WritableSafety {
             allow_writes: config.allow_writes,

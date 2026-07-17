@@ -103,3 +103,28 @@ export function groupOf(key: string): Group {
 export function labelFor(key: string): string {
   return humanLabel(key);
 }
+
+/**
+ * Network / auth keys that can lock the manager out of its own server (ports,
+ * REST toggle, passwords) or are secrets. The Settings editor keeps these
+ * behind an "Advanced" section and asks for confirmation before writing them.
+ */
+export const SENSITIVE_KEYS = new Set<string>([
+  "RESTAPIEnabled",
+  "RESTAPIPort",
+  "AdminPassword",
+  "ServerPassword",
+  "PublicPort",
+  "PublicIP",
+  "RCONEnabled",
+  "RCONPort",
+  "bUseAuth",
+  "BanListURL",
+  "AllowConnectPlatform",
+]);
+
+/** Secret keys whose value the editor masks. */
+export const PASSWORD_KEYS = new Set<string>(["AdminPassword", "ServerPassword"]);
+
+export const isSensitiveKey = (key: string): boolean => SENSITIVE_KEYS.has(key);
+export const isPasswordKey = (key: string): boolean => PASSWORD_KEYS.has(key);

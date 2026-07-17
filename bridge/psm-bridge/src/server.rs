@@ -30,6 +30,7 @@ use psm_save::save::model::{ItemContainer, Pal, Player, PlayerSummary};
 use psm_save::save::reference::{load_reference, Reference};
 use psm_save::save::WorldBundle;
 
+use crate::settings_ini;
 use crate::state::{AppState, StateError};
 use crate::supervisor::{ServerStatus, Supervisor, SupervisorError};
 
@@ -43,6 +44,9 @@ struct ServerState {
     /// The `[safety] allow_writes` config value at bind time. Save-write
     /// endpoints 403 when false; `/v1/health` reports it.
     allow_writes: bool,
+    /// Resolved path to `PalWorldSettings.ini` (from config or derived from the
+    /// save dir); `None` when it couldn't be located. Powers `/v1/settings/ini`.
+    settings_ini: Option<PathBuf>,
     /// Serializes save-file writes. Two concurrent write requests would
     /// otherwise read the same original bytes, race the shared `.psm-tmp`
     /// path, and last-write-wins away one of the edits; holding this across
@@ -81,6 +85,8 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/containers/{id}/slot", post(container_slot))
         .route("/v1/containers/{id}/clear", post(container_clear))
         .route("/v1/reference/{catalog}", get(reference_catalog))
+        .route("/v1/settings/ini", get(settings_ini_get))
+        .route("/v1/settings/ini/edit", post(settings_ini_edit))
         .route("/v1/server/status", get(server_status))
         .route("/v1/server/start", post(server_start))
         .route("/v1/server/stop", post(server_stop))
@@ -99,12 +105,14 @@ pub fn router(
     token: Arc<String>,
     supervisor: Arc<Supervisor>,
     allow_writes: bool,
+    settings_ini: Option<PathBuf>,
 ) -> Router {
     let server_state = ServerState {
         app: state,
         token,
         supervisor,
         allow_writes,
+        settings_ini,
         write_lock: Arc::new(tokio::sync::Mutex::new(())),
     };
 
@@ -623,6 +631,133 @@ async fn list_containers(State(state): State<ServerState>) -> Response {
     match collect_containers(&state).await {
         Ok(containers) => Json(ContainersResponse { containers }).into_response(),
         Err(resp) => resp,
+    }
+}
+
+// --- PalWorldSettings.ini -------------------------------------------------
+
+#[derive(Serialize)]
+struct SettingsIniEntry {
+    key: String,
+    value: String,
+    quoted: bool,
+}
+
+#[derive(Serialize)]
+struct SettingsIniResponse {
+    /// Resolved on-disk path (shown in the UI).
+    path: String,
+    /// Whether edits are permitted (mirrors `allow_writes`).
+    writable: bool,
+    settings: Vec<SettingsIniEntry>,
+}
+
+/// GET the current OptionSettings entries from PalWorldSettings.ini.
+async fn settings_ini_get(State(state): State<ServerState>) -> Response {
+    let Some(path) = state.settings_ini.clone() else {
+        return unprocessable(
+            "PalWorldSettings.ini location is not configured — set it in the PSM Bridge window (or bridge.toml [paths] settings_ini)",
+        );
+    };
+    match settings_ini::read(&path) {
+        Ok((_, settings)) => Json(SettingsIniResponse {
+            path: path.display().to_string(),
+            writable: state.allow_writes,
+            settings: settings
+                .into_iter()
+                .map(|s| SettingsIniEntry {
+                    key: s.key,
+                    value: s.value,
+                    quoted: s.quoted,
+                })
+                .collect(),
+        })
+        .into_response(),
+        Err(settings_ini::IniError::Io { .. }) => (
+            StatusCode::NOT_FOUND,
+            Json(ErrorDetailResponse {
+                error: "settings_not_found",
+                detail: format!("could not read {}", path.display()),
+            }),
+        )
+            .into_response(),
+        Err(e) => unprocessable(e),
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct SettingsIniEditBody {
+    /// Logical key → value changes to merge into the OptionSettings tuple.
+    changes: std::collections::BTreeMap<String, String>,
+}
+
+#[derive(Serialize)]
+struct SettingsIniWriteResponse {
+    ok: bool,
+    backup: String,
+    /// Always true — PalWorldSettings.ini is only read at server startup.
+    requires_restart: bool,
+}
+
+/// POST changed OptionSettings keys back to PalWorldSettings.ini.
+///
+/// Unlike save edits, an ini edit is data-safe while the game runs (the server
+/// only reads the file at startup), so this does NOT block on `server_running`
+/// — it only requires writes to be enabled, and signals `requires_restart`.
+async fn settings_ini_edit(
+    State(state): State<ServerState>,
+    Json(body): Json<SettingsIniEditBody>,
+) -> Response {
+    if !state.allow_writes {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(ErrorResponse {
+                error: "writes_disabled",
+            }),
+        )
+            .into_response();
+    }
+    if body.changes.is_empty() {
+        return unprocessable("no settings changes requested");
+    }
+    if body.changes.len() > 300
+        || body.changes.keys().any(|k| k.is_empty() || k.len() > 64)
+        || body.changes.values().any(|v| v.len() > 1024)
+    {
+        return unprocessable("settings change payload out of bounds");
+    }
+    let Some(path) = state.settings_ini.clone() else {
+        return unprocessable("PalWorldSettings.ini location is not configured");
+    };
+
+    let changes = body.changes;
+    // Serialize against other writes (a concurrent ini edit would race the
+    // backup/replace of the same file).
+    let _serialized = state.write_lock.lock().await;
+    let outcome = tokio::task::spawn_blocking(move || -> Result<PathBuf, settings_ini::IniError> {
+        let (raw, _) = settings_ini::read(&path)?;
+        let updated = settings_ini::apply(&raw, &changes)?;
+        let backup = settings_ini::backup(&path)?;
+        psm_save::save::edit::write::atomic_replace(&path, updated.as_bytes()).map_err(|e| {
+            settings_ini::IniError::Io {
+                path: path.clone(),
+                source: std::io::Error::other(e.to_string()),
+            }
+        })?;
+        Ok(backup)
+    })
+    .await;
+
+    match outcome {
+        Ok(Ok(backup)) => Json(SettingsIniWriteResponse {
+            ok: true,
+            backup: backup.display().to_string(),
+            requires_restart: true,
+        })
+        .into_response(),
+        Ok(Err(settings_ini::IniError::Io { source, .. })) => internal_error(source),
+        Ok(Err(e)) => unprocessable(e),
+        Err(_join) => internal_error("settings edit task failed"),
     }
 }
 

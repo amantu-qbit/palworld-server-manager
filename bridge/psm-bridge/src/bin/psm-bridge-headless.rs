@@ -33,6 +33,7 @@ async fn main() {
         .and_then(|p| p.parse().ok())
         .unwrap_or(8213);
     let allow_writes = std::env::var("PSM_ALLOW_WRITES").is_ok_and(|v| v == "1");
+    let settings_ini = std::env::var("PSM_SETTINGS_INI").ok().map(PathBuf::from);
 
     let state = Arc::new(AppState::new(PathBuf::from(&save_dir)));
     let router = server::router(
@@ -40,6 +41,7 @@ async fn main() {
         Arc::new(token),
         Arc::new(Supervisor::new(None)),
         allow_writes,
+        settings_ini,
     );
 
     let addr = format!("127.0.0.1:{port}");

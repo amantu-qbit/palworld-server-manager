@@ -276,3 +276,26 @@ export interface SavTreeResponse {
   node: SavNode;
   meta: { size_bytes: number };
 }
+
+/** One OptionSettings entry from `GET /v1/settings/ini`. */
+export interface SettingsIniEntry {
+  key: string;
+  /** Logical value (surrounding quotes stripped for string entries). */
+  value: string;
+  /** True when the on-disk token was a quoted string. */
+  quoted: boolean;
+}
+
+/** `GET /v1/settings/ini` — editable PalWorldSettings.ini state. */
+export interface SettingsIni {
+  path: string;
+  writable: boolean;
+  settings: SettingsIniEntry[];
+}
+
+/** `POST /v1/settings/ini/edit` result. */
+export interface SettingsIniWriteResult {
+  ok: boolean;
+  backup: string;
+  requires_restart: boolean;
+}

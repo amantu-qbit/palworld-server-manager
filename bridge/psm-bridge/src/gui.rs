@@ -23,6 +23,7 @@ pub struct BridgeApp {
     port: String,
     token: String,
     save_dir: String,
+    settings_ini: String,
     exe: String,
     args: String,
     allow_writes: bool,
@@ -41,6 +42,10 @@ impl BridgeApp {
             port: c.port.to_string(),
             token: c.token,
             save_dir: c.save_dir.to_string_lossy().to_string(),
+            settings_ini: c
+                .settings_ini
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_default(),
             exe,
             args,
             allow_writes: c.allow_writes,
@@ -68,6 +73,13 @@ impl BridgeApp {
             return Err("Token should be at least 16 characters (use Generate).".into());
         }
         let save_dir = self.save_dir.trim().replace('\\', "/");
+        let settings_ini = self.settings_ini.trim().replace('\\', "/");
+        let settings_ini = if settings_ini.is_empty() {
+            // Empty → derive from the save dir's layout (same as config load).
+            crate::config::derive_settings_ini(&PathBuf::from(&save_dir))
+        } else {
+            Some(PathBuf::from(settings_ini))
+        };
         let exe = self.exe.trim().replace('\\', "/");
         let server_process = if exe.is_empty() {
             None
@@ -88,6 +100,7 @@ impl BridgeApp {
             port,
             token: token.to_string(),
             save_dir: PathBuf::from(save_dir),
+            settings_ini,
             allow_writes: self.allow_writes,
             server_process,
         })
@@ -218,6 +231,25 @@ impl eframe::App for BridgeApp {
                         if ui.button("Browse…").clicked() {
                             if let Some(p) = rfd::FileDialog::new().pick_folder() {
                                 self.save_dir = p.to_string_lossy().to_string();
+                            }
+                        }
+                    });
+                    ui.end_row();
+
+                    ui.label("Settings .ini")
+                        .on_hover_text("PalWorldSettings.ini. Leave blank to auto-detect from the save directory.");
+                    ui.horizontal(|ui| {
+                        ui.add(
+                            egui::TextEdit::singleline(&mut self.settings_ini)
+                                .desired_width(300.0)
+                                .hint_text("auto-detect from save dir"),
+                        );
+                        if ui.button("Browse…").clicked() {
+                            if let Some(p) = rfd::FileDialog::new()
+                                .add_filter("Config", &["ini"])
+                                .pick_file()
+                            {
+                                self.settings_ini = p.to_string_lossy().to_string();
                             }
                         }
                     });
