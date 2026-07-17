@@ -241,7 +241,7 @@ fn load_world_with_containers_matches_load_world_and_has_item_containers() {
         "world1's base camp is enriched with a decoded area_range + position"
     );
     // Base ground-storage containers are discovered from MapObjectSaveData
-    // (world1's base has several built chests).
+    // (world1's base has a built chest; dropped ground loot is filtered out).
     assert!(
         bundle
             .world

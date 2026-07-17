@@ -43,6 +43,9 @@ pub struct WorldBundle {
     pub dynamic_items: HashMap<Uuid, DynamicItem>,
     /// `GuildExtraSaveDataMap`, reduced to guild-id → guild-chest container id.
     pub guild_chests: HashMap<Uuid, Uuid>,
+    /// Base storage container id (string) → its map object's `MapObjectId`
+    /// (build-object type, e.g. "WoodChest"), for a real chest name.
+    pub base_storage_names: HashMap<String, String>,
 }
 
 /// Load a save directory's `Level.sav` into a [`World`].
@@ -109,8 +112,17 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
     // ItemContainer module points at an item container.
     let base_storage = match world_save_data.get_child("MapObjectSaveData") {
         Some(prop) => map_object::decode_base_storage(prop),
-        None => HashMap::new(),
+        None => map_object::BaseStorage {
+            by_base: HashMap::new(),
+            names: HashMap::new(),
+        },
     };
+    // Container id (string) → real build-object name (e.g. "WoodChest").
+    let base_storage_names: HashMap<String, String> = base_storage
+        .names
+        .iter()
+        .map(|(id, name)| (id.to_string(), name.clone()))
+        .collect();
 
     // Group pals by their container id so each base can list the pals stationed
     // there — a pal belongs to a base iff its `storage_id` equals the base's
@@ -153,7 +165,7 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
                         }
                     }
                 }
-                if let Some(cids) = base_storage.get(&bid) {
+                if let Some(cids) = base_storage.by_base.get(&bid) {
                     b.storage_containers = cids.iter().map(Uuid::to_string).collect();
                 }
             }
@@ -166,6 +178,7 @@ pub fn load_world_with_containers(dir: &Path) -> Result<WorldBundle, SaveError> 
         item_containers,
         dynamic_items,
         guild_chests,
+        base_storage_names,
     })
 }
 

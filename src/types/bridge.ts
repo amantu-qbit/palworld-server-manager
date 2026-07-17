@@ -162,6 +162,9 @@ export interface ContainerInfo {
   /** Vanilla default slot count for this kind, when reliably known (so the UI
    *  can flag a container resized off its default). Absent when it varies. */
   default_slot_num?: number;
+  /** Build-object type of a base storage chest (e.g. "ItemChest"), for its real
+   *  name. Only present for base storage. */
+  object_name?: string;
   used: number;
   slots: ItemContainerSlot[];
 }

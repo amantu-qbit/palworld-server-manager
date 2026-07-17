@@ -17,13 +17,32 @@ const BAG: Record<
   food_equip: { label: "Food", order: 4 },
 };
 
+/** Friendly in-game names for base-storage build objects (their `MapObjectId`). */
+const OBJECT_NAMES: Record<string, string> = {
+  ItemChest: "Wooden Chest",
+  DispenseItem: "Feed Box",
+};
+
+/**
+ * Real display name of a base-storage chest from its build-object `MapObjectId`
+ * (e.g. `ItemChest` → "Wooden Chest"), or `null` if unknown. Falls back to
+ * humanizing the raw id (split CamelCase, drop a trailing dimension suffix).
+ */
+export function chestName(objectName?: string): string | null {
+  if (!objectName) return null;
+  if (OBJECT_NAMES[objectName]) return OBJECT_NAMES[objectName];
+  const base = objectName.replace(/\d+[dD]?$/, "").replace(/_+/g, " ").trim();
+  return (base || objectName).replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim();
+}
+
 /** Rail/header label for a container. */
 export function containerLabel(c: ContainerInfo): string {
   if (c.kind === "guild_chest") {
     return c.guild_name ? `Guild Chest — ${c.guild_name}` : "Guild Chest";
   }
   if (c.kind === "base_storage") {
-    return c.guild_name ? `Base Storage — ${c.guild_name}` : "Base Storage";
+    const name = chestName(c.object_name) ?? "Base Storage";
+    return c.guild_name ? `${name} — ${c.guild_name}` : name;
   }
   return BAG[c.kind]?.label ?? c.label;
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  chestName,
   containerLabel,
   containerOwner,
   groupContainers,
@@ -79,6 +80,20 @@ describe("container labels", () => {
     expect(containerOwner(container({ kind: "common", owner_name: "Riko" }))).toBe("Riko");
     expect(containerOwner(container({ kind: "guild_chest", guild_name: "Night Raid" }))).toBe("Night Raid");
     expect(containerOwner(container({ kind: "common" }))).toBe("Unknown player");
+  });
+});
+
+describe("chestName", () => {
+  it("maps known build objects to their in-game names", () => {
+    expect(chestName("ItemChest")).toBe("Wooden Chest");
+    expect(chestName("DispenseItem")).toBe("Feed Box");
+  });
+  it("humanizes unknown ids (CamelCase split, trailing dimension dropped)", () => {
+    expect(chestName("RefinedMetalChest")).toBe("Refined Metal Chest");
+    expect(chestName("CommonDropItem3D")).toBe("Common Drop Item");
+  });
+  it("returns null for a missing object name", () => {
+    expect(chestName(undefined)).toBeNull();
   });
 });
 

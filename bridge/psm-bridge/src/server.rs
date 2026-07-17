@@ -485,6 +485,10 @@ struct ContainerInfo {
     id: String,
     kind: &'static str,
     label: &'static str,
+    /// The build-object type of a base storage chest (e.g. "WoodChest"), so the
+    /// UI can show its real name instead of "Chest 1". Only set for base storage.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    object_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     owner_uid: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -554,6 +558,7 @@ fn container_info_from(
         id: id.to_string(),
         kind,
         label,
+        object_name: None,
         owner_uid: None,
         owner_name: None,
         guild_id: None,
@@ -617,6 +622,7 @@ async fn collect_containers(state: &ServerState) -> Result<Vec<ContainerInfo>, R
                 {
                     info.guild_id = Some(g.id.clone());
                     info.guild_name = Some(g.name.clone());
+                    info.object_name = bundle.base_storage_names.get(cid_str).cloned();
                     out.push(info);
                 }
             }

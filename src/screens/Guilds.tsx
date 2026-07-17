@@ -17,6 +17,7 @@ import { EmptyState } from "../components/EmptyState";
 import { Field, Input } from "../components/Field";
 import { Skeleton } from "../components/Skeleton";
 import { ContainerPane } from "./Storage";
+import { chestName } from "../lib/containers";
 import {
   useBridge,
   useBridgeContainers,
@@ -391,7 +392,7 @@ function BaseSection({
                   className={i === storeIdx ? "is-on" : ""}
                   onClick={() => setStoreIdx(i)}
                 >
-                  Chest {i + 1}
+                  {chestName(s.object_name) ?? `Chest ${i + 1}`}
                   <span>
                     {s.used}/{s.slot_num}
                   </span>

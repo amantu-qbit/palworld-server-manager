@@ -28,18 +28,31 @@ use super::reader::Reader;
 
 const ITEM_CONTAINER_MODULE: &str = "EPalMapObjectConcreteModelModuleType::ItemContainer";
 
-/// Build a `base_id → [storage container id]` index from `MapObjectSaveData`.
-/// A non-array property, or objects missing the fields, are skipped rather than
-/// failing the load.
-pub fn decode_base_storage(map_objects: &Property) -> HashMap<Uuid, Vec<Uuid>> {
-    let mut out: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
+/// `MapObjectId`s that carry an ItemContainer module but aren't base storage the
+/// owner manages — dropped ground loot. Excluded from the storage list.
+const EXCLUDED_OBJECTS: &[&str] = &["CommonDropItem3D"];
+
+/// Index of base storage: `base_id → [container id]`, plus each container's
+/// `MapObjectId` (the build-object identifier, e.g. `WoodChest`) for a real name.
+pub struct BaseStorage {
+    /// Which storage containers belong to each base camp.
+    pub by_base: HashMap<Uuid, Vec<Uuid>>,
+    /// Container id → its map object's `MapObjectId` (build-object type).
+    pub names: HashMap<Uuid, String>,
+}
+
+/// Build the base-storage index from `MapObjectSaveData`. A non-array property,
+/// or objects missing the fields, are skipped rather than failing the load.
+pub fn decode_base_storage(map_objects: &Property) -> BaseStorage {
+    let mut by_base: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
+    let mut names: HashMap<Uuid, String> = HashMap::new();
 
     let values = match map_objects {
         Property::Array {
             value: ArrayValue::Structs { values, .. },
             ..
         } => values,
-        _ => return out,
+        _ => return BaseStorage { by_base, names },
     };
 
     for v in values {
@@ -57,6 +70,14 @@ pub fn decode_base_storage(map_objects: &Property) -> HashMap<Uuid, Vec<Uuid>> {
         else {
             continue;
         };
+
+        // The build-object identifier (e.g. "ItemChest") — the object's real name.
+        let object_id = obj.get("MapObjectId").and_then(key_str).map(str::to_string);
+        // Ground-loot pickups also carry an ItemContainer module tied to a base,
+        // but they aren't storage the owner manages — skip them.
+        if object_id.as_deref().is_some_and(|id| EXCLUDED_OBJECTS.contains(&id)) {
+            continue;
+        }
 
         // Its ItemContainer module's target container (guid at offset 0).
         let Some(module_map) = obj
@@ -78,11 +99,14 @@ pub fn decode_base_storage(map_objects: &Property) -> HashMap<Uuid, Vec<Uuid>> {
                 .and_then(Property::as_bytes)
                 .and_then(|raw| guid_at(raw, 0))
             {
-                out.entry(base_id).or_default().push(cid);
+                by_base.entry(base_id).or_default().push(cid);
+                if let Some(name) = &object_id {
+                    names.insert(cid, name.clone());
+                }
             }
         }
     }
-    out
+    BaseStorage { by_base, names }
 }
 
 /// The 16-byte GUID at `offset` in `raw` (same LE→BE word swap as
@@ -147,6 +171,7 @@ mod tests {
             vec![
                 ("Model".to_string(), model),
                 ("ConcreteModel".to_string(), concrete),
+                ("MapObjectId".to_string(), Property::Str("WoodChest".to_string())),
             ]
             .into_iter()
             .collect(),
@@ -163,12 +188,15 @@ mod tests {
 
         let base_id = Uuid::parse_str("00000007-0000-0000-0000-000000000000").unwrap();
         let container_id = Uuid::parse_str("00000009-0000-0000-0000-000000000000").unwrap();
-        let index = decode_base_storage(&map_objects);
-        assert_eq!(index.get(&base_id), Some(&vec![container_id]));
+        let bs = decode_base_storage(&map_objects);
+        assert_eq!(bs.by_base.get(&base_id), Some(&vec![container_id]));
+        // The build-object identifier is captured as the container's real name.
+        assert_eq!(bs.names.get(&container_id).map(String::as_str), Some("WoodChest"));
     }
 
     #[test]
     fn non_array_yields_empty() {
-        assert!(decode_base_storage(&Property::Int(0)).is_empty());
+        let bs = decode_base_storage(&Property::Int(0));
+        assert!(bs.by_base.is_empty() && bs.names.is_empty());
     }
 }
