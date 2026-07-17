@@ -37,21 +37,26 @@ const AREA_DEFAULT = 3500;
 const LVL_MIN = 1;
 const LVL_MAX = 30;
 
-/** The 13 Palworld work suitabilities (bare EPalWorkSuitability suffixes). */
+/**
+ * The 13 Palworld work suitabilities as their fully-qualified on-disk enum
+ * values. These MUST match how the save stores them ("EPalWorkSuitability::X")
+ * — a bare suffix would never match an existing entry and the bridge would
+ * reject it, so keep the prefix.
+ */
 const WORK_SUITABILITIES = [
-  "EmitFlame",
-  "Watering",
-  "Seeding",
-  "GenerateElectricity",
-  "Handcraft",
-  "Collection",
-  "Deforest",
-  "Mining",
-  "OilExtraction",
-  "ProductMedicine",
-  "Cool",
-  "Transport",
-  "MonsterFarm",
+  "EPalWorkSuitability::EmitFlame",
+  "EPalWorkSuitability::Watering",
+  "EPalWorkSuitability::Seeding",
+  "EPalWorkSuitability::GenerateElectricity",
+  "EPalWorkSuitability::Handcraft",
+  "EPalWorkSuitability::Collection",
+  "EPalWorkSuitability::Deforest",
+  "EPalWorkSuitability::Mining",
+  "EPalWorkSuitability::OilExtraction",
+  "EPalWorkSuitability::ProductMedicine",
+  "EPalWorkSuitability::Cool",
+  "EPalWorkSuitability::Transport",
+  "EPalWorkSuitability::MonsterFarm",
 ];
 const MAX_WORK_RANK = 5;
 

@@ -1657,6 +1657,19 @@ fn plan_work_suitability(
     ranks: &BTreeMap<String, i32>,
     plan: &mut EditPlan,
 ) -> Result<(), SaveError> {
+    // Codes must be the fully-qualified on-disk enum values (e.g.
+    // "EPalWorkSuitability::Handcraft"). A bare suffix ("Handcraft") would never
+    // match an existing entry (so it silently appends) AND would be written as a
+    // malformed EnumProperty the game can't resolve — reject it here so no caller
+    // can corrupt the list.
+    for code in ranks.keys() {
+        if !code.starts_with("EPalWorkSuitability::") {
+            return Err(edit_err(format!(
+                "work suitability code must be fully qualified (EPalWorkSuitability::…): {code:?}"
+            )));
+        }
+    }
+
     let mut remaining: BTreeMap<&str, i32> = ranks.iter().map(|(k, v)| (k.as_str(), *v)).collect();
 
     match find_in_body(buf, body, "GotWorkSuitabilityAddRankList")? {
@@ -2269,4 +2282,25 @@ fn rewrite_clone_slot_id(
         .ok_or_else(|| edit_err("clone: SlotID missing SlotIndex"))?;
     entry[si.value_start..si.value_start + 4].copy_from_slice(&slot.to_le_bytes());
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn work_suitability_rejects_bare_enum_codes() {
+        // A bare suffix (missing the "EPalWorkSuitability::" prefix) must be
+        // rejected up front: on disk the enum is fully qualified, so a bare code
+        // would never match an existing entry and would be written as a malformed
+        // EnumProperty the game can't resolve. Guard rejects before any parsing,
+        // so an empty buffer is fine.
+        let mut plan = EditPlan::default();
+        let ranks: BTreeMap<String, i32> = [("Handcraft".to_string(), 5)].into_iter().collect();
+        let err = plan_work_suitability(&[], 0, &ranks, &mut plan).expect_err("bare code must error");
+        assert!(
+            err.to_string().contains("fully qualified"),
+            "expected a fully-qualified-code error, got: {err}"
+        );
+    }
 }

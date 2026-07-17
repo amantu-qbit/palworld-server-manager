@@ -1061,11 +1061,8 @@ async fn pal_edit(
         }
     }
     if let Some(ws) = &body.work_suitability {
-        if ws.len() > 32
-            || ws.keys().any(|k| k.len() > 64)
-            || ws.values().any(|v| !(0..=5).contains(v))
-        {
-            return unprocessable("work suitability ranks out of range (0..=5)");
+        if let Some(resp) = validate_work_suitability(ws) {
+            return resp;
         }
     }
     for l in [&body.passive_skills, &body.active_skills, &body.learned_skills]
@@ -1283,8 +1280,8 @@ async fn base_pals_edit(
         return unprocessable("exp must be non-negative");
     }
     if let Some(ws) = &body.work_suitability {
-        if ws.len() > 32 || ws.keys().any(|k| k.len() > 64) || ws.values().any(|v| !(0..=5).contains(v)) {
-            return unprocessable("work suitability ranks out of range (0..=5)");
+        if let Some(resp) = validate_work_suitability(ws) {
+            return resp;
         }
     }
     if body.level.is_none() && body.exp.is_none() && body.work_suitability.is_none() {
@@ -1727,6 +1724,29 @@ fn unprocessable(err: impl std::fmt::Display) -> Response {
         }),
     )
         .into_response()
+}
+
+/// Border validation for a `work_suitability` edit map, shared by the single-pal
+/// and base-batch edit handlers. Returns `Some(422)` on any problem.
+///
+/// Keys must be the fully-qualified on-disk enum values
+/// (`EPalWorkSuitability::Handcraft`, not a bare `Handcraft`): a bare suffix
+/// never matches an existing entry and would append a malformed enum the game
+/// can't resolve. The write layer rejects bare codes too, but catching it here
+/// gives clients a clean 422 instead of a deep save error.
+fn validate_work_suitability(ws: &BTreeMap<String, i32>) -> Option<Response> {
+    if ws.len() > 32 || ws.keys().any(|k| k.len() > 64) {
+        return Some(unprocessable("work suitability map too large"));
+    }
+    if ws.values().any(|v| !(0..=5).contains(v)) {
+        return Some(unprocessable("work suitability ranks out of range (0..=5)"));
+    }
+    if let Some(k) = ws.keys().find(|k| !k.starts_with("EPalWorkSuitability::")) {
+        return Some(unprocessable(format!(
+            "work suitability key must be fully qualified (EPalWorkSuitability::…): {k}"
+        )));
+    }
+    None
 }
 
 /// Bearer-auth middleware, applied to every route via [`router`].
