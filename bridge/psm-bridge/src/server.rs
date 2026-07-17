@@ -639,6 +639,14 @@ where
         )
             .into_response());
     }
+    // Belt-and-suspenders: before the FIRST edit of this bridge session, take a
+    // one-shot snapshot of the whole save folder (on top of the per-file backup
+    // every edit makes). If it can't be written, refuse the edit — no edit ever
+    // proceeds without a full pre-edit backup. Serialized by the write lock, so
+    // it runs exactly once.
+    if let Err(e) = state.app.ensure_full_backup().await {
+        return Err(internal_error(e));
+    }
     let outcome =
         tokio::task::spawn_blocking(move || std::panic::catch_unwind(AssertUnwindSafe(op))).await;
     match outcome {

@@ -137,13 +137,117 @@ pub fn list_backups(path: &Path) -> Vec<(PathBuf, u64)> {
     out
 }
 
+/// How many one-shot full-folder snapshots to keep.
+const FULL_SNAPSHOT_KEEP: usize = 5;
+
+/// Take a one-shot **full snapshot of the entire save directory** into
+/// `<save_dir>/psm-backups/full-<UTC secs>.<millis>/`, recursively copying every
+/// file and subdirectory except the `psm-backups` folder itself (so the
+/// snapshot never contains prior backups or recurses into its own destination).
+/// Older snapshots beyond [`FULL_SNAPSHOT_KEEP`] are pruned.
+///
+/// This is the belt-and-suspenders companion to the per-file [`backup_file`]:
+/// callers take it once, before the first edit of a session, so the whole
+/// pre-edit world (Level.sav + every player `.sav` + metadata) can be restored
+/// wholesale even if a per-file backup is somehow missed.
+pub fn snapshot_save_dir(save_dir: &Path) -> Result<PathBuf, SaveError> {
+    let backups = save_dir.join("psm-backups");
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| SaveError::Io(format!("clock error: {e}")))?;
+    let final_name = format!("full-{}.{:03}", now.as_secs(), now.subsec_millis());
+    let dest = backups.join(&final_name);
+
+    // Build the snapshot in a hidden staging dir and rename it to `full-<ts>/`
+    // only once the copy FULLY succeeds — so a `full-*` directory is always a
+    // complete snapshot. A copy that fails partway (disk full, a
+    // permission-denied file) leaves no `full-*` artifact and is not counted by
+    // the keep-window prune; the edit is refused upstream.
+    let staging = backups.join(format!(".{final_name}.partial"));
+    let _ = std::fs::remove_dir_all(&staging); // clear any leftover from a crash
+    std::fs::create_dir_all(&staging).map_err(|e| io_err(e, "create full-backup staging dir"))?;
+
+    if let Err(e) = copy_tree(save_dir, &staging) {
+        let _ = std::fs::remove_dir_all(&staging);
+        return Err(e);
+    }
+    std::fs::rename(&staging, &dest).map_err(|e| {
+        let _ = std::fs::remove_dir_all(&staging);
+        io_err(e, "finalize full-backup snapshot")
+    })?;
+
+    prune_full_snapshots(&backups);
+    Ok(dest)
+}
+
+/// Recursively copy `src` into `dst`. Skips any `psm-backups` directory **at any
+/// depth** — per-player edits create their own `Players/psm-backups` — so the
+/// snapshot never contains prior backups or its own staging dir. Symlinks are
+/// **followed** (classified by their target via `fs::metadata`), so a relocated
+/// `Level.sav` or a bind-mounted `Players/` is captured rather than silently
+/// omitted; a broken symlink surfaces as an error that refuses the edit rather
+/// than yielding an incomplete "successful" snapshot. Transient `.psm-tmp`
+/// files are skipped.
+fn copy_tree(src: &Path, dst: &Path) -> Result<(), SaveError> {
+    let entries = std::fs::read_dir(src).map_err(|e| io_err(e, "read save dir"))?;
+    for entry in entries {
+        let entry = entry.map_err(|e| io_err(e, "read dir entry"))?;
+        let name = entry.file_name();
+        // Exclude every psm-backups folder (top-level and nested) and the
+        // atomic-replace temp file.
+        if name.to_str() == Some("psm-backups") {
+            continue;
+        }
+        if name.to_str().is_some_and(|n| n.ends_with(".psm-tmp")) {
+            continue;
+        }
+        let path = entry.path();
+        // Classify by the symlink *target* (`metadata` follows; `file_type`
+        // does not) so symlinked files/dirs are captured, not skipped.
+        let meta = std::fs::metadata(&path).map_err(|e| io_err(e, "stat save entry"))?;
+        let target = dst.join(&name);
+        if meta.is_dir() {
+            std::fs::create_dir_all(&target).map_err(|e| io_err(e, "create snapshot subdir"))?;
+            copy_tree(&path, &target)?;
+        } else if meta.is_file() {
+            std::fs::copy(&path, &target).map_err(|e| io_err(e, "copy save file"))?;
+        }
+    }
+    Ok(())
+}
+
+/// Keep only the newest [`FULL_SNAPSHOT_KEEP`] `full-*` snapshot directories.
+/// Best-effort — failures never block a save write.
+fn prune_full_snapshots(backups: &Path) {
+    let Ok(entries) = std::fs::read_dir(backups) else {
+        return;
+    };
+    let mut dirs: Vec<String> = entries
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().map(|t| t.is_dir()).unwrap_or(false))
+        .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|n| n.starts_with("full-"))
+        .collect();
+    dirs.sort(); // full-<secs>.<millis> sorts chronologically (fixed-width fields)
+    if dirs.len() > FULL_SNAPSHOT_KEEP {
+        for n in &dirs[..dirs.len() - FULL_SNAPSHOT_KEEP] {
+            let _ = std::fs::remove_dir_all(backups.join(n));
+        }
+    }
+}
+
 /// Replace `path` with `bytes` via a same-directory temp file + rename.
 ///
 /// The temp file is flushed and synced before the rename. On Windows,
 /// renaming onto an existing file fails, so the destination is removed first
 /// — safe because [`backup_file`] has already preserved the original, and the
 /// temp file (holding the complete new contents) survives any crash in the
-/// gap.
+/// gap. If the rename itself *returns an error* after the original was removed
+/// (e.g. a transient Windows sharing violation from an AV/indexer briefly
+/// holding the temp), the new bytes are written directly to `path` as a
+/// fallback so the save is never left missing from its canonical location; only
+/// if that recovery also fails does the error propagate (the original still
+/// lives in the backup either way).
 pub fn atomic_replace(path: &Path, bytes: &[u8]) -> Result<(), SaveError> {
     let parent = path
         .parent()
@@ -162,7 +266,15 @@ pub fn atomic_replace(path: &Path, bytes: &[u8]) -> Result<(), SaveError> {
     if path.exists() {
         std::fs::remove_file(path).map_err(|e| io_err(e, "remove old save"))?;
     }
-    std::fs::rename(&tmp, path).map_err(|e| io_err(e, "rename temp into place"))?;
+    if let Err(rename_err) = std::fs::rename(&tmp, path) {
+        // The original is already gone, so a failed rename must not leave the
+        // canonical path with no file. Write the new (already-validated) bytes
+        // directly — non-atomic, but the pre-edit contents survive in the
+        // backup and the save stays present rather than vanishing from the
+        // app's view. Report the original rename error only if this also fails.
+        std::fs::write(path, bytes).map_err(|_| io_err(rename_err, "rename temp into place"))?;
+        let _ = std::fs::remove_file(&tmp);
+    }
     Ok(())
 }
 
@@ -189,6 +301,46 @@ mod tests {
         let (unpacked, st) = decompress_sav_with_type(&packed).unwrap();
         assert_eq!(st, 0x30);
         assert_eq!(unpacked, data);
+    }
+
+    #[test]
+    fn snapshot_copies_whole_dir_excluding_backups() {
+        let dir = std::env::temp_dir().join(format!("psm-snap-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("Players")).unwrap();
+        std::fs::write(dir.join("Level.sav"), b"level").unwrap();
+        std::fs::write(dir.join("Players").join("AAA.sav"), b"player").unwrap();
+        // Pre-existing per-file backups that must NOT be copied into the
+        // snapshot — top-level AND the nested Players/psm-backups a per-player
+        // edit creates.
+        std::fs::create_dir_all(dir.join("psm-backups")).unwrap();
+        std::fs::write(dir.join("psm-backups").join("old.sav"), b"stale").unwrap();
+        std::fs::create_dir_all(dir.join("Players").join("psm-backups")).unwrap();
+        std::fs::write(dir.join("Players").join("psm-backups").join("p.sav"), b"nested").unwrap();
+
+        let snap = snapshot_save_dir(&dir).unwrap();
+        assert!(snap.starts_with(dir.join("psm-backups")), "snapshot lives under psm-backups");
+        assert!(
+            snap.file_name().and_then(|n| n.to_str()).is_some_and(|n| n.starts_with("full-")),
+            "finalized snapshot is a full-* dir, not a staging dir"
+        );
+        assert_eq!(std::fs::read(snap.join("Level.sav")).unwrap(), b"level");
+        assert_eq!(std::fs::read(snap.join("Players").join("AAA.sav")).unwrap(), b"player");
+        // No psm-backups folder (top-level or nested) is captured, and the
+        // snapshot never recurses into its own destination.
+        assert!(!snap.join("psm-backups").exists(), "top-level psm-backups excluded");
+        assert!(
+            !snap.join("Players").join("psm-backups").exists(),
+            "nested Players/psm-backups excluded"
+        );
+        // No leftover `.partial` staging dir remains after a successful snapshot.
+        let leftover = std::fs::read_dir(dir.join("psm-backups"))
+            .unwrap()
+            .filter_map(|e| e.ok())
+            .any(|e| e.file_name().to_str().is_some_and(|n| n.contains(".partial")));
+        assert!(!leftover, "staging dir renamed away, no .partial leftover");
+
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

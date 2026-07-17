@@ -17,6 +17,7 @@
 
 use std::panic::AssertUnwindSafe;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
 use std::time::UNIX_EPOCH;
 
@@ -43,6 +44,9 @@ struct Cached {
 pub struct AppState {
     save_dir: PathBuf,
     cached: RwLock<Option<Cached>>,
+    /// Set once the one-shot full save-folder snapshot has been taken this
+    /// bridge session (see [`AppState::ensure_full_backup`]).
+    full_backup_done: AtomicBool,
 }
 
 /// Errors from [`AppState::bundle`].
@@ -60,6 +64,10 @@ pub enum StateError {
     /// `SaveError::TooLarge`, `SaveError::BadMagic`).
     #[error("failed to load world: {0}")]
     Load(#[from] SaveError),
+    /// The one-shot full save-folder snapshot could not be written, so the
+    /// edit was refused — no edit proceeds without a full pre-edit backup.
+    #[error("full pre-edit backup failed: {0}")]
+    Backup(String),
 }
 
 impl AppState {
@@ -69,6 +77,36 @@ impl AppState {
         Self {
             save_dir,
             cached: RwLock::new(None),
+            full_backup_done: AtomicBool::new(false),
+        }
+    }
+
+    /// Take the one-shot full save-folder snapshot for this bridge session, if
+    /// it hasn't been taken yet. Called before the first save edit (see the
+    /// bridge's `run_edit`), on top of the per-file backup every edit makes.
+    ///
+    /// Returns the snapshot path on the run that creates it, `Ok(None)` when it
+    /// was already taken this session, and an error (which aborts the edit) if
+    /// the snapshot cannot be written — so no edit ever proceeds without a full
+    /// pre-edit backup existing. Serialized by the caller's write lock, so the
+    /// snapshot runs exactly once even under concurrent edit requests.
+    pub async fn ensure_full_backup(&self) -> Result<Option<PathBuf>, StateError> {
+        if self.full_backup_done.load(Ordering::Acquire) {
+            return Ok(None);
+        }
+        let dir = self.save_dir.clone();
+        let outcome =
+            tokio::task::spawn_blocking(move || psm_save::save::edit::write::snapshot_save_dir(&dir))
+                .await;
+        match outcome {
+            Ok(Ok(path)) => {
+                // Only mark done once the snapshot actually exists, so a failed
+                // attempt is retried on the next edit rather than skipped.
+                self.full_backup_done.store(true, Ordering::Release);
+                Ok(Some(path))
+            }
+            Ok(Err(save_error)) => Err(StateError::Backup(save_error.to_string())),
+            Err(_join_error) => Err(StateError::Backup("snapshot task failed".to_string())),
         }
     }
 
