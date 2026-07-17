@@ -52,10 +52,11 @@ It's a tiny native app (a few MB, powered by [Tauri](https://tauri.app) — not 
 **Live monitoring & administration** — over the server's official REST API:
 
 - **📊 Real‑time dashboard** — server FPS on an animated instrument dial, uptime, players online, frame time, a live population trend, and a top‑players board. Everything refreshes on an interval you control.
+- **📈 Trends** — persisted history graphs for **FPS, players, and frame time** over 1h / 6h / 24h, kept per server across restarts. Collection gaps (app closed, paused, offline) render as honest line breaks; a server restart shows up as a marker.
 - **🗺️ Live world map** — every player and Pal plotted on the real in‑game map, alongside **fast‑travel points, dungeons, Lifmunk effigies, and boss Pals**. Smooth pan / zoom / pinch, a fullscreen mode, layer toggles with live counts, an offline‑player filter, and hover details — markers are canvas‑rendered so it stays fluid with hundreds on screen. With the Bridge connected, each **guild base‑camp's build area** is drawn to scale straight from the save.
 - **👥 Player management** — a searchable, sortable roster with color‑coded ping; open any player to **kick**, **ban**, or **unban** with a typed‑confirmation safety gate.
 - **🖥️ Command console** — broadcast **announcements**, trigger a **save**, schedule a **shutdown** with a countdown, or **force‑stop** — each with a live activity log and confirmations for destructive actions.
-- **⚙️ Settings inspector** — browse all ~60 server settings, grouped and searchable, with one‑click copy and **JSON export** for backups.
+- **⚙️ Settings** — browse all ~60 server settings, grouped and searchable, with one‑click copy and **JSON export**. With the **Bridge** connected it becomes fully editable — write `PalWorldSettings.ini` directly, with network/auth keys (ports, passwords, the REST toggle) behind an *Advanced* guard and a backup before every change.
 - **🛡️ Ban manager** — issue and lift bans by user ID, with a local record of everything you've banned through the app.
 
 **Deep save tools** — via the optional **[Server+ Bridge](#-part-3--the-server-bridge)**, mod‑free and backup‑first:
@@ -226,6 +227,12 @@ The guild hub. Rename a guild and set its **base‑camp level**, then, per base,
 
 ![Guilds — the guild hub with base‑camp level, build‑area radius slider, base storage tabs, and the guild chest](docs/screenshots/guilds.png)
 
+### ⚙️ Editing settings
+
+With the Bridge connected, the Settings screen reads `PalWorldSettings.ini` directly (complete and accurate, unlike the read‑only REST view) and writes changed keys back — preserving every other byte of the file. Gameplay settings edit inline as toggles, numbers, and text; **network & auth keys** (ports, the REST toggle, admin/server passwords) sit behind an **Advanced** section with masked passwords and a typed confirmation, so a stray edit can't lock you out. Every write takes a timestamped backup first, and changes apply on the next server restart.
+
+![Settings — editing PalWorldSettings.ini via the Bridge, with grouped inline controls](docs/screenshots/settings-edit.png)
+
 ## 🖼️ Screens
 
 <div align="center">
@@ -233,6 +240,14 @@ The guild hub. Rename a guild and set its **base‑camp level**, then, per base,
 ![Live world map plotting every player and Pal on the Palpagos islands, with filters and a snapshot panel](docs/screenshots/world-map.png)
 
 *The World Map plots live positions from `/game-data` onto the real Palpagos map — pan, zoom, and filter by unit type.*
+
+</div>
+
+<div align="center">
+
+![Trends — persisted FPS, players, and frame-time graphs over a selectable time window](docs/screenshots/trends.png)
+
+*Trends — per‑server history for FPS, players, and frame time, with honest gaps for time the app was closed.*
 
 </div>
 
@@ -334,11 +349,11 @@ It's stored locally and sent only to the server you configure — never to any t
 
 - [x] Automatic in-app updates
 - [x] Guild, base‑camp, and container editing via the Bridge
-- [ ] Direct `PalWorldSettings.ini` editing
-- [ ] RCON support
-- [ ] Historical metrics graphs (FPS, players, uptime over time)
-- [ ] Multi‑region world map (Sakurajima, Feybreak)
+- [x] Direct `PalWorldSettings.ini` editing (via the Bridge)
+- [x] Historical metrics graphs (FPS, players, frame time over time)
+- [x] Multi‑region world map (Palpagos + World Tree, with a region switcher)
 - [ ] macOS & Linux builds
+- [ ] ~~RCON support~~ — Palworld has deprecated RCON, so this is off the table
 
 ## 💜 Support the project
 
