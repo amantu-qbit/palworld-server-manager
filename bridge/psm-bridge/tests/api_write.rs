@@ -378,18 +378,43 @@ async fn base_pal_batch_ops_end_to_end() {
     let dir = temp_world("basepals");
     let app = make_router_at(&dir, true);
 
-    // Find a base with pals stationed at it (Base.pals is back-filled from each
-    // pal's storage_id == the base's WorkerDirector container id).
+    // Enumerate bases: remember the first base (any), and any base that has pals
+    // stationed at it (Base.pals is back-filled from each pal's storage_id == the
+    // base's WorkerDirector container id).
     let (_, guilds) = request(&app, "GET", "/v1/guilds", None).await;
+    let mut any_base: Option<String> = None;
     let mut base_with_pals: Option<String> = None;
     for g in guilds.as_array().unwrap() {
         for b in g["bases"].as_array().cloned().unwrap_or_default() {
+            let id = b["id"].as_str().unwrap().to_string();
             let n = b["pals"].as_array().map(|a| a.len()).unwrap_or(0);
-            eprintln!("[base_pals] base {} name={} pals={}", b["id"], b["name"], n);
+            any_base.get_or_insert_with(|| id.clone());
             if n > 0 {
-                base_with_pals = Some(b["id"].as_str().unwrap().to_string());
+                base_with_pals = Some(id);
             }
         }
+    }
+
+    // The work-suitability validator runs BEFORE the pal lookup, so the v0.6.1
+    // guard is exercised on any base even when none has pals stationed: a bare
+    // enum code (missing the "EPalWorkSuitability::" prefix) must be rejected 422
+    // rather than reaching the write layer and corrupting the save.
+    if let Some(bid) = &any_base {
+        let (status, json) = request(
+            &app,
+            "POST",
+            &format!("/v1/bases/{bid}/pals/edit"),
+            Some(serde_json::json!({ "work_suitability": { "Handcraft": 5 } })),
+        )
+        .await;
+        assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{json}");
+        assert!(
+            json["detail"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("fully qualified"),
+            "bare work-suitability key should be rejected as unqualified, got {json}"
+        );
     }
 
     let Some(bid) = base_with_pals else {
@@ -409,11 +434,15 @@ async fn base_pal_batch_ops_end_to_end() {
     assert_eq!(json["ok"], true);
 
     // Max work affinity for all pals at the base (all 13 suitabilities → 5).
+    // Keys are fully qualified, exactly as the frontend sends them.
     let ws = serde_json::json!({ "work_suitability": {
-        "EmitFlame": 5, "Watering": 5, "Seeding": 5, "GenerateElectricity": 5,
-        "Handcraft": 5, "Collection": 5, "Deforest": 5, "Mining": 5,
-        "OilExtraction": 5, "ProductMedicine": 5, "Cool": 5, "Transport": 5,
-        "MonsterFarm": 5
+        "EPalWorkSuitability::EmitFlame": 5, "EPalWorkSuitability::Watering": 5,
+        "EPalWorkSuitability::Seeding": 5, "EPalWorkSuitability::GenerateElectricity": 5,
+        "EPalWorkSuitability::Handcraft": 5, "EPalWorkSuitability::Collection": 5,
+        "EPalWorkSuitability::Deforest": 5, "EPalWorkSuitability::Mining": 5,
+        "EPalWorkSuitability::OilExtraction": 5, "EPalWorkSuitability::ProductMedicine": 5,
+        "EPalWorkSuitability::Cool": 5, "EPalWorkSuitability::Transport": 5,
+        "EPalWorkSuitability::MonsterFarm": 5
     }});
     let (status, json) = request(&app, "POST", &format!("/v1/bases/{bid}/pals/edit"), Some(ws)).await;
     assert_eq!(status, StatusCode::OK, "{json}");
