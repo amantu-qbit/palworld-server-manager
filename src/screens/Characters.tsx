@@ -46,6 +46,15 @@ import { useToast } from "../hooks/useToast";
 import { TechTree } from "../components/TechTree";
 import { elementColor, isRare, palInfo, wazaElement } from "../lib/palDex";
 import { humanize, statusLabel, workLabel } from "../lib/palLabels";
+import {
+  ALL_STATS,
+  EXT_STATS,
+  HERO_STATS,
+  RELIC_STATS,
+  computeTotals,
+  resolveStats,
+} from "../lib/playerStats";
+import type { ResolvedStat } from "../lib/playerStats";
 import { itemWeight } from "../lib/itemMeta";
 import { EXP_TABLE, LEVEL_CAP, MAX_LEVEL, levelProgress } from "../lib/expTable";
 import { DISABLED_PASSIVES, passiveRank, passiveRankColor } from "../lib/skillMeta";
@@ -381,7 +390,10 @@ function CharacterTab({
   canEdit: boolean;
   serverRunning: boolean;
 }) {
-  const stats = { ...detail.status_points, ...detail.ext_status_points };
+  const resolved = resolveStats(detail.status_points);
+  const rankByKey = Object.fromEntries(resolved.map((r) => [r.def.key, r.value]));
+  const totals = computeTotals(rankByKey);
+  const relicAlloc = resolved.filter((r) => r.def.kind === "relic" && r.value > 0);
   const toast = useToast();
   const editTech = useEditPlayerTechnologies();
   const [editOpen, setEditOpen] = useState(false);
@@ -424,10 +436,23 @@ function CharacterTab({
       <div className="ch-statgrid">
         <Stat label="Level" value={detail.level} bar={{ pct: prog.pct, title: progressTitle(prog) }} />
         <Stat label="EXP" value={detail.exp.toLocaleString()} />
-        {Object.entries(stats).map(([k, v]) => (
-          <Stat key={k} label={statusLabel(k)} value={`+${v}`} />
+        {totals.map((t) => (
+          <Stat key={t.key} label={t.label} value={t.value.toLocaleString()} />
         ))}
       </div>
+      {relicAlloc.length > 0 && (
+        <div className="ch-allocgrid">
+          {relicAlloc.map((r) => (
+            <div className="ch-alloc" key={r.def.key} title={r.def.label}>
+              <span className="ch-alloc__v">
+                {r.value}
+                <i>/{r.def.cap}</i>
+              </span>
+              <span className="ch-alloc__l">{r.def.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <TechTree
         unlocked={detail.technologies}
@@ -465,21 +490,23 @@ function Stat({
   );
 }
 
-/** Changed status-point entries only (keys stay the on-disk names). */
-function diffPoints(
-  original: Record<string, number>,
-  edited: Record<string, string>,
+/**
+ * On-disk-named diff of changed status-point allocations. An existing row keeps
+ * its exact on-disk name (a plain value patch); a stat raised from 0 uses its
+ * canonical Japanese id so the bridge appends a row the game will read back.
+ * Values are clamped to each stat's in-game cap.
+ */
+function statusDiff(
+  resolved: ResolvedStat[],
+  edited: Record<string, number>,
 ): Record<string, number> | null {
   const out: Record<string, number> = {};
-  for (const [k, v] of Object.entries(edited)) {
-    const n = clampInt(v, 0, 9999, original[k] ?? 0);
-    if (n !== original[k]) out[k] = n;
+  for (const r of resolved) {
+    const nv = Math.min(Math.max(edited[r.def.key] ?? 0, 0), r.def.cap);
+    if (nv !== r.value) out[r.onDiskName] = nv;
   }
   return Object.keys(out).length ? out : null;
 }
-
-const toStrings = (m: Record<string, number>) =>
-  Object.fromEntries(Object.entries(m).map(([k, v]) => [k, String(v)]));
 
 function PlayerEditDrawer({
   open,
@@ -495,11 +522,13 @@ function PlayerEditDrawer({
   const editTech = useEditPlayerTechnologies();
   const playerMap = usePlayerMap();
 
+  const resolved = useMemo(() => resolveStats(detail.status_points), [detail]);
+  const resolvedExt = useMemo(() => resolveStats(detail.ext_status_points, EXT_STATS), [detail]);
   const [level, setLevel] = useState(String(detail.level));
   const [exp, setExp] = useState(String(detail.exp));
   const [advanced, setAdvanced] = useState(false);
-  const [status, setStatus] = useState<Record<string, string>>(() => toStrings(detail.status_points));
-  const [ext, setExt] = useState<Record<string, string>>(() => toStrings(detail.ext_status_points));
+  const [ranks, setRanks] = useState<Record<string, number>>({});
+  const [extRanks, setExtRanks] = useState<Record<string, number>>({});
   const [tp, setTp] = useState(String(detail.technology_points));
   const [btp, setBtp] = useState(String(detail.boss_technology_points));
 
@@ -508,11 +537,16 @@ function PlayerEditDrawer({
     setLevel(String(detail.level));
     setExp(String(detail.exp));
     setAdvanced(false);
-    setStatus(toStrings(detail.status_points));
-    setExt(toStrings(detail.ext_status_points));
+    setRanks(Object.fromEntries(resolved.map((r) => [r.def.key, r.value])));
+    setExtRanks(Object.fromEntries(resolvedExt.map((r) => [r.def.key, r.value])));
     setTp(String(detail.technology_points));
     setBtp(String(detail.boss_technology_points));
-  }, [open, detail]);
+  }, [open, detail, resolved, resolvedExt]);
+
+  const totals = computeTotals(ranks);
+  const setRank = (key: string, n: number) => setRanks((m) => ({ ...m, [key]: n }));
+  const setExtRank = (key: string, n: number) => setExtRanks((m) => ({ ...m, [key]: n }));
+  const maxAll = () => setRanks(Object.fromEntries(ALL_STATS.map((s) => [s.key, s.cap])));
 
   const onLevel = (v: string) => {
     setLevel(v);
@@ -528,9 +562,9 @@ function PlayerEditDrawer({
     const body: EditPlayerBody = {};
     if (lv !== detail.level) body.level = lv;
     if (xp !== detail.exp) body.exp = xp;
-    const sp = diffPoints(detail.status_points, status);
+    const sp = statusDiff(resolved, ranks);
     if (sp) body.status_points = sp;
-    const ep = diffPoints(detail.ext_status_points, ext);
+    const ep = statusDiff(resolvedExt, extRanks);
     if (ep) body.ext_status_points = ep;
     const tpN = clampInt(tp, 0, 99999, detail.technology_points);
     const btpN = clampInt(btp, 0, 99999, detail.boss_technology_points);
@@ -578,23 +612,6 @@ function PlayerEditDrawer({
     }
   };
 
-  const pointFields = (
-    map: Record<string, string>,
-    set: (m: Record<string, string>) => void,
-  ) =>
-    Object.keys(map).map((k) => (
-      <Field key={k} label={statusLabel(k)}>
-        <Input
-          mono
-          type="number"
-          min={0}
-          max={9999}
-          value={map[k]}
-          onChange={(e) => set({ ...map, [k]: e.target.value })}
-        />
-      </Field>
-    ));
-
   return (
     <Drawer
       open={open}
@@ -633,18 +650,69 @@ function PlayerEditDrawer({
           </Field>
         </div>
 
-        {Object.keys(status).length > 0 && (
-          <section className="ch-formsec">
+        <section className="ch-formsec">
+          <div className="ch-statsechead">
             <div className="eyebrow">Status points</div>
-            <div className="ch-formgrid">{pointFields(status, setStatus)}</div>
-          </section>
-        )}
-        {Object.keys(ext).length > 0 && (
-          <section className="ch-formsec">
-            <div className="eyebrow">Extended status points</div>
-            <div className="ch-formgrid">{pointFields(ext, setExt)}</div>
-          </section>
-        )}
+            <button type="button" className="ch-maxbtn" onClick={maxAll}>
+              Max all
+            </button>
+          </div>
+          <div className="ch-totalrow">
+            {totals.map((t) => (
+              <div className="ch-total" key={t.key}>
+                <span className="ch-total__v">{t.value.toLocaleString()}</span>
+                <span className="ch-total__l">{t.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="ch-stepgrid">
+            {HERO_STATS.map((s) => (
+              <Stepper
+                key={s.key}
+                label={s.label}
+                v={ranks[s.key] ?? 0}
+                min={0}
+                max={s.cap}
+                cap={s.cap}
+                onChange={(n) => setRank(s.key, n)}
+              />
+            ))}
+          </div>
+          <div className="ch-substep">Utility &amp; relics</div>
+          <div className="ch-stepgrid">
+            {RELIC_STATS.map((s) => (
+              <Stepper
+                key={s.key}
+                label={s.label}
+                v={ranks[s.key] ?? 0}
+                min={0}
+                max={s.cap}
+                cap={s.cap}
+                onChange={(n) => setRank(s.key, n)}
+              />
+            ))}
+          </div>
+        </section>
+        <section className="ch-formsec">
+          <div className="eyebrow">Extended status points</div>
+          <p className="ch-maphint">
+            Bonus points earned past the level cap — they stack on top of the base allocations
+            above.
+          </p>
+          <div className="ch-stepgrid">
+            {EXT_STATS.map((s) => (
+              <Stepper
+                key={s.key}
+                label={s.label}
+                v={extRanks[s.key] ?? 0}
+                min={0}
+                max={s.cap}
+                cap={s.cap}
+                onChange={(n) => setExtRank(s.key, n)}
+              />
+            ))}
+          </div>
+        </section>
 
         <section className="ch-formsec">
           <div className="eyebrow">Technology</div>
@@ -1134,12 +1202,15 @@ function Stepper({
   v,
   min,
   max,
+  cap,
   onChange,
 }: {
   label: string;
   v: number;
   min: number;
   max: number;
+  /** When set, shows a `/cap` suffix next to the value (game-style limit). */
+  cap?: number;
   onChange: (n: number) => void;
 }) {
   return (
@@ -1149,7 +1220,10 @@ function Stepper({
         <button type="button" onClick={() => onChange(Math.max(min, v - 1))} disabled={v <= min} aria-label={`Decrease ${label}`}>
           −
         </button>
-        <b>{v}</b>
+        <b>
+          {v}
+          {cap !== undefined && <i className="ch-step__cap">/{cap}</i>}
+        </b>
         <button type="button" onClick={() => onChange(Math.min(max, v + 1))} disabled={v >= max} aria-label={`Increase ${label}`}>
           +
         </button>

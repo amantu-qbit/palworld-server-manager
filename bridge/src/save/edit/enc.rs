@@ -87,6 +87,16 @@ pub fn str_prop(name: &str, value: &str) -> Vec<u8> {
     out
 }
 
+/// A `NameProperty` (same wire shape as [`str_prop`] with a `NameProperty`
+/// type). `StatusName` inside `Got(Ex)StatusPointList` uses this form.
+pub fn name_prop(name: &str, value: &str) -> Vec<u8> {
+    let body = fstring(value);
+    let mut out = tag(name, "NameProperty", body.len() as u64);
+    out.push(0);
+    out.extend(body);
+    out
+}
+
 /// An `ArrayProperty` of `NameProperty`/`EnumProperty` elements (a list of
 /// fstrings). `elem_type` selects which UE element type the array declares —
 /// pass the type the surrounding save already uses for that field (e.g.

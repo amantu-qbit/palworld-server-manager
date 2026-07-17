@@ -1595,6 +1595,108 @@
   font-weight: 500;
   color: var(--text);
 }
+.ch-step__cap {
+  font-style: normal;
+  margin-left: 1px;
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+/* ---- Player status-point editor: totals + capped stepper grid ---- */
+.ch-statsechead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ch-maxbtn {
+  padding: 4px 12px;
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 32%, var(--line));
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+.ch-maxbtn:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.ch-totalrow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 8px;
+}
+.ch-total {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 11px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, var(--line));
+}
+.ch-total__v {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+.ch-total__l {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--faint);
+}
+.ch-stepgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+}
+.ch-substep {
+  margin-top: 2px;
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* Relic allocations on the read-only Character tab. */
+.ch-allocgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin: -8px 0 20px;
+}
+.ch-alloc {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-1, rgba(255, 255, 255, 0.022));
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.ch-alloc__v {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+.ch-alloc__v i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--faint);
+}
+.ch-alloc__l {
+  font-size: 10px;
+  color: var(--faint);
+}
 
 /* Skill slots: chosen chips + searchable picker panel. */
 .ch-slotchips {

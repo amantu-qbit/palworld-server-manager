@@ -1272,8 +1272,12 @@ fn plan_names_array(
 }
 
 /// Update `StatusPoint` values inside a `Got(Ex)StatusPointList` array of
-/// `{ StatusName, StatusPoint }` structs. Only existing names are updated; an
-/// unknown name is an error (the caller echoes back names it read from us).
+/// `{ StatusName, StatusPoint }` structs. Names already present are patched
+/// in place; names not yet present are **inserted** as new struct elements
+/// (raising a stat from 0), matching the on-disk `StatusName` property type of
+/// an existing element. Inserting requires at least one existing element as a
+/// template — every real player carries the always-present base stats, so this
+/// holds; an insert into a genuinely empty list is a loud error.
 fn plan_status_points(
     buf: &[u8],
     body: usize,
@@ -1286,9 +1290,17 @@ fn plan_status_points(
         .ok_or_else(|| edit_err(format!("{list_name} missing or not a struct array")))?;
     let mut a = Cursor::new(buf, t.value_start);
     let arr = array_info(&mut a, &t)?;
+    let inner = arr
+        .inner
+        .clone()
+        .ok_or_else(|| edit_err(format!("{list_name} missing inner struct header")))?;
 
     let mut remaining: BTreeMap<&str, i32> =
         points.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+
+    // The `StatusName` property type of an existing element (`NameProperty` in
+    // every save observed; `StrProperty` tolerated), reused verbatim for inserts.
+    let mut name_type: Option<String> = None;
 
     let mut c = Cursor::new(buf, arr.elems_start);
     for _ in 0..arr.count {
@@ -1300,6 +1312,9 @@ fn plan_status_points(
                 None => break,
                 Some(tag) => {
                     if tag.name == "StatusName" {
+                        if name_type.is_none() {
+                            name_type = Some(tag.type_name.clone());
+                        }
                         let mut v = Cursor::new(buf, tag.value_start);
                         name = Some(v.fstring()?);
                     } else if tag.name == "StatusPoint" && tag.type_name == "IntProperty" {
@@ -1317,10 +1332,42 @@ fn plan_status_points(
     }
     c.expect_at(t.value_end, list_name)?;
 
-    if let Some((n, _)) = remaining.iter().next() {
-        return Err(edit_err(format!("unknown status name `{n}` in {list_name}")));
+    // Names not found in the array are new allocations. The game creates a
+    // `{StatusName, StatusPoint}` row lazily — a stat at rank 0 has no row at
+    // all — so only a *positive* value appends one. Appending a 0 (or negative)
+    // row would bloat the save with rows the game never wrote (the UI sends
+    // every relic key on save, most at 0). Deterministic order via BTreeMap;
+    // all inserts land at the array's end boundary, inside its size/count scopes.
+    let to_add: Vec<(&str, i32)> = remaining
+        .iter()
+        .filter(|(_, v)| **v > 0)
+        .map(|(k, v)| (*k, *v))
+        .collect();
+    if !to_add.is_empty() {
+        let name_type = name_type
+            .ok_or_else(|| edit_err(format!("cannot add a status point to empty {list_name}")))?;
+        for &(name, value) in &to_add {
+            plan.insert(t.value_end, status_point_element(&name_type, name, value));
+        }
+        plan.count(arr.count_offset, to_add.len() as i64);
+        plan.scope_u64(t.size_field, t.value_start..t.value_end);
+        plan.scope_u64(inner.size_field, arr.elems_start..t.value_end);
     }
     Ok(())
+}
+
+/// Encode one `Got(Ex)StatusPointList` element — a bare property stream
+/// `{ StatusName, StatusPoint }` plus its `"None"` terminator — matching the
+/// on-disk `StatusName` property type.
+fn status_point_element(name_type: &str, name: &str, value: i32) -> Vec<u8> {
+    let mut out = if name_type == "StrProperty" {
+        enc::str_prop("StatusName", name)
+    } else {
+        enc::name_prop("StatusName", name)
+    };
+    out.extend(enc::int_prop("StatusPoint", value));
+    out.extend(enc::fstring("None"));
+    out
 }
 
 /// Insert an encoded property just before a stream's `"None"` terminator.
@@ -1391,6 +1438,35 @@ fn validate_character(
     if let (Some(want), CharTarget::Instance(_)) = (&edits.passive_skills, target) {
         if &passives != want {
             return Err(edit_err("post-edit passive skills mismatch"));
+        }
+    }
+
+    // Status points are a player concept: assert every requested allocation
+    // (patched or freshly inserted) round-trips to the exact value.
+    if edits.status_points.is_some() || edits.ext_status_points.is_some() {
+        let p = match target {
+            CharTarget::Player(uid) => players.iter().find(|p| p.uid == uid.to_string()),
+            CharTarget::Instance(iid) => players.iter().find(|p| p.instance_id == iid.to_string()),
+        }
+        .ok_or_else(|| edit_err("post-edit parse lost the player for status check"))?;
+        // An absent row is semantically rank 0 (the game creates rows lazily),
+        // so a requested 0 that we intentionally did not append still validates.
+        let check = |list: &BTreeMap<String, i32>, want: &BTreeMap<String, i32>, which: &str| {
+            for (k, v) in want {
+                let got = list.get(k).copied().unwrap_or(0);
+                if got != *v {
+                    return Err(edit_err(format!(
+                        "post-edit {which} `{k}` = {got}, expected {v}"
+                    )));
+                }
+            }
+            Ok(())
+        };
+        if let Some(want) = &edits.status_points {
+            check(&p.status_point_list, want, "status point")?;
+        }
+        if let Some(want) = &edits.ext_status_points {
+            check(&p.ext_status_point_list, want, "ext status point")?;
         }
     }
     Ok(())

@@ -223,6 +223,91 @@ fn edit_player_level_exp_and_status_points() {
     assert_eq!(pals.len(), world.pals.len());
 }
 
+/// Raising a stat the player has never allocated must *insert* a new
+/// `GotStatusPointList` entry (not error), while patching an existing one in the
+/// same edit still works.
+#[test]
+fn edit_player_status_points_insert_new_allocation() {
+    let buf = level_gvas();
+    let dir = fixture_dir();
+    let bundle = load_world_with_containers(&dir).unwrap();
+    let player = bundle
+        .players
+        .iter()
+        .find(|p| !p.status_point_list.is_empty())
+        .expect("a player with base status entries");
+    let uid = Uuid::parse_str(&player.uid).unwrap();
+
+    // A name definitely not already present → forces the insert path.
+    let new_name = "PSM_TEST_RELIC".to_string();
+    assert!(!player.status_point_list.contains_key(&new_name));
+    let existing_key = player.status_point_list.keys().next().unwrap().clone();
+
+    let mut pts = BTreeMap::new();
+    pts.insert(existing_key.clone(), 9); // patch existing
+    pts.insert(new_name.clone(), 15); // insert new
+    let edits = CharacterEdits {
+        status_points: Some(pts),
+        ..Default::default()
+    };
+
+    let out = edit_character(&buf, CharTarget::Player(uid), &edits).unwrap();
+
+    let gvas = parse_gvas(&out, &default_skip_set()).unwrap();
+    let map = gvas
+        .root
+        .get("worldSaveData")
+        .unwrap()
+        .get_child("CharacterSaveParameterMap")
+        .unwrap();
+    let (players, _) = psm_save::save::character::decode_characters(map).unwrap();
+    let p = players.iter().find(|p| p.uid == player.uid).unwrap();
+    assert_eq!(p.status_point_list.get(&existing_key), Some(&9));
+    assert_eq!(p.status_point_list.get(&new_name), Some(&15));
+    // The list grew by exactly the one inserted entry.
+    assert_eq!(
+        p.status_point_list.len(),
+        player.status_point_list.len() + 1
+    );
+}
+
+/// Anti-bloat rule (matches palworld-save-pal): a stat the save has no row for,
+/// set to 0, must NOT append a row — the game creates rows lazily and absent
+/// means rank 0. The UI sends every relic key at save time, most at 0.
+#[test]
+fn edit_player_status_points_zero_for_absent_appends_nothing() {
+    let buf = level_gvas();
+    let dir = fixture_dir();
+    let bundle = load_world_with_containers(&dir).unwrap();
+    let player = bundle
+        .players
+        .iter()
+        .find(|p| !p.status_point_list.is_empty())
+        .expect("a player with base status entries");
+    let uid = Uuid::parse_str(&player.uid).unwrap();
+    let before = player.status_point_list.len();
+
+    let mut pts = BTreeMap::new();
+    pts.insert("PSM_TEST_ABSENT_ZERO".to_string(), 0); // absent + zero → no row
+    let edits = CharacterEdits {
+        status_points: Some(pts),
+        ..Default::default()
+    };
+
+    let out = edit_character(&buf, CharTarget::Player(uid), &edits).unwrap();
+    let gvas = parse_gvas(&out, &default_skip_set()).unwrap();
+    let map = gvas
+        .root
+        .get("worldSaveData")
+        .unwrap()
+        .get_child("CharacterSaveParameterMap")
+        .unwrap();
+    let (players, _) = psm_save::save::character::decode_characters(map).unwrap();
+    let p = players.iter().find(|p| p.uid == player.uid).unwrap();
+    assert!(!p.status_point_list.contains_key("PSM_TEST_ABSENT_ZERO"));
+    assert_eq!(p.status_point_list.len(), before, "no row should be added");
+}
+
 #[test]
 fn edit_pal_fields() {
     let buf = level_gvas();
