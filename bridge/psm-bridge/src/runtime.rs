@@ -30,6 +30,7 @@ pub struct Runtime {
     save_dir: RwLock<PathBuf>,
     settings_ini: RwLock<Option<PathBuf>>,
     allow_writes: RwLock<bool>,
+    allow_time_skip: RwLock<bool>,
     config_path: PathBuf,
     log: Mutex<VecDeque<String>>,
     bind_status: RwLock<String>,
@@ -46,6 +47,7 @@ impl Runtime {
             save_dir: RwLock::new(config.save_dir),
             settings_ini: RwLock::new(config.settings_ini),
             allow_writes: RwLock::new(config.allow_writes),
+            allow_time_skip: RwLock::new(config.allow_time_skip),
             config_path,
             log: Mutex::new(VecDeque::new()),
             bind_status: RwLock::new("Starting…".to_string()),
@@ -71,6 +73,9 @@ impl Runtime {
     pub fn allow_writes(&self) -> bool {
         *self.allow_writes.read().unwrap_or_else(|p| p.into_inner())
     }
+    pub fn allow_time_skip(&self) -> bool {
+        *self.allow_time_skip.read().unwrap_or_else(|p| p.into_inner())
+    }
 
     /// Snapshot of all current settings (for the form and for writing to disk).
     pub fn snapshot(&self) -> Config {
@@ -81,6 +86,7 @@ impl Runtime {
             save_dir: self.save_dir(),
             settings_ini: self.settings_ini(),
             allow_writes: self.allow_writes(),
+            allow_time_skip: self.allow_time_skip(),
             server_process: self.supervisor.config_snapshot(),
         }
     }
@@ -94,6 +100,7 @@ impl Runtime {
         *self.save_dir.write().unwrap_or_else(|p| p.into_inner()) = new.save_dir.clone();
         *self.settings_ini.write().unwrap_or_else(|p| p.into_inner()) = new.settings_ini.clone();
         *self.allow_writes.write().unwrap_or_else(|p| p.into_inner()) = new.allow_writes;
+        *self.allow_time_skip.write().unwrap_or_else(|p| p.into_inner()) = new.allow_time_skip;
         self.supervisor.set_config(new.server_process.clone());
         config::write(&new, &self.config_path).map_err(|e| e.to_string())?;
         // notify_one stores a permit if the server is momentarily between binds,

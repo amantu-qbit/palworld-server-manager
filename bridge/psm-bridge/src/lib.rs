@@ -8,6 +8,7 @@ pub mod server;
 pub mod settings_ini;
 pub mod state;
 pub mod supervisor;
+pub mod time_skip;
 
 /// Install a panic hook that silences the decoder's *speculative-probe*
 /// panics only.

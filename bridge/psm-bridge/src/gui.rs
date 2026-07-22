@@ -27,6 +27,7 @@ pub struct BridgeApp {
     exe: String,
     args: String,
     allow_writes: bool,
+    allow_time_skip: bool,
     message: String,
 }
 
@@ -49,6 +50,7 @@ impl BridgeApp {
             exe,
             args,
             allow_writes: c.allow_writes,
+            allow_time_skip: c.allow_time_skip,
             message: String::new(),
             runtime,
         }
@@ -103,6 +105,7 @@ impl BridgeApp {
             save_dir: PathBuf::from(save_dir),
             settings_ini,
             allow_writes: self.allow_writes,
+            allow_time_skip: self.allow_time_skip,
             server_process,
         })
     }
@@ -278,6 +281,10 @@ impl eframe::App for BridgeApp {
             ui.checkbox(
                 &mut self.allow_writes,
                 "Allow save edits (containers, players, pals — blocked while the server runs; a timestamped backup is taken before every write)",
+            );
+            ui.checkbox(
+                &mut self.allow_time_skip,
+                "Allow clock time-skip (briefly jump this PC's clock forward to finish real-time timers, then restore — requires running as Administrator)",
             );
             ui.add_space(6.0);
 

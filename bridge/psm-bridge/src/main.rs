@@ -17,6 +17,9 @@ const CONFIG_FILE: &str = "bridge.toml";
 
 fn main() {
     psm_bridge::install_quiet_panic_hook();
+    // If a previous run was killed mid clock time-skip, snap the clock back to
+    // true time before doing anything else.
+    psm_bridge::time_skip::recover_if_needed();
     let config_path = PathBuf::from(CONFIG_FILE);
     let first_run = !config_path.exists();
 
@@ -105,6 +108,7 @@ async fn serve_loop(runtime: Arc<Runtime>) {
             token,
             runtime.supervisor.clone(),
             runtime.allow_writes(),
+            runtime.allow_time_skip(),
             settings_ini,
         );
 

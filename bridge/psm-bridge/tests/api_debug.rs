@@ -18,7 +18,7 @@ const TOKEN: &str = "test-token-0123456789abcdef";
 
 fn make_router() -> axum::Router {
     let state = Arc::new(AppState::new(PathBuf::from(WORLD1_DIR)));
-    router(state, Arc::new(TOKEN.to_string()), Arc::new(Supervisor::new(None)), false, None)
+    router(state, Arc::new(TOKEN.to_string()), Arc::new(Supervisor::new(None)), false, false, None)
 }
 
 async fn get(uri: &str) -> (StatusCode, String) {

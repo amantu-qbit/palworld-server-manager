@@ -37,6 +37,7 @@ fn make_router_at(dir: &Path, allow_writes: bool) -> axum::Router {
         Arc::new(TOKEN.to_string()),
         Arc::new(Supervisor::new(None)),
         allow_writes,
+        false,
         None,
     )
 }

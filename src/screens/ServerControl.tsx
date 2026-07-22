@@ -1,13 +1,13 @@
 import "./servercontrol.css";
 import { useState } from "react";
-import { Loader2, Play, RotateCw, ServerCog, Square, TriangleAlert } from "lucide-react";
+import { Clock, Loader2, Play, RotateCw, ServerCog, Square, TriangleAlert } from "lucide-react";
 import { TopBar } from "../components/TopBar";
 import { Button } from "../components/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import type { ConfirmSpec } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
 import { Skeleton } from "../components/Skeleton";
-import { useBridge, useServerStatus } from "../hooks/bridge";
+import { useBridge, useServerStatus, useTimeSkip } from "../hooks/bridge";
 import { bridgeApi } from "../api/bridge";
 import { api } from "../api";
 import { useToast } from "../hooks/useToast";
@@ -41,12 +41,14 @@ async function waitUntil(fn: () => Promise<boolean>, timeoutMs = 90_000, interva
 export function ServerControl() {
   const bridge = useBridge();
   const status = useServerStatus(bridge.available);
+  const timeSkip = useTimeSkip();
   const toast = useToast();
   const [confirm, setConfirm] = useState<ConfirmSpec | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
   const data = status.data;
   const running = !!data?.running;
+  const timeSkipEnabled = bridge.health?.time_skip_enabled === true;
 
   async function run(label: string, fn: () => Promise<void>) {
     setBusy(label);
@@ -108,6 +110,27 @@ export function ServerControl() {
           await bridgeApi.serverStop();
           toast.success("Server force-stopped", "Process killed.");
         }),
+    });
+
+  const doTimeSkip = (hours: number) =>
+    setConfirm({
+      title: `Jump the clock +${hours}h to finish timers?`,
+      body: `This briefly sets the server PC's clock forward ${hours} hours so the running game finishes real-time timers (egg hatching, cooldowns, time-gated missions), then restores the clock after about 10 seconds. It needs psm-bridge running as Administrator, and it changes the clock for the whole PC for those few seconds.`,
+      confirmText: `Skip +${hours}h`,
+      onConfirm: async () => {
+        setBusy(`timeskip-${hours}`);
+        try {
+          const r = await timeSkip.mutateAsync(hours);
+          toast.success(
+            `Clock advanced ${r.hours}h and restored`,
+            `Held ${r.held_secs}s so the server could finish its real-time timers.`,
+          );
+        } catch (e) {
+          toast.error("Time skip failed", e instanceof Error ? e.message : String(e));
+        } finally {
+          setBusy(null);
+        }
+      },
     });
 
   const forceRestart = () =>
@@ -206,6 +229,35 @@ export function ServerControl() {
                   </Button>
                 </div>
                 <p className="sc-hint sc-hint--warn">Force actions kill the process immediately — no save.</p>
+              </div>
+            )}
+
+            {timeSkipEnabled && (
+              <div className="sc-timeskip">
+                <div className="eyebrow">Finish timers — clock skip</div>
+                <p className="sc-hint">
+                  Briefly jumps this server PC’s clock forward, waits ~10s so the running game finishes
+                  real-time timers (egg hatching, cooldowns, time-gated missions), then restores the clock.
+                  Requires <span className="mono">psm-bridge</span> running as Administrator.
+                </p>
+                <div className="sc-actions">
+                  {[2, 3, 4].map((h) => (
+                    <Button
+                      key={h}
+                      variant="ghost"
+                      onClick={() => doTimeSkip(h)}
+                      disabled={!!busy || !running}
+                      loading={busy === `timeskip-${h}`}
+                    >
+                      <Clock size={15} /> +{h}h
+                    </Button>
+                  ))}
+                </div>
+                <p className={`sc-hint${running ? "" : " sc-hint--warn"}`}>
+                  {running
+                    ? "The clock is restored automatically after the hold — but every app on this PC sees the jump for those few seconds."
+                    : "Start the server first — timers only advance while the game is running."}
+                </p>
               </div>
             )}
           </div>

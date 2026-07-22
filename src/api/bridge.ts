@@ -23,6 +23,7 @@ import type {
   ServerStatus,
   SettingsIni,
   SettingsIniWriteResult,
+  TimeSkipReceipt,
   WriteResult,
 } from "../types/bridge";
 
@@ -70,6 +71,8 @@ export interface BridgeApi {
   playerMap(uid: string, body: PlayerMapBody): Promise<WriteResult>;
   /** Edit one Pal instance (level, nickname, souls, talents, skills…). */
   editPal(instanceId: string, body: EditPalBody): Promise<WriteResult>;
+  /** Admin-only: jump the host clock forward `hours`, hold ~10s, then restore. */
+  timeSkip(hours: number): Promise<TimeSkipReceipt>;
   /** Fully restore one Pal (revive, cure sickness, refill HP/sanity/stomach). */
   healPal(instanceId: string): Promise<WriteResult>;
   /** Permanently remove one Pal (and its box slot) from the save. */
@@ -152,6 +155,8 @@ const tauriBridge: BridgeApi = {
   playerMap: (uid, body) => invoke<WriteResult>("bridge_post", { path: path.playerMap(uid), body }),
   editPal: (instanceId, body) =>
     invoke<WriteResult>("bridge_post", { path: path.editPal(instanceId), body }),
+  timeSkip: (hours) =>
+    invoke<TimeSkipReceipt>("bridge_post", { path: "/time/skip", body: { hours } }),
   healPal: (instanceId) => invoke<WriteResult>("bridge_post", { path: path.healPal(instanceId) }),
   deletePal: (instanceId) => invoke<WriteResult>("bridge_post", { path: path.deletePal(instanceId) }),
   clonePal: (instanceId) => invoke<CloneResult>("bridge_post", { path: path.clonePal(instanceId) }),
@@ -230,6 +235,7 @@ const httpBridge: BridgeApi = {
   editPlayerTechnologies: (uid, body) => call<WriteResult>(path.technologies(uid), "POST", body),
   playerMap: (uid, body) => call<WriteResult>(path.playerMap(uid), "POST", body),
   editPal: (instanceId, body) => call<WriteResult>(path.editPal(instanceId), "POST", body),
+  timeSkip: (hours) => call<TimeSkipReceipt>("/time/skip", "POST", { hours }),
   healPal: (instanceId) => call<WriteResult>(path.healPal(instanceId), "POST"),
   deletePal: (instanceId) => call<WriteResult>(path.deletePal(instanceId), "POST"),
   clonePal: (instanceId) => call<CloneResult>(path.clonePal(instanceId), "POST"),

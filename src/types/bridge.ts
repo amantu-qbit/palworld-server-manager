@@ -12,6 +12,16 @@ export interface BridgeHealth {
   /** True when the game server process is detected (writes are blocked).
    *  Absent on pre-Phase-2 bridges — treat missing as false. */
   server_running?: boolean;
+  /** True when the admin-only clock time-skip endpoint is enabled.
+   *  Absent on bridges without the feature — treat missing as false. */
+  time_skip_enabled?: boolean;
+}
+
+/** Outcome of a `POST /v1/time/skip`. */
+export interface TimeSkipReceipt {
+  hours: number;
+  held_secs: number;
+  restored: boolean;
 }
 
 /** `GET /v1/server/status` — process-supervisor state. */

@@ -184,6 +184,7 @@ save_dir = "C:/…/Pal/Saved/SaveGames/0/<WorldID>"
 
 [safety]
 allow_writes = false            # true to enable save editing
+allow_time_skip = false         # true to enable the clock time-skip (needs Administrator)
 
 # Optional: let the Bridge start/stop your server (enables the Server Control screen)
 # [server_process]
@@ -232,6 +233,12 @@ The guild hub. Rename a guild and set its **base‑camp level**, then, per base,
 With the Bridge connected, the Settings screen reads `PalWorldSettings.ini` directly (complete and accurate, unlike the read‑only REST view) and writes changed keys back — preserving every other byte of the file. Gameplay settings edit inline as toggles, numbers, and text; **network & auth keys** (ports, the REST toggle, admin/server passwords) sit behind an **Advanced** section with masked passwords and a typed confirmation, so a stray edit can't lock you out. Every write takes a timestamped backup first, and changes apply on the next server restart.
 
 ![Settings — editing PalWorldSettings.ini via the Bridge, with grouped inline controls](docs/screenshots/settings-edit.png)
+
+### ⏱️ Finish timers — clock skip *(opt‑in, Administrator only)*
+
+Some progress in Palworld is gated on **real‑world time** — egg hatching, cooldowns, and time‑gated missions. With the **Server Control** screen and the Bridge running **as Administrator**, the **clock skip** buttons (**+2h / +3h / +4h**) briefly jump the *server PC's* system clock forward so the running game finishes those timers, then **restore the clock automatically** after about 10 seconds.
+
+It's **off by default** — enable `allow_time_skip` in `bridge.toml` (or tick the box in the Bridge window). The restore is engineered to be safe: it uses a *relative* clock adjustment (so the real elapsed time is preserved), restores even if the request panics, and writes a recovery marker so that if the Bridge is killed mid‑skip, the next launch force‑resyncs the clock from NTP. Because it's an OS‑level change, **every app on that PC sees the jump** for those few seconds — so keep the window short (that's why it auto‑restores) and only use it on a machine you control.
 
 ## 🖼️ Screens
 

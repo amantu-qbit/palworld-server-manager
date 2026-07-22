@@ -21,6 +21,10 @@ pub struct Config {
     /// derived from `save_dir` when unset. `None` if it can't be located.
     pub settings_ini: Option<PathBuf>,
     pub allow_writes: bool,
+    /// `[safety] allow_time_skip`. Enables the admin-only clock time-skip
+    /// endpoint (jump the host clock forward briefly to finish real-time
+    /// timers, then restore). Off by default.
+    pub allow_time_skip: bool,
     /// Process-supervision config; `None` unless `[server_process]` (with an
     /// `exe`) is set, in which case the server-control endpoints are enabled.
     pub server_process: Option<ServerProcessConfig>,
@@ -98,6 +102,7 @@ struct RawPaths {
 #[derive(Debug, Default, Deserialize)]
 struct RawSafety {
     allow_writes: Option<bool>,
+    allow_time_skip: Option<bool>,
 }
 
 /// Load configuration for the bridge server.
@@ -170,6 +175,7 @@ fn resolve(raw: RawConfig, cli_port: Option<u16>, env_port: Option<String>) -> C
     let settings_ini = paths.settings_ini.filter(|s| !s.is_empty()).map(PathBuf::from);
 
     let allow_writes = safety.allow_writes.unwrap_or(false);
+    let allow_time_skip = safety.allow_time_skip.unwrap_or(false);
 
     Config {
         bind,
@@ -178,6 +184,7 @@ fn resolve(raw: RawConfig, cli_port: Option<u16>, env_port: Option<String>) -> C
         save_dir,
         settings_ini,
         allow_writes,
+        allow_time_skip,
         server_process,
     }
 }
@@ -258,6 +265,7 @@ struct WritablePaths {
 #[derive(Serialize)]
 struct WritableSafety {
     allow_writes: bool,
+    allow_time_skip: bool,
 }
 
 #[derive(Serialize)]
@@ -289,6 +297,7 @@ pub fn write(config: &Config, path: &Path) -> Result<(), ConfigError> {
         },
         safety: WritableSafety {
             allow_writes: config.allow_writes,
+            allow_time_skip: config.allow_time_skip,
         },
         server_process: config.server_process.as_ref().map(|sp| WritableServerProcess {
             exe: norm_path(&sp.exe),

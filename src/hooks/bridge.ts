@@ -168,6 +168,14 @@ export function useEditPal() {
   });
 }
 
+/** Admin-only clock time-skip. No cache invalidation — it changes the host
+ *  clock transiently, not any save data. */
+export function useTimeSkip() {
+  return useMutation({
+    mutationFn: (hours: number) => bridgeApi.timeSkip(hours),
+  });
+}
+
 export function useHealPal() {
   return useMutation({
     mutationFn: (instanceId: string) => bridgeApi.healPal(instanceId),

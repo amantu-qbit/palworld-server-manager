@@ -33,6 +33,7 @@ async fn main() {
         .and_then(|p| p.parse().ok())
         .unwrap_or(8213);
     let allow_writes = std::env::var("PSM_ALLOW_WRITES").is_ok_and(|v| v == "1");
+    let allow_time_skip = std::env::var("PSM_ALLOW_TIME_SKIP").is_ok_and(|v| v == "1");
     let settings_ini = std::env::var("PSM_SETTINGS_INI")
         .ok()
         .map(PathBuf::from)
@@ -44,6 +45,7 @@ async fn main() {
         Arc::new(token),
         Arc::new(Supervisor::new(None)),
         allow_writes,
+        allow_time_skip,
         settings_ini,
     );
 

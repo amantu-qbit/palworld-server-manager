@@ -44,6 +44,9 @@ struct ServerState {
     /// The `[safety] allow_writes` config value at bind time. Save-write
     /// endpoints 403 when false; `/v1/health` reports it.
     allow_writes: bool,
+    /// The `[safety] allow_time_skip` config value at bind time. The clock
+    /// time-skip endpoint 403s when false; `/v1/health` reports it.
+    allow_time_skip: bool,
     /// Resolved path to `PalWorldSettings.ini` (from config or derived from the
     /// save dir); `None` when it couldn't be located. Powers `/v1/settings/ini`.
     settings_ini: Option<PathBuf>,
@@ -91,6 +94,7 @@ fn app_routes() -> Router<ServerState> {
         .route("/v1/server/start", post(server_start))
         .route("/v1/server/stop", post(server_stop))
         .route("/v1/server/restart", post(server_restart))
+        .route("/v1/time/skip", post(time_skip))
         .route("/v1/debug/savfiles", get(debug_savfiles))
         .route("/v1/debug/savtree", get(debug_savtree))
 }
@@ -105,6 +109,7 @@ pub fn router(
     token: Arc<String>,
     supervisor: Arc<Supervisor>,
     allow_writes: bool,
+    allow_time_skip: bool,
     settings_ini: Option<PathBuf>,
 ) -> Router {
     let server_state = ServerState {
@@ -112,6 +117,7 @@ pub fn router(
         token,
         supervisor,
         allow_writes,
+        allow_time_skip,
         settings_ini,
         write_lock: Arc::new(tokio::sync::Mutex::new(())),
     };
@@ -134,6 +140,9 @@ struct HealthResponse {
     /// blocked while it runs (the game holds the save in memory and would
     /// overwrite any edit on its next autosave).
     server_running: bool,
+    /// True when the admin-only clock time-skip endpoint is enabled
+    /// (`[safety] allow_time_skip`).
+    time_skip_enabled: bool,
 }
 
 /// `GET /v1/health` — server version, capabilities, whether a save file is
@@ -149,6 +158,7 @@ async fn health(State(state): State<ServerState>) -> impl IntoResponse {
         save_detected: state.app.level_sav_exists(),
         writes_enabled: state.allow_writes,
         server_running: state.supervisor.status().running,
+        time_skip_enabled: state.allow_time_skip,
     })
 }
 
@@ -427,6 +437,55 @@ async fn server_stop(State(state): State<ServerState>) -> Response {
 /// `POST /v1/server/restart` — force stop, then start.
 async fn server_restart(State(state): State<ServerState>) -> Response {
     run_supervised(state.supervisor.clone(), Supervisor::restart).await
+}
+
+// --- Clock time-skip (admin-only, opt-in) -----------------------------------
+
+#[derive(serde::Deserialize)]
+struct TimeSkipBody {
+    hours: u32,
+}
+
+/// `POST /v1/time/skip` — briefly jump the host system clock forward `hours`
+/// (bounded), hold ~10s so the *running* server ticks its real-time timers, then
+/// restore. Opt-in (`[safety] allow_time_skip`) and Administrator-only. Unlike
+/// save edits this is meant to run *while the server is up*, so there is no
+/// server-running guard; it blocks for the hold window on a blocking thread.
+async fn time_skip(State(state): State<ServerState>, Json(body): Json<TimeSkipBody>) -> Response {
+    if !state.allow_time_skip {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(ErrorResponse {
+                error: "time_skip_disabled",
+            }),
+        )
+            .into_response();
+    }
+    let hours = body.hours;
+    match tokio::task::spawn_blocking(move || crate::time_skip::skip(hours)).await {
+        Ok(Ok(receipt)) => Json(receipt).into_response(),
+        Ok(Err(e)) => {
+            use crate::time_skip::TimeSkipError;
+            let (code, error) = match e {
+                TimeSkipError::BadHours => (StatusCode::UNPROCESSABLE_ENTITY, "bad_hours"),
+                TimeSkipError::InProgress => (StatusCode::CONFLICT, "time_skip_in_progress"),
+                TimeSkipError::NotElevated => (StatusCode::FORBIDDEN, "not_elevated"),
+                TimeSkipError::Unsupported => (StatusCode::NOT_IMPLEMENTED, "unsupported"),
+                TimeSkipError::SetClock(_) => {
+                    (StatusCode::INTERNAL_SERVER_ERROR, "set_clock_failed")
+                }
+            };
+            (
+                code,
+                Json(ErrorDetailResponse {
+                    error,
+                    detail: e.to_string(),
+                }),
+            )
+                .into_response()
+        }
+        Err(_) => internal_error("time skip task failed"),
+    }
 }
 
 /// Run a (blocking) supervisor operation off the async executor and map its
